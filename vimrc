@@ -30,6 +30,15 @@ syntax on
 set rnu
 autocmd BufRead *.py set tabstop=4 shiftwidth=4 smarttab expandtab softtabstop=4 autoindent smartindent
 
+set statusline=
+set statusline+=\[%n]                                  "buffernr
+set statusline+=\ %<%F\                                "File+path
+set statusline+=\ %y\                                  "FileType
+set statusline+=\ %{''.(&fenc!=''?&fenc:&enc).''}      "Encoding
+set statusline+=\ %{(&bomb?\",BOM\":\"\")}\            "Encoding2
+set statusline+=\ %{&ff}\                              "FileFormat (dos/unix..)
+set statusline+=\ %=\ row:%l/%L\ (%03p%%)\             "Rownumber/total (%)
+set statusline+=\ \ %m%r%w\ %P\ \                      "Modified? Readonly? Top/bot.
 
 
 " Smart mappings on the command line

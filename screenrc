@@ -1,0 +1,38 @@
+autodetach on
+startup_message off
+hardcopy_append on
+termcapinfo rxvt-unicode ti@:te@     #enable SHIFT-PGUP / SHIFT-PGDOWN scroll
+terminfo rxvt-unicode ti@:te@:
+term screen-256color
+defutf8 on
+vbell off
+msgwait 3
+nethack on
+defscrollback 12000
+terminfo rxvt-unicode 'Co#256:AB=\E[48;5;%dm:AF=\E[38;5;%dm'
+shell zsh
+sorendition ry
+
+
+caption always "%{= kc}%H %{= kw}%-w%{= BW}%n %t%{-}%+w %-= %d-%m-%Y  %c"
+
+# ideas found at guckes.net!
+idle 200 eval "screen cmatrix -b" "idle 0"
+
+screen    -t "zsh"  1 zsh
+screen    -t "zsh"  1 zsh
+select 1
+
+
+# my old status line (just for backup purpose
+##jarjar Feb 17  2:51 1-$ BASH  2*$ 2kt |  Load: 0.03 0.21 0.32
+##1-$ BASH  2$* BASH                                                        [ 2:51, Thu, 17/02/05]
+#caption always "%{=}%{+b kR}%H %{+b kY}%M %d %{+b kG}%2c %{+b kB}%?%-Lw%?%{+b kM}%n*%f %kt%?(%u)%?%{+b kB}%?%+Lw%? %{+b kc}%=[       %l ]"
+#hardstatus alwayslastline "%-Lw%{= YB}%50>%n%f* %t%{-}%+Lw%<  %{+b kc}%=[ %c, %D, %d/%m/%y ]"
+
+#let pgup/pgdn scroll under urxvt (see .Xdefaults)
+bindkey "^[[5;2~" eval "copy" "stuff ^u"
+bindkey -m "^[[5;2~" stuff ^u
+bindkey -m "^[[6;2~" stuff ^d
+
+# vim:set ts=2 ft=screen:

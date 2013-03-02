@@ -1,6 +1,6 @@
 #!/bin/sh
 
-dotdir=~/.dotfiles
+dotdir=$(pwd)
 
 create()
 {
@@ -16,13 +16,11 @@ create()
 create vimrc ~/.vimrc
 create vimdata ~/.vim
 create zshrc ~/.zshrc
-create xinitrx ~/.xinitrx
+create xinitrc ~/.xinitrc
 create gitconfig ~/.gitconfig
 create reportbugrc ~/.reportbugrc
 create dircolors ~/.dircolors
 create screenrc ~/.screenrc
-create mutt ~/.mutt
 create Xdefaults ~/.Xdefaults
 create awesome ~/.config/awesome
 create tmux.conf ~/.tmux.conf
-create muttprintrc ~/.muttprintrc

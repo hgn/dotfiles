@@ -13,28 +13,11 @@ fi
 
 ## ENV's
 
-# cvs-envs
-export CVSUMASK=003
-export CVSEDITOR=vim
-
 # executable directories
 export PATH=$HOME/bin:/sbin:/usr/sbin/:${PATH}
-export MOZILLA_HOME=$HOME/.mozilla
-# newsserver
-export NNTPSERVER=news.t-online.de
 
 #export PAGER="col -b | view -c 'set nomod' -"
 #export MANPAGER="col -b | view -c 'hi StatusLine ctermbg=green| set ft=man nomod nolist' -"
-
-export MANPATH=/usr/local/share/man:/usr/share/man:/usr/man
-
-export TCGREP="irnH"
-
-# less options via env
-#export LESS="--force --ignore-case -M"
-
-# classpath for java libaries
-export CLASSPATH=.:${CLASSPATH}
 
 # default encrypted session via rsync
 export RSYNC_RSH=ssh
@@ -107,14 +90,8 @@ alias diff='LC_ALL=C TZ=UTC0 diff'
 # hexdump
 alias hd='od -Ax -tx1z -v'
 
-# remove all svn directories recursive (use with caution)
-alias svnclear='find . -name .svn -print0 | xargs -0 rm -rf'
-
 # generate passwords, -t show you how to pronounce the generated passwords
 alias apg='apg -t'
-
-alias ack-grep='ack-grep -i'
-
 
 # Xterm stuff
 alias xterm-default='echo -e "\033]50;fixed\007"'
@@ -124,7 +101,6 @@ alias xterm-medium='echo -en "\033]50;7x13\007"'
 alias xterm-large='echo -en "\033]50;9x15\007"'
 alias xterm-huge='echo -en "\033]50;10x20\007"'
 
-# default cipher for ssh is 3des -> use blowfish because it is faster
 alias ssh='ssh -c blowfish'
 
 # use readline, completion and require rubygems by default for irb
@@ -182,44 +158,6 @@ case "${DIST}" in
   ;;
 esac
 
-### check for DOMAINNAME
-DOMAINNAME=$(dnsdomainname 2>/dev/null || hostname -d)
-case "${DOMAINNAME}" in
-
-   furcht.bar*)
-   ;;
-   fh-furtwangen.de*)
-     # news server
-     export NNTPSERVER=news.ai-lab.fh-furtwangen.de
-     export CFLAGS="-march=i386 -Os -fomit-frame-pointer -pipe";
-     export CXXFLAGS=$CFLAGS;
-
-     alias  clearcash="rm -rf ~/.firefox/default/71uumtop.slt/Cache/*"
-   ;;
-
-   *)
-   ;;
-esac
-
-### check for HOSTNAME
-HOSTNAME=$(hostname 2>/dev/null || hostname -f)
-case "${HOSTNAME}" in
-
-   einstein*,bacon,euler*)
-     export CFLAGS="-march=i386 -Os -fomit-frame-pointer -pipe";
-     export CXXFLAGS=$CFLAGS;
-   ;;
-
-   jarjar*)
-     alias javac5='/opt/jdk1.5.0_06/bin/javac'
-     alias java5='/opt/jdk1.5.0_06/bin/java'
-   ;;
-
-   zarov*)
-     export USIMDIR='playground/sandbox/eutran/trunk/src/utran-sim/'
-   ;;
-
-esac
 
 ## get keys working
 # found at http://maxime.ritter.eu.org/stuff/zshrc
@@ -402,19 +340,6 @@ bindkey "^r" history-incremental-search-backward
 #############################################################################
 # FUNCTIONS
 
-# display a git diff since a defined amount of time
-function gitddiff {
-  if [[ $# != 1 ]]
-  then
-    echo "Usage: $0 <SINCE>"
-    echo "  1 months ago"
-    echo "  2 days ago"
-    echo "  10 hours ago"
-  else
-    git diff $(git log --pretty=oneline --since=$1 | tail -n 1 | awk '{print $1}')..HEAD
-  fi
-}
-
 # ps wrapper function definitions found on
 # http://billharlan.com/pub/papers/Debugging_GnuLinux.txt
 function psc {
@@ -429,11 +354,6 @@ function psm {
      sed 's/^/ /' | less
 }
 
-function encode-xvid {
-  rm -fv ./xvid-twopass.stats
-  mencoder $1 -oac copy -ovc xvid -xvidencopts pass=1:vhq=4:me_quality=6:chroma_me:quant_type=h263:max_bframes=2 -o /dev/null
-  mencoder $1 -oac copy -ovc xvid -xvidencopts pass=2:vhq=4:me_quality=6:chroma_me:quant_type=h263:max_bframes=2 -o $2
-}
 
 function ff () {
   find . -iregex "${*}" -print
@@ -447,9 +367,6 @@ function ffg () {
     find $1 -iregex $2 -print0 | xargs -0 grep -in $3
   fi
 }
-
-
-function srm() { shred -n 1 -u -f $1 }
 
 
 # the following funtion found on http://status.deifl-web.de/dotfiles/zsh/zshfunctions
@@ -491,47 +408,6 @@ beer()
   echo "       '=]): .)  (["
   echo "         |:: '    |"
   echo "          ~~----~~"
-}
-
-# display some informations
-function sstatus()
-{
-  local system="$(cat /etc/[A-Za-z]*[_-][rv]e[lr]*)"
-
-  print ""
-  print "Date..: "$(date "+%Y-%m-%d %H:%M:%S")""
-  print "Shell.: Zsh $ZSH_VERSION (PID = $$, $SHLVL nests)"
-  print "Term..: $TTY ($TERM), $BAUD bauds, $COLUMNS x $LINES cars"
-  print "Login.: $LOGNAME (UID = $EUID) on $HOST"
-  print "System: $system"
-  print "Uptime:$(uptime)"
-  print ""
-}
-
-# Shows latest kernel versions
-function kernel()
-{
-printf 'GET /kdist/finger_banner HTTP1.0\n\n' | nc www.kernel.org 80 | grep latest
-}
-
-# generate thumbnails ;)
-function genthumbs ()
-{
-  rm -rf thumb-* index.html
-  echo "
-  <html>
-  <head>
-  <title>Images</title>
-  </head>
-  <body>" > index.html
-  for f in *.(gif|jpeg|jpg|png)
-  do
-    convert -size 100x200 "$f" -resize 100x200 thumb-"$f"
-    echo "    <a href=\"$f\"><img src=\"thumb-$f\"></a>" >> index.html
-  done
-  echo "
-  </body>
-  </html>" >> index.html
 }
 
 # gpg
@@ -621,21 +497,6 @@ function encodefps()
   fi
 }
 
-# this is my mp3 player - real nice device!
-function encodemeizu()
-{
-  if [[ $# != 2 ]]
-  then
-    echo "Usage: $0 input output"
-    echo "Purpose: encode to xvid and scale it to a proper format"
-  else
-  mencoder $1 -oac mp3lame -lameopts cbr:mode=2:br=96 -af \
-           resample=44100 -srate 44100 -ofps 20 -ovc lavc -lavcopts \
-           vcodec=mpeg4:mbd=2:cbp:trell:vbitrate=300 -vf scale=320:240 \
-           -ffourcc XVID -o $2
-  fi
-
-}
 
 allulimit() {
   ulimit -c unlimited
@@ -647,27 +508,6 @@ allulimit() {
   ulimit -t unlimited
 }
 
-
-# Offline dictionary by dict.tu-chemnitz.de (only offline)
-dict() { grep -i $* ~/.vim/dict-wordlist.txt }
-
-# look for definitions
-function wpedia () {
- BROWSER="firefox"
- JARGON_URL="http://de.wikipedia.org/wiki"
- for i in ${*}; do
-    ${BROWSER} ${JARGON_URL}/${i}
- done
-}
-
-# show rfc
-function rfc () {
- BROWSER="firefox"
- JARGON_URL="http://www.ietf.org/rfc"
- for i in ${*}; do
-    ${BROWSER} ${JARGON_URL}/rfc${i}.txt
- done
-}
 
 # A quick globbing reference, stolen from GRML.
 help-glob() {
@@ -713,24 +553,6 @@ function netstate {
 	netstat -tan | grep "^tcp" | cut -c 68- | sort | uniq -c | sort -n
 }
 
-# next two entrys found on svens hp => guckes.net
-# _P = make items "public"
-function _P
-{
-    ( for i in $*; do
-      if [[ -f $i ]] then; chmod 644 $i; fi
-      if [[ -d $i ]] then; chmod 755 $i; fi
-      done; )
-}
-
-# _p = make items "private"
-function _p
-{
-    ( for i in $*; do
-      if [[ -f $i ]] then; chmod 600 $i; fi
-      if [[ -d $i ]] then; chmod 700 $i; fi
-      done; )
-}
 
 alias calc="noglob _calc" calcfx="noglob _calcfx"
 function _calc () {
@@ -739,17 +561,6 @@ function _calc () {
 
 function _calcfx () {
             gawk -v CONVFMT="%12.2f" -v OFMT="%.9g"  "BEGIN { print $* ; }"
-}
-
-function cvsenv_koctopus {
-        echo cvs -z3 -d:ext:hgndgtl@cvs.sourceforge.net:/cvsroot/koctopus co -P koctopus
-}
-
-function teatime ()
-{
-  # don't worry: visual bell == true! ;-)
-  echo "Teatime!\nAllow to infuse for $1"
-  sleep $1;echo "...ready!\n";while true;do echo -e 'Tea!\a';sleep 0.1s;done
 }
 
 eval "$(dircolors -b)"

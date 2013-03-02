@@ -71,9 +71,9 @@ urxvt.cursorColor:      white
 !urxvt.transparent: true
 !urxvt.shading: 10
 urxvt.perl-ext-common:  default,matcher
-urxvt.urlLauncher:      google-chrome
-urxvt*matcher.button:   1
-urxvt*matcher.pattern.1: \\bwww\\.[\\w-]+\\.[\\w./?&@#=-]*[\\w/-]
+!urxvt.urlLauncher:      google-chrome
+!urxvt*matcher.button:   1
+!urxvt*matcher.pattern.1: \\bwww\\.[\\w-]+\\.[\\w./?&@#=-]*[\\w/-]
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! xterm stuff

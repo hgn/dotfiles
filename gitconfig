@@ -41,7 +41,7 @@
 	serve = !git daemon --reuseaddr --verbose  --base-path=. --export-all ./.git
 	gb = branch -av
 	lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
-	cs = commit -s
+	cs = commit -s -v
 	log-graph = log --all --graph --decorate
 	w = !git branch -a && git log --branches --oneline --graph --decorate --simplify-by-decoration --since='2 months ago'
 	diffstat      = diff --stat -r
@@ -49,11 +49,18 @@
 	graphviz = "!f() { echo 'digraph git {' ; git log --pretty='format:  %h -> { %p }' \"$@\" | sed 's/[0-9a-f][0-9a-f]*/\"&\"/g' ; echo '}'; }; f"
 	changes       = "!sh -c 'git status | sed -n \"/Untracked/N;//N;1,//d;s/^#/?/p\"; git diff --name-status -r \"$@\"' -"
 	who           = shortlog -s --
+	lol = log --graph --decorate --pretty=oneline --abbrev-commit
+	lola = log --graph --decorate --pretty=oneline --abbrev-commit --all
+	lolap = log --graph --decorate --pretty=oneline --abbrev-commit --all --patch
+	ds = diff --staged
+	unstage = reset HEAD
+
 
 
 [core]
 	legacyheaders = false
 	excludesfile = /home/pfeifer/.gitignore
+	whitespace=fix,-indent-with-non-tab,trailing-space,cr-at-eol
 
 [repack]
 	usedeltabaseoffset = true

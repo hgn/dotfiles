@@ -142,7 +142,6 @@ fi
 
 case "${DIST}" in
   debian)
-    alias vim=vim.nox
   ;;
   gentoo)
     #if [ -f /etc/profile.d/bash-completion ]; then

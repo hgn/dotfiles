@@ -289,6 +289,8 @@ awful.rules.rules = {
        properties = { tag = tags[1][4] } },
     { rule = { class = "pidgin" },
        properties = { tag = tags[1][5] } },
+    { rule = { class = "perf-studio" },
+      properties = { floating = true } },
 }
 
 -- {{{ Signals

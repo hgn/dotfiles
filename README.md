@@ -4,7 +4,7 @@ dotfiles
 Usage
 -----
 
-	git clone git https://github.com/hgn/dotfiles.git $HOME/.dotfiles
+	git clone https://github.com/hgn/dotfiles.git $HOME/.dotfiles
 	cd $HOME/.dotfiles
 	./create-symlinks.sh
 

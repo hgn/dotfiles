@@ -9,7 +9,7 @@
 -- {{{ Main
 theme = {}
 -- theme.wallpaper_cmd = { "awsetbg /home/pfeifer/media/photos/2012/08-urlaub-wallis-schweiz/jpg/IMG_9745.jpg" }
-theme.wallpaper_cmd = { "xsetroot -solid \"#050505\"" }
+theme.wallpaper_cmd = { "xsetroot -solid \"#101010\"" }
 -- }}}
 
 -- {{{ Styles

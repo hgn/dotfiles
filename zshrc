@@ -110,6 +110,11 @@ alias 3339date='date --rfc-3339=date'
 alias freq="cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_cur_freq"
 alias pyclean='find . -type f -name "*.py[co]" -exec rm -f \{\} \;'
 
+alias pbcopy='xsel --clipboard --input'
+alias pbpaste='xsel --clipboard --output'
+
+alias fm4="mplayer -playlist http://mp3stream1.apasf.apa.at:8000/listen.pls"
+
 [ -x /usr/bin/lesspipe ] && eval "$(lesspipe)"
 
 ### check for OS

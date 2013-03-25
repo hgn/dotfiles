@@ -13,7 +13,7 @@ theme.wallpaper_cmd = { "xsetroot -solid \"#101010\"" }
 -- }}}
 
 -- {{{ Styles
-theme.font      = "sans 8"
+theme.font      = "sans 9"
 
 -- {{{ Colors
 theme.fg_normal = "#BBBBBB"
@@ -26,9 +26,9 @@ theme.bg_urgent = "#3F3F3F"
 
 -- {{{ Borders
 theme.border_width  = "1"
-theme.border_normal = "#3F3F3F"
-theme.border_focus  = "#6F6F6F"
-theme.border_marked = "#CC9393"
+theme.border_normal = "#333333"
+theme.border_focus  = "#111111"
+theme.border_marked = "#ff3333"
 -- }}}
 
 -- {{{ Titlebars

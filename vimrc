@@ -20,7 +20,6 @@ set foldcolumn=0
 set modeline
 set modelines=10
 set wmh=0
-set statusline=%<%F%m%r%h\ %w\ \ CWD:\ %r%{CurDir()}%h\ %=\ [%1*%*%n%R%H%Y,%{(&fenc==\"\"?&enc:&fenc)}]\ \ %-25(%3l,%c%03V\ \ %P\ (%L)%)%12o'%03b''%03B'
 set switchbuf=useopen
 set titlestring=%<%F\ %M%=%l/%L\ -\ %p%% titlelen=70
 
@@ -40,7 +39,7 @@ set statusline+=\ %{''.(&fenc!=''?&fenc:&enc).''}      "Encoding
 set statusline+=\ %{(&bomb?\",BOM\":\"\")}\            "Encoding2
 set statusline+=\ %{&ff}\                              "FileFormat (dos/unix..)
 set statusline+=\ row:\ %l/%L\             "Rownumber/total
-set statusline+=\ col:\ %c\ %v\ %V\ \             "Rownumber/total (%)
+set statusline+=\ col:\ %c\             "Columnumber/total (%)
 set statusline+=\ \ %m%r%w\ %P\ \                      "Modified? Readonly? Top/bot.
 
 

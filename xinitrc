@@ -13,4 +13,6 @@ xsetroot -cursor_name right_ptr
 
 setxkbmap us
 
+pidgin &
+
 exec /usr/bin/awesome

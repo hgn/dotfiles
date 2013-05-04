@@ -1,6 +1,6 @@
 [user]
-	name = "Hagen Paul Pfeifer"
-	email = "hagen@jauu.net"
+	name = Hagen Paul Pfeifer
+	email = hagen@jauu.net
 
 [sendemail]
 	bcc = hagen@jauu.net
@@ -54,8 +54,7 @@
 	lolap = log --graph --decorate --pretty=oneline --abbrev-commit --all --patch
 	ds = diff --staged
 	unstage = reset HEAD
-
-
+	wdiff = diff --color-words
 
 [core]
 	legacyheaders = false
@@ -71,6 +70,20 @@
 
 [merge]
 	tool = vimdiff
+	log = true
+
+[diff]
+	# Git diff will use (i)ndex, (w)ork tree, (c)ommit and (o)bject
+	# instead of a/b/c/d as prefixes for patches
+	mnemonicprefix = true
+
+[rerere]
+# Remember my merges
+	# http://gitfu.wordpress.com/2008/04/20/git-rerere-rereremember-what-you-did-last-time/
+	enabled = true
+
+[apply]
+	whitespace = fix
 
 [commit]
 	signoff = yes
@@ -78,6 +91,6 @@
 [giggle]
 	main-window-maximized = false
 	main-window-geometry = 1680x1050+0+0
-	history-view-vpane-position = 671
+	history-view-vpane-position = 331
 	main-window-view = HistoryView
 	file-view-vpane-position = 241

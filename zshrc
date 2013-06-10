@@ -113,8 +113,6 @@ alias pyclean='find . -type f -name "*.py[co]" -exec rm -f \{\} \;'
 alias pbcopy='xsel --clipboard --input'
 alias pbpaste='xsel --clipboard --output'
 
-alias fm4="mplayer -playlist http://mp3stream1.apasf.apa.at:8000/listen.pls"
-
 [ -x /usr/bin/lesspipe ] && eval "$(lesspipe)"
 
 ### check for OS
@@ -473,33 +471,29 @@ function gif2png()
   fi
 }
 
-function png2thumbb() 
+
+function radio()
 {
-  if [[ $# = 0 ]]
+  if [[ $# != 1 ]]
   then
-    echo "Usage: $0 foo.gif"
-    echo "Purpose: change a GIF file to a PNG file"
-  else
-    output=`basename $1 .png`-thumb.png
-    convert -resize 250x250 $1 $output
-    convert $output -bordercolor black -border 2 $output
-    touch -r $1 $output
-    ls -l $1 $output
+    echo "Usage: $0 [egofm | fm4 ]"
+		return
   fi
+
+	case $1 in
+		fm4)
+			mplayer -playlist http://mp3stream1.apasf.apa.at:8000/listen.pls
+			;;
+		egofm)
+			mplayer http://www.egofm.de/stream/192kb
+			;;
+		*)
+			echo "Usage: $0 [egofm | fm4 ]"
+			;;
+	esac
 }
 
-function encodefps()
-{
-  if [[ $# != 3 ]]
-  then
-    echo "Usage: $0 input output frame-rate"
-  else
-     mencoder $1 -ovc copy -ofps $3 -noskip -o /tmp/pass_encode.avi
-     mencoder /tmp/pass_encode.avi  -ovc lavc -lavcopts vcodec=mpeg1video:vbitrate=3000:vhq:vpass=1 -nosound -o /tmp/pass_encode1.avi
-     mencoder /tmp/pass_encode.avi  -ovc lavc -lavcopts vcodec=mpeg1video:vbitrate=3000:vhq:vpass=2 -nosound -o /tmp/pass_encode1.avi
-     mv /tmp/pass_encode1.avi $2
-  fi
-}
+
 
 
 allulimit() {

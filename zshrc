@@ -273,6 +273,9 @@ export DIRSTACKSIZE=10
 setopt autopushd pushdminus pushdsilent pushdtohome
 alias dh='dirs -v'
 
+setopt long_list_jobs
+alias jobs='jobs -l'
+
 
 
 # prompt

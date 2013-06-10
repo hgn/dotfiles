@@ -1,6 +1,7 @@
 [user]
 	name = Hagen Paul Pfeifer
 	email = hagen@jauu.net
+	signingkey = 98350C22
 
 [sendemail]
 	bcc = hagen@jauu.net

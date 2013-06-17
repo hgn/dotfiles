@@ -29,8 +29,6 @@ syntax on
 set rnu
 autocmd BufRead *.py set tabstop=4 shiftwidth=4 smarttab expandtab softtabstop=4 autoindent smartindent
 
-set noswapfile
-
 set statusline=
 set statusline+=\[%n]                                  "buffernr
 set statusline+=\ %<%F\                                "File+path

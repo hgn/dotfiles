@@ -143,23 +143,6 @@ elif [ -f /etc/arch-release ]; then
   DIST="arch"
 fi
 
-case "${DIST}" in
-  debian)
-  ;;
-  gentoo)
-    #if [ -f /etc/profile.d/bash-completion ]; then
-    #    source /etc/profile.d/bash-completion
-    #fi
-    export PATH=$PATH:/opt/java/jre/bin/
-  ;;
-  arch)
-    export PATH=$PATH:/opt/java/jre/bin/
-  ;;
-
-  *)
-  ;;
-esac
-
 
 ## get keys working
 # found at http://maxime.ritter.eu.org/stuff/zshrc

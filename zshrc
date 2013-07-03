@@ -16,6 +16,7 @@ fi
 # executable directories
 export PATH=$HOME/bin:/sbin:/usr/sbin/:${PATH}
 
+
 #export PAGER="col -b | view -c 'set nomod' -"
 #export MANPAGER="col -b | view -c 'hi StatusLine ctermbg=green| set ft=man nomod nolist' -"
 
@@ -545,6 +546,12 @@ function _calc () {
 
 function _calcfx () {
             gawk -v CONVFMT="%12.2f" -v OFMT="%.9g"  "BEGIN { print $* ; }"
+}
+
+function andoid-dev-mode {
+	echo "add android path"
+	export PATH=$PATH:~/src/code/01-own/android-dev/android-sdk-linux/tools
+	export PATH=$PATH:~/src/code/01-own/android-dev/android-sdk-linux/platform-tools
 }
 
 eval "$(dircolors -b)"

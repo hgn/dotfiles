@@ -28,6 +28,7 @@ syntax on
 " TEST-SUITE
 set rnu
 autocmd BufRead *.py set tabstop=4 shiftwidth=4 smarttab expandtab softtabstop=4 autoindent smartindent
+autocmd BufRead *.java set tabstop=4 shiftwidth=4 smarttab expandtab softtabstop=4 autoindent smartindent
 
 set statusline=
 set statusline+=\[%n]                                  "buffernr

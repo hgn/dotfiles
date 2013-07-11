@@ -548,7 +548,7 @@ function _calcfx () {
             gawk -v CONVFMT="%12.2f" -v OFMT="%.9g"  "BEGIN { print $* ; }"
 }
 
-function andoid-dev-mode {
+function android-dev-mode {
 	echo "add android path"
 	export PATH=$PATH:~/src/code/01-own/android-dev/android-sdk-linux/tools
 	export PATH=$PATH:~/src/code/01-own/android-dev/android-sdk-linux/platform-tools

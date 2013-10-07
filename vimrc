@@ -26,7 +26,9 @@ set titlestring=%<%F\ %M%=%l/%L\ -\ %p%% titlelen=70
 syntax on
 
 " TEST-SUITE
-set rnu
+set relativenumber
+set number
+
 autocmd BufRead *.py set tabstop=4 shiftwidth=4 smarttab expandtab softtabstop=4 autoindent smartindent
 autocmd BufRead *.java set tabstop=4 shiftwidth=4 smarttab expandtab softtabstop=4 autoindent smartindent
 

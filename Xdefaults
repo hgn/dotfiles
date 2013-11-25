@@ -41,17 +41,23 @@ aterm*saveLines: 1000
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! urxvt
-urxvt.font: xft:DejaVu Sans Mono:pixelsize=14,xft:Bitstream Vera Sans Mono,xft:Baekmuk Gulim,xft:Kochi Gothic,xft:AR PL ShanHeiSun Uni,xft:FreeMono:autohint=true
-urxvt.boldFont: xft:DejaVu Sans Mono:pixelsize=14,xft:Bitstream Vera Sans Mono,xft:Baekmuk Gulim,xft:Kochi Gothic,xft:AR PL ShanHeiSun Uni,xft:FreeMono:autohint=true
 
-urxvt.keysym.C-minus: command:\033]710;xft:DejaVu Sans Mono:pixelsize=10,xft:Bitstream Vera Sans Mono,xft:Baekmuk Gulim,xft:Kochi Gothic,xft:AR PL ShanHeiSun Uni,xft:FreeMono:autohint=true\007
-urxvt.boldFont.keysym.C-minus: command:\033]710;xft:DejaVu Sans Mono:pixelsize=10,xft:Bitstream Vera Sans Mono,xft:Baekmuk Gulim,xft:Kochi Gothic,xft:AR PL ShanHeiSun Uni,xft:FreeMono:autohint=true\007
+Xft.autohint: true
+Xft.antialias: true
+Xft.hinting: true
+Xft.hintstyle: full
+Xft.dpi: 96
+Xft.rgba: rgb
+Xft.lcdfilter: lcddefault
 
-urxvt.keysym.C-0: command:\033]710;xft:DejaVu Sans Mono:pixelsize=16,xft:Bitstream Vera Sans Mono,xft:Baekmuk Gulim,xft:Kochi Gothic,xft:AR PL ShanHeiSun Uni,xft:FreeMono:autohint=true\007
-urxvt.boldFont.keysym.C-0: command:\033]710;xft:DejaVu Sans Mono:pixelsize=16,xft:Bitstream Vera Sans Mono,xft:Baekmuk Gulim,xft:Kochi Gothic,xft:AR PL ShanHeiSun Uni,xft:FreeMono:autohint=true\007
+!urxvt.font: xft:DejaVu Sans Mono:pixelsize=14,xft:Bitstream Vera Sans Mono,xft:Baekmuk Gulim,xft:Kochi Gothic,xft:AR PL ShanHeiSun Uni,xft:FreeMono:autohint=true
+urxvt.font: xft:Inconsolata:pixelsize=17
 
-urxvt.keysym.C-equal: command:\033]710;xft:DejaVu Sans Mono:pixelsize=26,xft:Bitstream Vera Sans Mono,xft:Baekmuk Gulim,xft:Kochi Gothic,xft:AR PL ShanHeiSun Uni,xft:FreeMono:autohint=true\007
-urxvt.boldFont.keysym.C-equal: command:\033]710;xft:DejaVu Sans Mono:pixelsize=26,xft:Bitstream Vera Sans Mono,xft:Baekmuk Gulim,xft:Kochi Gothic,xft:AR PL ShanHeiSun Uni,xft:FreeMono:autohint=true\007
+urxvt.keysym.C-minus: command:\033]710;xft:Inconsolata:pixelsize=15\007
+urxvt.keysym.C-0: command:\033]710;xft:Inconsolata:pixelsize=17\007
+urxvt.keysym.C-equal: command:\033]710;xft:Inconsolata:pixelsize=22\007
+
+URxvt.boldFont:
 
 urxvt*background:       black
 urxvt*foreground:       white
@@ -67,13 +73,14 @@ urxvt*saveLines:        5000
 urxvt.termName:         rxvt
 urxvt.cursorBlink:      true
 urxvt.cursorColor:      white
-!urxvt.cursorUnderline: true
-!urxvt.transparent: true
-!urxvt.shading: 10
-urxvt.perl-ext-common:  default,matcher
+!urxvt.perl-ext-common:  default,matcher
 !urxvt.urlLauncher:      google-chrome
 !urxvt*matcher.button:   1
 !urxvt*matcher.pattern.1: \\bwww\\.[\\w-]+\\.[\\w./?&@#=-]*[\\w/-]
+URxvt*color4: RoyalBlue
+URxvt*color12: RoyalBlue
+URxvt*allow_bold:false
+URxvt.depth: 32
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! xterm stuff
@@ -214,5 +221,10 @@ xosview*lmstemp: False
 !xpdf*background: white
 !xpdf*urlCommand: /usr/bin/firefox %s
 !xpdf*viKeys: on
+xpdf*enableFreetype:    yes
+xpdf*antialias:         yes
+xpdf*foreground:        black
+xpdf*background:        white
+xpdf*urlCommand:        /usr/bin/google-chrome %s
 
 ! vim:set ts=2 tw=80 ft=xdefaults:

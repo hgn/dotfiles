@@ -200,7 +200,7 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey, "Shift"   }, "space", function () awful.layout.inc(layouts, -1) end),
 
 		awful.key({ modkey            }, "r",     function()
-			  		awful.util.spawn_with_shell( "exe=`dmenu_path | dmenu -nb '#000000' -nf '#ffffff' -sb '#ff0000' -sf '#000000' -l 30` && exec $exe")
+			  		awful.util.spawn_with_shell( "exe=`dmenu_run -nb '#000000' -nf '#ffffff' -sb '#ff0000' -sf '#000000' -l 30` && exec $exe")
 			                                        end),
 
 		awful.key({ modkey, "Mod4" }, "x", nil, function () awful.util.spawn("xtrlock") end)

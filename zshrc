@@ -260,6 +260,11 @@ alias dh='dirs -v'
 setopt long_list_jobs
 alias jobs='jobs -l'
 
+# aptitude install autojump
+if [ -f /usr/share/autojump/autojump.zsh ]; then
+	. /usr/share/autojump/autojump.zsh
+fi
+
 
 
 # prompt
@@ -354,6 +359,15 @@ function ffg () {
     echo "Usage: $0 directory filenamepattern filecontentpattern"
   else
     find $1 -iregex $2 -print0 | xargs -0 grep -in $3
+  fi
+}
+
+function sgrep () {
+  if [[ $# != 1 ]]
+  then
+    echo "Usage: $0 pattern"
+  else
+		grep -C 3 -rni $1 **/*.[ch]
   fi
 }
 

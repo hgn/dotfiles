@@ -199,6 +199,7 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey,           }, "space", function () awful.layout.inc(layouts,  1) end),
     awful.key({ modkey, "Shift"   }, "space", function () awful.layout.inc(layouts, -1) end),
 
+		-- sudo apt-get install dmenu xfonts-terminus
 		awful.key({ modkey            }, "r",     function()
 			  		awful.util.spawn_with_shell( "exe=`dmenu_run -p 'Run:' -nb '#1A1E20' -nf '#DBDBDB' -sb '#466EB4' -sf '#FFFFFF' -fn '-*-terminus-*-r-normal-*-*-200-*-*-*-*-iso8859-*' -l 20` && exec $exe")
 			                                        end),

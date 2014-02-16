@@ -37,11 +37,20 @@ layouts =
 }
 -- }}}
 
+
+
 -- Define a tag table which hold all screen tags.
+names  = { 
+         ' ☭:src',
+         ' ⚡:mail', 
+         ' ✇:comm',
+         ' ☠:www',  
+         ' ⌥:misc', 
+}
 tags = {}
 for s = 1, screen.count() do
     -- Each screen has its own tag table.
-    tags[s] = awful.tag({ " src ", " mail ", " comm ", " www ", " misc " }, s, layouts[1])
+    tags[s] = awful.tag(names, s, layouts[1])
 end
 
 -- Create a laucher widget and a main menu

@@ -13,7 +13,7 @@ theme.wallpaper_cmd = { "xsetroot -solid \"#101010\"" }
 -- }}}
 
 -- {{{ Styles
-theme.font      = "sans 9"
+theme.font      = "terminus 11"
 
 -- {{{ Colors
 theme.fg_normal = "#BBBBBB"
@@ -64,19 +64,18 @@ theme.tasklist_floating_icon = "/usr/share/awesome/themes/default/tasklist/float
 -- }}}
 
 -- {{{ Layout
--- theme.layout_tile       = "/usr/share/awesome/themes/zenburn/layouts/tile.png"
--- theme.layout_tileleft   = "/usr/share/awesome/themes/zenburn/layouts/tileleft.png"
--- theme.layout_tilebottom = "/usr/share/awesome/themes/zenburn/layouts/tilebottom.png"
--- theme.layout_tiletop    = "/usr/share/awesome/themes/zenburn/layouts/tiletop.png"
--- theme.layout_fairv      = "/usr/share/awesome/themes/zenburn/layouts/fairv.png"
--- theme.layout_fairh      = "/usr/share/awesome/themes/zenburn/layouts/fairh.png"
--- theme.layout_spiral     = "/usr/share/awesome/themes/zenburn/layouts/spiral.png"
--- theme.layout_dwindle    = "/usr/share/awesome/themes/zenburn/layouts/dwindle.png"
--- theme.layout_max        = "/usr/share/awesome/themes/zenburn/layouts/max.png"
--- theme.layout_fullscreen = "/usr/share/awesome/themes/zenburn/layouts/fullscreen.png"
--- theme.layout_magnifier  = "/usr/share/awesome/themes/zenburn/layouts/magnifier.png"
--- theme.layout_floating   = "/usr/share/awesome/themes/zenburn/layouts/floating.png"
--- }}}
+theme.layout_fairh      = '~/.config/awesome/themes/hgn/layouts/fairhw.png'
+theme.layout_fairv      = '~/.config/awesome/themes/hgn/layouts/fairvw.png'
+theme.layout_floating   = '~/.config/awesome/themes/hgn/layouts/floatingw.png'
+theme.layout_magnifier  = '~/.config/awesome/themes/hgn/layouts/magnifierw.png'
+theme.layout_max        = '~/.config/awesome/themes/hgn/layouts/maxw.png'
+theme.layout_fullscreen = '~/.config/awesome/themes/hgn/layouts/fullscreenw.png'
+theme.layout_tilebottom = '~/.config/awesome/themes/hgn/layouts/tilebottomw.png'
+theme.layout_tileleft   = '~/.config/awesome/themes/hgn/layouts/tileleftw.png'
+theme.layout_tile       = '~/.config/awesome/themes/hgn/layouts/tilew.png'
+theme.layout_tiletop    = '~/.config/awesome/themes/hgn/layouts/tiletopw.png'
+theme.layout_spiral     = '~/.config/awesome/themes/hgn/layouts/spiralw.png'
+theme.layout_dwindle    = '~/.config/awesome/themes/hgn/layouts/dwindlew.png'
 
 -- {{{ Titlebar
 theme.titlebar_close_button_focus  = "/usr/share/awesome/themes/zenburn/titlebar/close_focus.png"

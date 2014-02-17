@@ -208,7 +208,7 @@ if has("autocmd")
   autocmd FileType slang set cindent tabstop=4 shiftwidth=4 tw=78
 
   "slrn is my newsreader
-  autocmd BufRead .followup,.article,.letter set fo=tcq comments=n:>,n::,n:»,n:]
+  autocmd BufRead .followup,.article,.letter set fo=tcq comments=n:>,n::,n:Â»,n:]
 
   "for actual C programming where comments have explicit end
   "characters, if starting a new line in the middle of a comment automatically

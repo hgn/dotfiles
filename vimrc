@@ -26,6 +26,11 @@ set titlestring=%<%F\ %M%=%l/%L\ -\ %p%% titlelen=70
 syntax on
 
 " TEST-SUITE
+" persistant undo
+set undodir=~/.cache/vim
+set undofile
+set undoreload=10000
+
 set relativenumber
 set number
 
@@ -35,15 +40,15 @@ autocmd BufRead *.py set tabstop=4 shiftwidth=4 smarttab expandtab softtabstop=4
 autocmd BufRead *.java set tabstop=4 shiftwidth=4 smarttab expandtab softtabstop=4 autoindent smartindent
 
 set statusline=
-set statusline+=\[%n]                                  "buffernr
-set statusline+=\ %<%F\                                "File+path
-set statusline+=\ %=\ %y\                                  "FileType
-set statusline+=\ %{''.(&fenc!=''?&fenc:&enc).''}      "Encoding
-set statusline+=\ %{(&bomb?\",BOM\":\"\")}\            "Encoding2
-set statusline+=\ %{&ff}\                              "FileFormat (dos/unix..)
-set statusline+=\ row:\ %l/%L\             "Rownumber/total
-set statusline+=\ col:\ %c\             "Columnumber/total (%)
-set statusline+=\ \ %m%r%w\ %P\ \                      "Modified? Readonly? Top/bot.
+set statusline+=\[%n]                               "buffernr
+set statusline+=\ %<%F\                             "File+path
+set statusline+=\ %=\ %y\                           "FileType
+set statusline+=\ %{''.(&fenc!=''?&fenc:&enc).''}   "Encoding
+set statusline+=\ %{(&bomb?\",BOM\":\"\")}\         "Encoding2
+set statusline+=\ %{&ff}\                           "FileFormat (dos/unix..)
+set statusline+=\ row:\ %l/%L\                      "Rownumber/total
+set statusline+=\ col:\ %c\                         "Columnumber/total (%)
+set statusline+=\ \ %m%r%w\ %P\ \                   "Modified? Readonly? Top/bot.
 
 
 " Smart mappings on the command line
@@ -283,7 +288,7 @@ map  ,l :!clear ;grep --color=auto -i <cword> ~/.vim/dict-wordlist.txt<cr>
 map ,zu :r!dd if=/dev/random bs=14 count=1 \| hexdump \| cut -c 9-<esc>3k2dd
 
 "found on Bram Moolenaars page, nice thing! (with a little modification => :noh)
-map <F6> mX:sp ~/.signatures<CR>ggd/^-- /<CR>Gp:wq<CR>'XGA<CR><Esc>:noh<CR>p`X
+nnoremap <F6> :UndotreeToggle<cr>
 
 " ABBREVIATIATIONS 
 

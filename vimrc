@@ -26,6 +26,22 @@ set titlestring=%<%F\ %M%=%l/%L\ -\ %p%% titlelen=70
 syntax on
 
 " TEST-SUITE
+let mapleader = ","
+
+map <Leader> <Plug>(easymotion-prefix)
+map  / <Plug>(easymotion-sn)
+omap / <Plug>(easymotion-tn)
+map  n <Plug>(easymotion-next)
+map  N <Plug>(easymotion-prev)
+
+map <Leader>h <Plug>(easymotion-lineforward)
+map <Leader>j <Plug>(easymotion-j)
+map <Leader>k <Plug>(easymotion-k)
+map <Leader>l <Plug>(easymotion-linebackward)
+
+let g:EasyMotion_startofline = 0 " keep cursor colum when JK motion
+let g:EasyMotion_smartcase = 1
+
 " persistant undo
 set undodir=~/.cache/vim
 set undofile
@@ -34,7 +50,6 @@ set undoreload=10000
 set relativenumber
 set number
 
-let mapleader = ","
 
 autocmd BufRead *.py set tabstop=4 shiftwidth=4 smarttab expandtab softtabstop=4 autoindent smartindent
 autocmd BufRead *.java set tabstop=4 shiftwidth=4 smarttab expandtab softtabstop=4 autoindent smartindent
@@ -288,7 +303,12 @@ map  ,l :!clear ;grep --color=auto -i <cword> ~/.vim/dict-wordlist.txt<cr>
 map ,zu :r!dd if=/dev/random bs=14 count=1 \| hexdump \| cut -c 9-<esc>3k2dd
 
 "found on Bram Moolenaars page, nice thing! (with a little modification => :noh)
-nnoremap <F6> :UndotreeToggle<cr>
+
+if has('persistent_undo')
+	nnoremap <F6> :UndotreeToggle<cr>
+	let g:undotree_SplitWidth = 50
+	let g:undotree_WindowLayout = 3
+endif
 
 " ABBREVIATIATIONS 
 

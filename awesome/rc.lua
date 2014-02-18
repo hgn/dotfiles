@@ -41,11 +41,11 @@ layouts =
 
 -- Define a tag table which hold all screen tags.
 names  = { 
-         ' ☭:src',
-         ' ⚡:mail', 
-         ' ✇:comm',
-         ' ☠:www',  
-         ' ⌥:misc', 
+         ' ☭:src:➊',
+         ' ⚡:mail:➋',
+         ' ✇:comm:➌',
+         ' ☠:www:➍',
+         ' ⌥:misc:➎',
 }
 tags = {}
 for s = 1, screen.count() do

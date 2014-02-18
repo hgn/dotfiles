@@ -1,0 +1,5 @@
+
+Code Navigation
+
+Jumping to previously visited locations - Ctrl-O
+Jump forward to the next location       - Ctrl-I

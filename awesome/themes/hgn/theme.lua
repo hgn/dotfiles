@@ -1,10 +1,5 @@
--------------------------------
---  "Zenburn" awesome theme  --
---    By Adrian C. (anrxc)   --
--------------------------------
 
--- Alternative icon sets and widget icons:
---  * http://awesome.naquadah.org/wiki/Nice_Icons
+local config_home = os.getenv("HOME")
 
 -- {{{ Main
 theme = {}
@@ -46,8 +41,8 @@ theme.mouse_finder_color = "#CC9393"
 -- Variables set forffffffng the menu:
 -- menu_[bg|fg]_[normal|focus]
 -- menu_[border_color|border_width]
-theme.menu_height = "15"
-theme.menu_width  = "100"
+theme.menu_height = "22"
+theme.menu_width  = "190"
 -- }}}
 
 -- {{{ Icons
@@ -58,24 +53,24 @@ theme.taglist_squares_unsel = "/usr/share/awesome/themes/zenburn/taglist/squarez
 -- }}}
 
 -- {{{ Misc
-theme.awesome_icon           = "/usr/share/awesome/themes/zenburn/awesome-icon.png"
+theme.awesome_icon           = "/home/pfeifer/.config/awesome/themes/hgn/one-black-pixel.png"
 theme.menu_submenu_icon      = "/usr/share/awesome/themes/default/submenu.png"
 theme.tasklist_floating_icon = "/usr/share/awesome/themes/default/tasklist/floatingw.png"
 -- }}}
 
 -- {{{ Layout
-theme.layout_fairh      = '~/.config/awesome/themes/hgn/layouts/fairhw.png'
-theme.layout_fairv      = '~/.config/awesome/themes/hgn/layouts/fairvw.png'
-theme.layout_floating   = '~/.config/awesome/themes/hgn/layouts/floatingw.png'
-theme.layout_magnifier  = '~/.config/awesome/themes/hgn/layouts/magnifierw.png'
-theme.layout_max        = '~/.config/awesome/themes/hgn/layouts/maxw.png'
-theme.layout_fullscreen = '~/.config/awesome/themes/hgn/layouts/fullscreenw.png'
-theme.layout_tilebottom = '~/.config/awesome/themes/hgn/layouts/tilebottomw.png'
-theme.layout_tileleft   = '~/.config/awesome/themes/hgn/layouts/tileleftw.png'
-theme.layout_tile       = '~/.config/awesome/themes/hgn/layouts/tilew.png'
-theme.layout_tiletop    = '~/.config/awesome/themes/hgn/layouts/tiletopw.png'
-theme.layout_spiral     = '~/.config/awesome/themes/hgn/layouts/spiralw.png'
-theme.layout_dwindle    = '~/.config/awesome/themes/hgn/layouts/dwindlew.png'
+theme.layout_fairh      = config_home .. '/.config/awesome/themes/hgn/layouts/fairh.png'
+theme.layout_fairv      = config_home .. '/.config/awesome/themes/hgn/layouts/fairv.png'
+theme.layout_floating   = config_home .. '/.config/awesome/themes/hgn/layouts/floating.png'
+theme.layout_magnifier  = config_home .. '/.config/awesome/themes/hgn/layouts/magnifier.png'
+theme.layout_max        = config_home .. '/.config/awesome/themes/hgn/layouts/max.png'
+theme.layout_fullscreen = config_home .. '/.config/awesome/themes/hgn/layouts/fullscreen.png'
+theme.layout_tilebottom = config_home .. '/.config/awesome/themes/hgn/layouts/tilebottom.png'
+theme.layout_tileleft   = config_home .. '/.config/awesome/themes/hgn/layouts/tileleft.png'
+theme.layout_tile       = config_home .. '/.config/awesome/themes/hgn/layouts/tile.png'
+theme.layout_tiletop    = config_home .. '/.config/awesome/themes/hgn/layouts/tiletop.png'
+theme.layout_spiral     = config_home .. '/.config/awesome/themes/hgn/layouts/spiral.png'
+theme.layout_dwindle    = config_home .. '/.config/awesome/themes/hgn/layouts/dwindle.png'
 
 -- {{{ Titlebar
 theme.titlebar_close_button_focus  = "/usr/share/awesome/themes/zenburn/titlebar/close_focus.png"

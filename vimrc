@@ -42,10 +42,10 @@ map <Leader>l <Plug>(easymotion-linebackward)
 let g:EasyMotion_startofline = 0 " keep cursor colum when JK motion
 let g:EasyMotion_smartcase = 1
 
-" persistant undo
-set undodir=~/.cache/vim
-set undofile
-set undoreload=10000
+"" persistant undo
+"set undodir=~/.cache/vim
+"set undofile
+"set undoreload=10000
 
 set relativenumber
 set number

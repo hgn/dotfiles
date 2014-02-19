@@ -1,5 +1,19 @@
 
-Code Navigation
+# Code Navigation
 
 Jumping to previously visited locations - Ctrl-O
 Jump forward to the next location       - Ctrl-I
+
+With cscoped project and cscope plugin:
+
+Find Symbol unter cursor                - Ctrl-\ s
+Find definition of symbol under cursor: - Ctrl-\ g
+Find calls to symbol under cursor:      - Ctrl-\ c
+Find instances of text under cursor:    - Ctrl-\ t
+Jumping back in                         - Ctrl-t 
+
+
+# Completion
+
+Word complete - Ctrl-p
+Line complete - Ctrl-x l

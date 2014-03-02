@@ -56,6 +56,7 @@
 	ds = diff --staged
 	unstage = reset HEAD
 	wdiff = diff --color-words
+	g = grep --break --heading --line-number
 
 [core]
 	legacyheaders = false

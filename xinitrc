@@ -18,6 +18,10 @@ setxkbmap us
 # caps lock as compose key
 setxkbmap -option compose:caps
 
+xbindkeys 
+
+xsetroot -solid "#101010"
+
 pidgin &
 
 exec /usr/bin/awesome

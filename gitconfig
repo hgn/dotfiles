@@ -5,9 +5,10 @@
 
 [sendemail]
 	bcc = hagen@jauu.net
-	chainreplyto = 0
-	smtpserver = /home/pfeifer/bin/sendmail.sh
-	confirm = auto
+	smtpencryption = tls
+	smtpserver = smtp.gmail.com
+	smtpuser = hagen@jauu.net
+	smtpserverport = 587
 
 [color]
 	branch = auto

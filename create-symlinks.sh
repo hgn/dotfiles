@@ -24,3 +24,4 @@ create screenrc ~/.screenrc
 create Xdefaults ~/.Xdefaults
 create awesome ~/.config/awesome
 create tmux.conf ~/.tmux.conf
+create irssi ~/.irssi

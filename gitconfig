@@ -35,6 +35,8 @@
 	st = status -sb
 	ci = commit
 	co = checkout
+	
+	pull = pull --stat
 
 	# clean untracked files, untracked directories and everything else
 	# This produce a clean state, similar after fresh pull.
@@ -42,6 +44,7 @@
 
 	# list all new commits after you fetched, with stats, but excluding merges
 	lc = log ORIG_HEAD.. --stat --no-merges
+
 	# timezone aware version
 	llog = log --date=local
 	# fires up a git daemon for the repo you are currently in

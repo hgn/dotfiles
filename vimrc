@@ -28,6 +28,9 @@ syntax on
 " TEST-SUITE
 let mapleader = ","
 
+
+autocmd BufRead *.go set tabstop=4 shiftwidth=4 smarttab noexpandtab softtabstop=4 autoindent smartindent
+
 "map <Leader> <Plug>(easymotion-prefix)
 "map  / <Plug>(easymotion-sn)
 "omap / <Plug>(easymotion-tn)

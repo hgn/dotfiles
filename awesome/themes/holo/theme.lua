@@ -14,8 +14,8 @@ theme.wallpaper_cmd 								= { "xsetroot -solid \"#101010\"" }
 
 theme.topbar_path                   = "png:" .. theme.icon_dir .. "/topbar/"
 
-theme.font                          = "Tamsyn 11"
-theme.taglist_font                  = "Tamsyn 14"
+theme.font                          = "Tamsyn 12"
+theme.taglist_font                  = "Tamsyn 10"
 theme.fg_normal                     = "#FFFFFF"
 theme.fg_focus                      = "#0099CC"
 theme.bg_normal                     = "#242424"

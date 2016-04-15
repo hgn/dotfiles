@@ -3,14 +3,6 @@
 	email = hagen@jauu.net
 	signingkey = 98350C22
 
-[sendemail]
-	bcc = hagen@jauu.net
-	smtpencryption = tls
-	smtpserver = smtp.gmail.com
-	smtpuser = hagen@jauu.net
-	smtpserverport = 587
-	confirm = auto
-
 [color]
 	branch = auto
 	diff = auto
@@ -33,7 +25,7 @@
 	untracked = cyan
 
 [alias]
-	st = status -sb
+	st = status --short --branch
 	ci = commit
 	co = checkout
 	# list all new commits after you fetched, with stats, but excluding merges
@@ -43,7 +35,7 @@
 	# fires up a git daemon for the repo you are currently in
 	serve = !git daemon --reuseaddr --verbose  --base-path=. --export-all ./.git
 	gb = branch -av
-	lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+	lg = log --color --graph --all --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
 	cs = commit -s -v
 	log-graph = log --all --graph --decorate
 	w = !git branch -a && git log --branches --oneline --graph --decorate --simplify-by-decoration --since='2 months ago'
@@ -59,10 +51,11 @@
 	unstage = reset HEAD
 	wdiff = diff --color-words
 	g = grep --break --heading --line-number
+	merge = merge --progress --verbose
 
 [core]
 	legacyheaders = false
-	excludesfile = /home/pfeifer/.gitignore
+	excludesfile = $HOME/.gitignore
 	whitespace=fix,-indent-with-non-tab,trailing-space,cr-at-eol
 
 [repack]
@@ -83,8 +76,7 @@
 	mnemonicprefix = true
 
 [rerere]
-# Remember my merges
-	# http://gitfu.wordpress.com/2008/04/20/git-rerere-rereremember-what-you-did-last-time/
+	# Remember my merges
 	enabled = true
 
 [apply]
@@ -92,6 +84,15 @@
 
 [commit]
 	signoff = yes
+
+[sendemail]
+	bcc = hagen@jauu.net
+	smtpencryption = tls
+	smtpserver = smtp.mailbox.org
+	smtpuser = hagen@jauu.net
+	smtpserverport = 465
+	confirm = auto
+
 
 [giggle]
 	main-window-maximized = false

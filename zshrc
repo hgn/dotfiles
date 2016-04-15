@@ -14,7 +14,8 @@ fi
 ## ENV's
 
 # executable directories
-export PATH=$HOME/bin:/sbin:/usr/sbin/:${PATH}
+export GOPATH=$HOME/src/code/01-own/go
+export PATH=$HOME/bin:/sbin:/usr/sbin/:${PATH}:$GOPATH/bin
 
 
 #export PAGER="col -b | view -c 'set nomod' -"
@@ -101,8 +102,6 @@ alias xterm-small='echo -en "\033]50;6x10\007"'
 alias xterm-medium='echo -en "\033]50;7x13\007"'
 alias xterm-large='echo -en "\033]50;9x15\007"'
 alias xterm-huge='echo -en "\033]50;10x20\007"'
-
-alias ssh='ssh -c blowfish'
 
 # use readline, completion and require rubygems by default for irb
 # http://planetrubyonrails.org/show/feed/172
@@ -564,8 +563,7 @@ function _calcfx () {
 
 function android-dev-mode {
 	echo "add android path"
-	export PATH=$PATH:~/src/code/01-own/android-dev/android-sdk-linux/tools
-	export PATH=$PATH:~/src/code/01-own/android-dev/android-sdk-linux/platform-tools
+	export PATH=$PATH:~/src/code/01-own/android/android-studio/bin:~/Android/Sdk/platform-tools
 }
 
 eval "$(dircolors -b)"

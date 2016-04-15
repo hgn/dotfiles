@@ -590,7 +590,7 @@ globalkeys = awful.util.table.join(
 
 		-- sudo apt-get install dmenu xfonts-terminus
 		awful.key({ modkey            }, "r",     function()
-			  		awful.util.spawn_with_shell( "exe=`dmenu_run -p 'Run:' -nb '#1A1E20' -nf '#DBDBDB' -sb '#0099CC' -sf '#FFFFFF' -fn '-*-terminus-*-r-normal-*-*-200-*-*-*-*-iso8859-*' -l 20` && exec $exe")
+			  		awful.util.spawn_with_shell( "exe=`dmenu_run -p 'Run:' -nb '#1A1E20' -nf '#DBDBDB' -sb '#0099CC' -sf '#FFFFFF' -fn Inconsolata-16 -l 20` && exec $exe")
 			                                        end),
 
     -- Prompt
@@ -666,6 +666,7 @@ root.keys(globalkeys)
 -- {{{ Rules
 awful.rules.rules = {
     -- All clients will match this rule.
+		-- use xprop to get information about x window
     { rule = { },
       properties = { border_width = beautiful.border_width,
                      border_color = beautiful.border_normal,
@@ -688,8 +689,9 @@ awful.rules.rules = {
     { rule = { instance = "plugin-container" },
           properties = { tag = tags[1][1] } },
 
-	  { rule = { class = "chrome" },
+	  { rule_any = { class = { "chrome", "Chromium" } },
      	    properties = { tag = tags[1][4] } },
+
 
     { rule = { class = "Gimp", role = "gimp-image-window" },
           properties = { maximized_horizontal = true,

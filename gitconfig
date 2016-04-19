@@ -26,14 +26,17 @@
 
 [alias]
 
-  # make often typed commands more confortable
+        # make often typed commands more confortable
 	st = status --short --branch
 	
-  # more stat when you pull a branch in
+	# more stat when you pull a branch in
 	pull = pull --stat
+	
+	# show all currently ignored files
+	ignored = ls-files -o -i --exclude-standard
 
-  # commit always with a signoff-by and verbose so you
-  # can check the actual changes again
+ 	# commit always with a signoff-by and verbose so you
+ 	# can check the actual changes again
 	cs = commit --signoff --verbose
 
 	# clean untracked files, untracked directories and everything else
@@ -70,12 +73,12 @@
 	lol = log --graph --decorate --pretty=oneline --abbrev-commit
 	lola = log --graph --decorate --pretty=oneline --abbrev-commit --all
 	lolap = log --graph --decorate --pretty=oneline --abbrev-commit --all --patch
-
-  # for tex, markdown files
+	
+	# for tex, markdown files
 	wdiff = diff --color-words
-
-  # specialized grep command for C/C++ and programming
-  # cases at all use
+	
+	# specialized grep command for C/C++ and programming
+	# cases at all use
 	g = grep --break --heading --line-number --show-function --before-context 10
 
 	merge = merge --progress --verbose

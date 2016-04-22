@@ -115,6 +115,15 @@
 [commit]
 	signoff = yes
 
+[https]
+        # for communication with www repositories accessable via proxy
+        # you need to define a proxy (probably also for http)
+	#proxy = https://USERNAME:PASSWORD@proxy.example.net:80
+	
+	# stop verifying SSL for self signed certificates (only if
+	# really required! Think about the consequences 
+	#sslVerify = false
+
 [sendemail]
 	bcc = hagen@jauu.net
 	smtpencryption = tls

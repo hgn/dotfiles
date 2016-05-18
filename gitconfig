@@ -116,6 +116,11 @@
 [commit]
 	signoff = yes
 
+[http]
+	# stop verifying SSL for self signed certificates (only if
+	# really required! Think about the consequences 
+	#sslVerify = false
+
 [https]
         # for communication with www repositories accessable via proxy
         # you need to define a proxy (probably also for http)

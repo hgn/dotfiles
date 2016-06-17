@@ -79,7 +79,7 @@
 	
 	# specialized grep command for C/C++ and programming
 	# cases at all use
-	g = grep --break --heading --line-number --show-function --before-context 10
+	g = grep --break --heading --line-number --show-function --before-context 10 --after-context 2
 
 	merge = merge --progress --verbose
 

@@ -88,7 +88,14 @@
 	excludesfile = $HOME/.gitignore
 	whitespace=fix,-indent-with-non-tab,trailing-space,cr-at-eol
 	editor = vim
-
+	# for windows and notepad++ the following should do the trick:
+	# unzip npp.6.9.2.bin.minimalist.7z to desktop ("unpack to npp...")
+	# echo "%UserProfile%\Desktop\npp.6.9.2.bin.minimalist\notepad++.exe"
+	#      should print something like "C:\Users\pfeif_ha\Desktop\npp.6.9.2.bin.minimalist\notepad++.exe"
+	# finally
+	# git config --global core.editor "'C:\Users\pfeif_ha\Desktop\npp.6.9.2.bin.minimalist\notepad++.exe' -multiInst -notabbar -nosession -noPlugin"
+	# For sublime the following line works:
+	# git config --global core.editor "'c:/program files/sublime text 3/subl.exe' -w"
 [repack]
 	usedeltabaseoffset = true
 

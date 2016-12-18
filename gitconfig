@@ -35,8 +35,8 @@
 	# show all currently ignored files
 	ignored = ls-files -o -i --exclude-standard
 
- 	# commit always with a signoff-by and verbose so you
- 	# can check the actual changes again
+	# commit always with a signoff-by and verbose so you
+	# can check the actual changes again
 	cs = commit --signoff --verbose
 
 	# clean untracked files, untracked directories and everything else
@@ -73,10 +73,10 @@
 	lol = log --graph --decorate --pretty=oneline --abbrev-commit
 	lola = log --graph --decorate --pretty=oneline --abbrev-commit --all
 	lolap = log --graph --decorate --pretty=oneline --abbrev-commit --all --patch
-	
+
 	# for tex, markdown files
 	wdiff = diff --color-words
-	
+
 	# specialized grep command for C/C++ and programming
 	# cases at all use
 	g = grep --break --heading --line-number --show-function --before-context 10 --after-context 2
@@ -124,16 +124,26 @@
 [commit]
 	signoff = yes
 
+[fetch]
+	# remove stale branches
+	prune = true
+
+[rebase]
+	autosquash = true
+
+[status]
+	submoduleSummary = true
+
 [http]
 	# stop verifying SSL for self signed certificates (only if
 	# really required! Think about the consequences 
 	#sslVerify = false
 
 [https]
-        # for communication with www repositories accessable via proxy
-        # you need to define a proxy (probably also for http)
+  # for communication with www repositories accessable via proxy
+  # you need to define a proxy (probably also for http)
 	#proxy = https://USERNAME:PASSWORD@proxy.example.net:80
-	
+
 	# stop verifying SSL for self signed certificates (only if
 	# really required! Think about the consequences 
 	#sslVerify = false

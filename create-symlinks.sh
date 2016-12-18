@@ -22,6 +22,7 @@ create reportbugrc ~/.reportbugrc
 create dircolors ~/.dircolors
 create screenrc ~/.screenrc
 create Xdefaults ~/.Xdefaults
+mkdir ~/.config
 create awesome ~/.config/awesome
 create tmux.conf ~/.tmux.conf
 create irssi ~/.irssi

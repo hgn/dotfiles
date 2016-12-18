@@ -24,9 +24,25 @@ set switchbuf=useopen
 set titlestring=%<%F\ %M%=%l/%L\ -\ %p%% titlelen=70
 
 syntax on
+let g:zenburn_high_Contrast=1
+colors zenburn
+
+
 
 " TEST-SUITE
 let mapleader = ","
+
+let g:netrw_banner=0
+let g:netrw_browse_split=4
+let g:netrw_altw=1
+let g:netrw_liststyle=3
+
+" search recursively for :find
+set path+=**
+
+silent! set splitvertical
+set splitbelow
+set splitright
 
 
 autocmd BufRead *.go set tabstop=4 shiftwidth=4 smarttab noexpandtab softtabstop=4 autoindent smartindent
@@ -54,8 +70,20 @@ set relativenumber
 set number
 
 
-autocmd BufRead *.py set tabstop=4 shiftwidth=4 smarttab expandtab softtabstop=4 autoindent smartindent
-autocmd BufRead *.java set tabstop=4 shiftwidth=4 smarttab expandtab softtabstop=4 autoindent smartindent
+autocmd BufRead,BufNewFile *.py set tabstop=4 softtabstop=4 shiftwidth=4 smarttab expandtab autoindent smartindent
+
+"au BufRead,BufNewFile *.py,*.c,*.h,*.js match BadWhitespaces /\s\+$/
+
+highlight ExtraWhitespace ctermbg=red guibg=red
+autocmd Syntax * syn match ExtraWhitespace /\s\+$\| \+\ze\t/
+
+autocmd BufRead,BufNewFile *.js, *.html, *.css
+	\ set tabstop=2
+	\ set softtabstop=2
+	\ set shiftwidth=2
+	\ set smarttab
+	\ set autoindent
+	\ set smartindent
 
 set statusline=
 set statusline+=\[%n]                               "buffernr
@@ -83,7 +111,7 @@ cnoremap <C-P> <Up>
 cnoremap <C-N> <Down>
 
 " Format the statusline
-"set statusline=\ %F%m%r%h\ %w\ \ CWD:\ %r%{CurDir()}%h\ \ \ Line:\ %l/%L:%c
+set statusline=\ %F%m%r%h\ %w\ \ CWD:\ %r%{CurDir()}%h\ \ \ Line:\ %l/%L:%c
 " Remove the Windows ^M - when the encodings gets messed up
 noremap <Leader>m mmHmt:%s/<C-V><cr>//ge<cr>'tzt'm
 
@@ -130,10 +158,15 @@ map <C-D> <C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E>
 
 set tabpagemax=25
 
+let c_space_errors=1
+let c_ansi_typedefs=1
+let c_ansi_constants=1
 let c_no_bracket_error=1
 let c_no_curly_error=1
 let c_comment_strings=1
 let c_gnu=1
+
+let python_highlight_all=1
 
 set ignorecase
 set smartcase
@@ -175,20 +208,16 @@ set wildmode=list:longest,full
 nnoremap <C-e> <C-e><C-e><C-e>
 nnoremap <C-y> <C-y><C-y><C-y>
 
-
-set hidden
+"set hidden
 
 "report after N lines changed; default is two
-set report=0
+set report=1
 
 "maximum mumber of undos
 set undolevels=1000
-set autoindent
-set smartindent
+"set autoindent
+"set smartindent
 set indentkeys=0{,0},!^F,o,O,e,=then,=do,=else,=elif,=esac,=fi,=fin,=fil,=done
-let c_space_errors=1
-let c_ansi_typedefs=1
-let c_ansi_constants=1
 
 " TEXT FORMATING
 
@@ -198,7 +227,7 @@ if has("autocmd")
     augroup filetype
     filetype plugin indent on
     autocmd BufNewFile,BufRead *.txt set filetype=human
-		autocmd BufRead *.py set tabstop=4 shiftwidth=4 smarttab expandtab softtabstop=4 autoindent smartindent
+		"autocmd BufRead *.py set tabstop=4 shiftwidth=4 smarttab expandtab softtabstop=4 autoindent smartindent
   augroup END
 
   "vim jumps always to the last edited line, if possible
@@ -212,7 +241,6 @@ if has("autocmd")
   autocmd FileType mail,human 
          \ set spelllang=de formatoptions+=t textwidth=78 nocindent dictionary=/usr/share/dict/words
 
-	
 	autocmd FileType ruby set tabstop=4 shiftwidth=4 expandtab
   
 
@@ -222,28 +250,15 @@ if has("autocmd")
       autocmd BufRead *html source $HOME/.vim/mail.vim
   augroup END
 
-
 	" 80 is to short, especially for tables and the like
   autocmd FileType tex set formatoptions+=t textwidth=170 nocindent
-  autocmd FileType tex set makeprg=pdflatex\ %
 
-  "for C-like programming, have automatic indentation:
-  autocmd FileType slang set cindent tabstop=4 shiftwidth=4 tw=78
-
-  "slrn is my newsreader
-  autocmd BufRead .followup,.article,.letter set fo=tcq comments=n:>,n::,n:»,n:]
-
-  "for actual C programming where comments have explicit end
-  "characters, if starting a new line in the middle of a comment automatically
-  "insert the comment leader characters:
-  "for a more _weighty_ comments use: comments=sl:/*,mb:**,elx:*/
   autocmd FileType c,cpp set formatoptions+=ro dictionary=$HOME/.vim/c_dictionary
                        \ tw=78 tabstop=8 shiftwidth=8 noexpandtab cindent
 
   "for Perl programming, have things in braces indenting themselves:
   autocmd FileType perl set smartindent tabstop=4 shiftwidth=4
 
-  autocmd FileType css set smartindent
 
   "in makefiles, don't expand tabs to spaces, since actual tab characters are
   "needed, and have indentation at 8 chars to be sure that all indents are tabs
@@ -279,13 +294,8 @@ highlight Folded                   ctermfg=white ctermbg=yellow
 " highlight spell errors
 highlight SpellErrors ctermfg=Red cterm=underline term=reverse
 
-let java_highlight_functions=1
-
 if version >= 700
    hi PmenuSel ctermfg=red ctermbg=cyan
-"  hi Pmenu ctermfg=yellow ctermbg=cyan
-"  hi PmenuThumb ctermfg=yellow 
-"  hi PmenuSbar ctermfg=magenta
 endif
 
 " MAPPINGS
@@ -294,65 +304,14 @@ endif
 map <F2> vawy:! grep -n -H <C-R>" .* *<CR>
 map <F3> :Sexplore<CR>
 
-map <F4> :execute "vimgrep /" . expand("<cword>") . "/j **" <Bar> cw<CR>
-
 "F11 -> F12 == resize window
 map <F11>   <ESC>:resize -5 <CR>
 map <F12>   <ESC>:resize +5 <CR>
 
-" my personal _offline_ dict (and faster too)
-map  ,l :!clear ;grep --color=auto -i <cword> ~/.vim/dict-wordlist.txt<cr>
-"some randomization 
-map ,zu :r!dd if=/dev/random bs=14 count=1 \| hexdump \| cut -c 9-<esc>3k2dd
 
-"found on Bram Moolenaars page, nice thing! (with a little modification => :noh)
-
-if has('persistent_undo')
-	nnoremap <F6> :UndotreeToggle<cr>
-	let g:undotree_SplitWidth = 50
-	let g:undotree_WindowLayout = 3
-endif
-
-" ABBREVIATIATIONS 
-
-iab _TIME        <C-R>=strftime("%X")<CR>
-iab _DATE        <C-R>=strftime("%a %b %d %T %Z %Y")<CR>
-iab _DATES       <C-R>=strftime("%b %d %Y")<CR>
-" ISO 8601 format
-iab _DATEN       <C-R>=strftime("%F")<CR>
-iab _DATEL       <C-R>=strftime("%a %b %d %Z %Y")<CR>
-iab _EPOCH       <C-R>=strftime("%s")<CR> 
-iab _DATED       <C-R>=strftime("%Y-%m-%d %H:%M")<CR>
 
 "common c commands
 ab #d #define
 ab #i #include <.h><Esc>hhi<C-R>=DC()<CR>
 
-
-"common typing mistakes
-ab teh the
-ab fro for
-
-ab #m -- <CR>Signed and/or encrypted mails preferd. Key-Id = 0x98350C22<CR>
-   \Fingerprint = 490F 557B 6C48 6D7E 5706  2EA2 4A22 8D45 9835 0C22 <CR>
-   \Key available under: www.jauu.net/download/gnupg_key
-
-ab #s -- <CR>Hagen Paul Pfeifer <hagen@jauu.net>  \|\|  http://jauu.net/<CR>
-  \Telephone: +49 174 5455209           \|\|  Key Id: 0x98350C22<CR>
-  \Key Fingerprint: 490F 557B 6C48 6D7E 5706 2EA2 4A22 8D45 9835 0C22<CR>
-  \Always in motion, the future is.
-
-fun DC()
-  let c=nr2char(getchar())|return c=~'\s'?'':c
-endfun
-
-func GNUH()
-	set ts=2
-	set sw=2
-	set sta
-	set et
-	set ai
-	set si
-	set cin
-endfunc
 

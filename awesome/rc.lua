@@ -73,17 +73,17 @@ musiplr   = terminal .. " -e ncmpcpp "
 
 local layouts = {
     awful.layout.suit.floating,
-    lain.layout.uselesstile,
-    awful.layout.suit.fair,
-    lain.layout.uselesstile.left,
-    lain.layout.uselesstile.top
+		awful.layout.suit.tile.right,
+		awful.layout.suit.max.fullscreen,
+		awful.layout.suit.max,
+		awful.layout.suit.magnifier
 }
 -- }}}
 
 -- {{{ Tags
 tags = {
    names = { " SRC ", " MAIL ", " COMM ", " WWW ", " MISC " },
-   layout = { layouts[5], layouts[5], layouts[5], layouts[1], layouts[5] }
+   layout = { layouts[2], layouts[4], layouts[2], layouts[1], layouts[2] }
 }
 for s = 1, screen.count() do
    tags[s] = awful.tag(tags.names, s, tags.layout)

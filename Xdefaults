@@ -23,7 +23,7 @@ aterm*scrollBar: false
 aterm*foreground: white
 !aterm*background: black
 aterm*transparent: true
-aterm*fading: 60
+aterm*fading: 90
 aterm*tintingType: true
 aterm*shading: 10
 !aterm*tinting: green
@@ -63,7 +63,7 @@ urxvt*background:       black
 urxvt*foreground:       white
 urxvt*scrollBar:        false
 urxvt*tintColor:        white
-urxvt*fading:           40
+urxvt*fading:           5
 urxvt*fadeColor:        black
 urxvt*inheritPixmap:    false
 urxvt*pointerColor:     black

@@ -24,10 +24,10 @@ set switchbuf=useopen
 set titlestring=%<%F\ %M%=%l/%L\ -\ %p%% titlelen=70
 
 syntax on
-let g:zenburn_high_Contrast=1
-colors zenburn
 
-
+"let g:ctrlp_user_command = 'find %s -type f'
+" gnore files in .gitignore" 
+let g:ctrlp_user_command = ['.git', 'cd %s && git ls-files -co --exclude-standard']
 
 " TEST-SUITE
 let mapleader = ","
@@ -238,11 +238,11 @@ if has("autocmd")
     \ endif
 
   "in human-language files, automatically format everything at 78 chars:
-  autocmd FileType mail,human 
+  autocmd FileType mail,human
          \ set spelllang=de formatoptions+=t textwidth=78 nocindent dictionary=/usr/share/dict/words
 
 	autocmd FileType ruby set tabstop=4 shiftwidth=4 expandtab
-  
+
 
   " mail macros
   augroup mail

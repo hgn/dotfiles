@@ -70,7 +70,7 @@ set relativenumber
 set number
 
 
-autocmd BufRead,BufNewFile *.py set tabstop=4 softtabstop=4 shiftwidth=4 smarttab expandtab autoindent smartindent
+autocmd BufRead,BufNewFile *.py set tabstop=4 softtabstop=4 shiftwidth=4 smarttab expandtab autoindent cindent
 
 "au BufRead,BufNewFile *.py,*.c,*.h,*.js match BadWhitespaces /\s\+$/
 
@@ -301,7 +301,6 @@ endif
 " MAPPINGS
 
 "search the current word under cursor in all files in working directory
-map <F2> vawy:! grep -n -H <C-R>" .* *<CR>
 map <F3> :Sexplore<CR>
 
 "F11 -> F12 == resize window

@@ -26,3 +26,5 @@ mkdir ~/.config
 create awesome ~/.config/awesome
 create tmux.conf ~/.tmux.conf
 create irssi ~/.irssi
+mkdir ~/.gnupg
+create gpg-agent.conf ~/.gnupg/gpg-agent.conf

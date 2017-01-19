@@ -45,7 +45,7 @@ set splitbelow
 set splitright
 
 
-autocmd BufRead *.go set tabstop=4 shiftwidth=4 smarttab noexpandtab softtabstop=4 autoindent smartindent
+autocmd BufRead *.go set tabstop=4 shiftwidth=4 smarttab noexpandtab softtabstop=4 autoindent cindent
 
 "map <Leader> <Plug>(easymotion-prefix)
 "map  / <Plug>(easymotion-sn)
@@ -83,7 +83,6 @@ autocmd BufRead,BufNewFile *.js, *.html, *.css
 	\ set shiftwidth=2
 	\ set smarttab
 	\ set autoindent
-	\ set smartindent
 
 set statusline=
 set statusline+=\[%n]                               "buffernr
@@ -215,9 +214,9 @@ set report=1
 
 "maximum mumber of undos
 set undolevels=1000
-"set autoindent
-"set smartindent
 set indentkeys=0{,0},!^F,o,O,e,=then,=do,=else,=elif,=esac,=fi,=fin,=fil,=done
+set autoindent
+filetype plugin indent on
 
 " TEXT FORMATING
 
@@ -311,6 +310,6 @@ map <F12>   <ESC>:resize +5 <CR>
 
 "common c commands
 ab #d #define
-ab #i #include <.h><Esc>hhi<C-R>=DC()<CR>
+ab #i #include <.h><Esc>hhi<C-R><CR>
 
-
+autocmd Filetype gitcommit setlocal spell textwidth=72

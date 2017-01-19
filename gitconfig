@@ -26,7 +26,7 @@
 
 [alias]
 
-        # make often typed commands more confortable
+  # make often typed commands more confortable
 	st = status --short --branch
 	
 	# more stat when you pull a branch in
@@ -82,6 +82,7 @@
 	g = grep --break --heading --line-number --show-function --before-context 10 --after-context 2
 
 	merge = merge --progress --verbose
+	quick-stats = '! ~/bin/git-quick-stats'
 
 [core]
 	legacyheaders = false
@@ -101,6 +102,12 @@
 
 [push]
 	default = upstream
+
+	# --follow-tags since 1.8.3. Superior to push --tags because it will
+	# a) push annotated tags, so non-annotated tags for local development to
+	#    avoid tag clashes
+	# b) won't push annotated tags on unrelated branches
+	followTags = true
 
 [merge]
 	tool = vimdiff

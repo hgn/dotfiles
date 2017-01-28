@@ -14,8 +14,6 @@ set viminfo='20,<50,s10,h,%
 set incsearch
 set hlsearch
 set nobackup
-set wildmenu
-set wildignore=*.class,*.o,*.bak,*.swp
 set foldcolumn=0
 set modeline
 set modelines=10
@@ -29,34 +27,22 @@ syntax on
 " gnore files in .gitignore" 
 let g:ctrlp_user_command = ['.git', 'cd %s && git ls-files -co --exclude-standard']
 
-" TEST-SUITE
-let mapleader = ","
-
 let g:netrw_banner=0
-let g:netrw_browse_split=4
 let g:netrw_altw=1
 let g:netrw_liststyle=3
 
 " search recursively for :find
 set path+=**
 
-silent! set splitvertical
-set splitbelow
-set splitright
+"silent! set splitvertical
+"set splitbelow
+"set splitright
 
 
 autocmd BufRead *.go set tabstop=4 shiftwidth=4 smarttab noexpandtab softtabstop=4 autoindent cindent
 
-"map <Leader> <Plug>(easymotion-prefix)
-"map  / <Plug>(easymotion-sn)
-"omap / <Plug>(easymotion-tn)
-"map  n <Plug>(easymotion-next)
-"map  N <Plug>(easymotion-prev)
-
-map <Leader>h <Plug>(easymotion-lineforward)
-map <Leader>j <Plug>(easymotion-j)
-map <Leader>k <Plug>(easymotion-k)
-map <Leader>l <Plug>(easymotion-linebackward)
+let mapleader = ","
+map <Leader> <Plug>(easymotion-prefix)
 
 let g:EasyMotion_startofline = 0 " keep cursor colum when JK motion
 let g:EasyMotion_smartcase = 1
@@ -71,8 +57,6 @@ set number
 
 
 autocmd BufRead,BufNewFile *.py set tabstop=4 softtabstop=4 shiftwidth=4 smarttab expandtab autoindent cindent
-
-"au BufRead,BufNewFile *.py,*.c,*.h,*.js match BadWhitespaces /\s\+$/
 
 highlight ExtraWhitespace ctermbg=red guibg=red
 autocmd Syntax * syn match ExtraWhitespace /\s\+$\| \+\ze\t/
@@ -95,13 +79,6 @@ set statusline+=\ row:\ %l/%L\                      "Rownumber/total
 set statusline+=\ col:\ %c\                         "Columnumber/total (%)
 set statusline+=\ \ %m%r%w\ %P\ \                   "Modified? Readonly? Top/bot.
 
-
-" Smart mappings on the command line
-cno $h e ~/
-cno $j e ./
-cno $c e <C-\>eCurrentFileDir("e")<cr>
-" $q is super useful when browsing on the command line
-cno $q <C-\>eDeleteTillSlash()<cr>
 " Bash like keys for the command line
 cnoremap <C-A> <Home>
 cnoremap <C-E> <End>
@@ -120,7 +97,7 @@ function! CurDir()
 endfunction
 
 set history=700
-"set t_Co=256
+set t_Co=256
 
 filetype plugin on
 set ofu=syntaxcomplete#Complete
@@ -188,20 +165,23 @@ else
 endif
 
 " Minimal number of screen lines to keep above and below the cursor
-" set scrolloff=10
+set scrolloff=10
 
 " highlight advanced perl vars inside strings
 let perl_extended_vars=1
 
 set pastetoggle=<F10>
 
-set tabpagemax=20
+"set tabpagemax=20
 
 " nable extended % matching
 runtime macros/matchit.vim
 
 " shell like menu
-set wildmode=list:longest,full
+set wildmenu
+set wildignore=*.class,*.o,*.bak,*.swp
+set wildmode=full
+set wildchar=<Tab>
 
 " faster scolling
 nnoremap <C-e> <C-e><C-e><C-e>
@@ -313,3 +293,5 @@ ab #d #define
 ab #i #include <.h><Esc>hhi<C-R><CR>
 
 autocmd Filetype gitcommit setlocal spell textwidth=72
+
+set comments=sl:/*,mb:\ *,elx:\ */

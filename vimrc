@@ -165,12 +165,11 @@ else
 endif
 
 " Minimal number of screen lines to keep above and below the cursor
-set scrolloff=10
+"set scrolloff=10
 
 " highlight advanced perl vars inside strings
 let perl_extended_vars=1
 
-set pastetoggle=<F10>
 
 "set tabpagemax=20
 
@@ -295,3 +294,8 @@ ab #i #include <.h><Esc>hhi<C-R><CR>
 autocmd Filetype gitcommit setlocal spell textwidth=72
 
 set comments=sl:/*,mb:\ *,elx:\ */
+
+"set pastetoggle=<F10>
+nnoremap <F10> :set invpaste paste?<Enter>
+imap <F10> <C-O><F10>
+set pastetoggle=<F10>

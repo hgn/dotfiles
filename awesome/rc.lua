@@ -471,8 +471,8 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey }, "Escape", awful.tag.history.restore),
 
     -- Non-empty tag browsing
-    awful.key({ altkey }, "Left", function () lain.util.tag_view_nonempty(-1) end),
-    awful.key({ altkey }, "Right", function () lain.util.tag_view_nonempty(1) end),
+    --awful.key({ altkey }, "Left", function () lain.util.tag_view_nonempty(-1) end),
+    --awful.key({ altkey }, "Right", function () lain.util.tag_view_nonempty(1) end),
 
     -- Default client focus
     awful.key({ altkey }, "k",
@@ -590,7 +590,7 @@ globalkeys = awful.util.table.join(
 
 		-- sudo apt-get install dmenu xfonts-terminus
 		awful.key({ modkey            }, "r",     function()
-			  		awful.util.spawn_with_shell( "exe=`dmenu_run -p 'Run:' -nb '#1A1E20' -nf '#DBDBDB' -sb '#0099CC' -sf '#FFFFFF' -fn Inconsolata-16 -l 20` && exec $exe")
+			  		awful.util.spawn_with_shell( "exe=`rofi -combi-modi window,run -show combi -modi combi -terminal urxvt`")
 			                                        end),
 
     -- Prompt

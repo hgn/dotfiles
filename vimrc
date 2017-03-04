@@ -165,7 +165,7 @@ else
 endif
 
 " Minimal number of screen lines to keep above and below the cursor
-"set scrolloff=10
+set scrolloff=3
 
 " highlight advanced perl vars inside strings
 let perl_extended_vars=1
@@ -287,7 +287,7 @@ map <F12>   <ESC>:resize +5 <CR>
 
 
 
-"common c commands
+"common c command
 ab #d #define
 ab #i #include <.h><Esc>hhi<C-R><CR>
 
@@ -296,6 +296,18 @@ autocmd Filetype gitcommit setlocal spell textwidth=72
 set comments=sl:/*,mb:\ *,elx:\ */
 
 "set pastetoggle=<F10>
-nnoremap <F10> :set invpaste paste?<Enter>
+nnoremap <F10> :se invpaste paste?<Enter>
 imap <F10> <C-O><F10>
 set pastetoggle=<F10>
+
+
+set showbreak=↳
+
+" always keep searched string in the middle of the screen
+nnoremap n nzzzv
+nnoremap N Nzzzv
+
+" dont move on *
+nnoremap * *<c-o>
+
+

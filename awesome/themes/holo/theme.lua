@@ -22,13 +22,16 @@ theme.bg_normal                     = "#242424"
 theme.fg_urgent                     = "#CC9393"
 theme.bg_urgent                     = "#2A1F1E"
 theme.border_width                  = "1"
-theme.border_normal                 = "#252525"
-theme.border_focus                  = "#202020"
+theme.border_normal                 = "#424242"
+theme.border_focus                  = "#424242"
 theme.taglist_fg_focus              = "#FFFFFF"
 theme.taglist_bg_focus              = "png:" .. theme.icon_dir .. "/taglist_bg_focus.png"
+
 theme.tasklist_bg_normal            = "#222222"
-theme.tasklist_fg_focus             = "#4CB7DB"
-theme.tasklist_bg_focus             = "png:" .. theme.icon_dir .. "/bg_focus_noline.png"
+theme.tasklist_fg_normal            = "#9E9E9E"
+theme.tasklist_bg_focus             = "#222222"
+theme.tasklist_fg_focus             = "#FFAB00"
+
 theme.textbox_widget_margin_top     = 1
 theme.awful_widget_height           = 14
 theme.awful_widget_margin_top       = 2

@@ -1,9 +1,9 @@
 
 xrdb -merge ~/.Xdefaults
 
-#eval `ssh-agent`
+eval `ssh-agent`
 #eval $(gpg-agent --daemon) &
-eval `gpg-agent --enable-ssh-support --daemon`
+eval $(gpg-agent --daemon)
 
 # Turn off beeps:
 #xset -b

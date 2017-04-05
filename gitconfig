@@ -167,12 +167,9 @@
 	# not reply to successor
 	chainreplyto = false
 
-
-[giggle]
-	main-window-maximized = false
-	main-window-geometry = 1680x1050+0+0
-	history-view-vpane-position = 331
-	main-window-view = HistoryView
-	file-view-vpane-position = 241
 [grep]
 	extendRegexp = true
+
+[credential]
+        # 2h timeout
+        helper = cache --timeout=7200

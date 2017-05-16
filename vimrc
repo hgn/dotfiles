@@ -20,6 +20,8 @@ set modelines=10
 set wmh=0
 set switchbuf=useopen
 set titlestring=%<%F\ %M%=%l/%L\ -\ %p%% titlelen=70
+" dont show startup message when opening new file
+set shortmess+=I
 
 syntax on
 
@@ -78,7 +80,6 @@ set statusline+=\ %{''.(&fenc!=''?&fenc:&enc).''}   "Encoding
 set statusline+=\ %{(&bomb?\",BOM\":\"\")}\         "Encoding2
 set statusline+=\ %{&ff}\                           "FileFormat (dos/unix..)
 set statusline+=\ row:\ %l/%L\                      "Rownumber/total
-set statusline+=\ col:\ %c\                         "Columnumber/total (%)
 set statusline+=\ \ %m%r%w\ %P\ \                   "Modified? Readonly? Top/bot.
 
 " Bash like keys for the command line
@@ -89,7 +90,7 @@ cnoremap <C-P> <Up>
 cnoremap <C-N> <Down>
 
 " Format the statusline
-set statusline=\ %F%m%r%h\ %w\ \ CWD:\ %r%{CurDir()}%h\ \ \ Line:\ %l/%L:%c
+"set statusline=\ %F%m%r%h\ %w\ \ CWD:\ %r%{CurDir()}%h\ \ \ Line:\ %l/%L:%c
 " Remove the Windows ^M - when the encodings gets messed up
 noremap <Leader>m mmHmt:%s/<C-V><cr>//ge<cr>'tzt'm
 
@@ -255,9 +256,9 @@ endif " has("autocmd")
 "common bg fg color
 "highlight Normal        ctermfg=black ctermbg=white
 "modus (insert,visual ...)
-highlight modeMsg	    cterm=bold ctermfg=white  ctermbg=blue
+highlight modeMsg	    cterm=bold ctermfg=white  ctermbg=red
 "active statusLine
-highlight statusLine  	cterm=bold ctermfg=yellow ctermbg=red 
+highlight statusLine   cterm=bold ctermfg=yellow ctermbg=blue
 "inactive statusLine
 highlight statusLineNC 	cterm=bold ctermfg=black  ctermbg=white
 "visual mode
@@ -268,8 +269,7 @@ highlight cursor        cterm=bold
 highlight VertSplit     cterm=bold ctermfg=yellow ctermbg=yellow
 "searchpattern
 highlight Search        cterm=bold ctermfg=black ctermbg=yellow
-"folding
-highlight Folded                   ctermfg=white ctermbg=yellow
+
 
 " highlight spell errors
 highlight SpellErrors ctermfg=Red cterm=underline term=reverse

@@ -1,175 +1,179 @@
 [user]
-	name = Hagen Paul Pfeifer
-	email = hagen@jauu.net
-	signingkey = 87885D6DEF7B4CA5
+name = Hagen Paul Pfeifer
+email = hagen@jauu.net
+signingkey = 87885D6DEF7B4CA5
 
 [color]
-	branch = auto
-	diff = auto
-	status = auto
+branch = auto
+diff = auto
+status = auto
 
 [color "branch"]
-	current = yellow reverse
-	local = yellow
-	remote = green
+current = yellow reverse
+local = yellow
+remote = green
 
 [color "diff"]
-	meta = yellow bold
-	frag = magenta bold
-	old = red bold
-	new = green bold
+meta = yellow bold
+frag = magenta bold
+old = red bold
+new = green bold
 
 [color "status"]
-	added = yellow
-	changed = green
-	untracked = cyan
+added = yellow
+changed = green
+untracked = cyan
 
 [alias]
 
-  # make often typed commands more confortable
-	st = status --short --branch
-	
-	# more stat when you pull a branch in
-	pull = pull --stat
-	
-	# show all currently ignored files
-	ignored = ls-files -o -i --exclude-standard
+# make often typed commands more confortable
+st = status --short --branch
 
-	# commit always with a signoff-by and verbose so you
-	# can check the actual changes again
-	cs = commit --signoff --verbose
+# more stat when you pull a branch in
+pull = pull --stat
 
-	# clean untracked files, untracked directories and everything else
-	# This produce a clean state, similar after fresh pull.
-	cleanall = clean --force -d -x
+# show all currently ignored files
+ignored = ls-files -o -i --exclude-standard
 
-	# list all new commits after you fetched, with stats, but excluding merges
-	lc = log ORIG_HEAD.. --stat --no-merges
+# commit always with a signoff-by and verbose so you
+# can check the actual changes again
+cs = commit --signoff --verbose
 
-	# timezone aware version
-	llog = log --date=local
+# clean untracked files, untracked directories and everything else
+# This produce a clean state, similar after fresh pull.
+cleanall = clean --force -d -x
 
-	# fires up a git daemon for the repo you are currently in
-	serve = !git daemon --reuseaddr --verbose  --base-path=. --export-all ./.git
+# list all new commits after you fetched, with stats, but excluding merges
+lc = log ORIG_HEAD.. --stat --no-merges
 
-	gb = branch -av
+# timezone aware version
+llog = log --date=local
 
-	lg = log --color --graph --all --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+# fires up a git daemon for the repo you are currently in
+serve = !git daemon --reuseaddr --verbose  --base-path=. --export-all ./.git
 
-	log-graph = log --all --graph --decorate
+# stash should save untracked files too
+stash = stash --include-untracked
 
-	w = !git branch -a && git log --branches --oneline --graph --decorate --simplify-by-decoration --since='2 months ago'
+gb = branch -av
+lg = log --color --graph --all --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+log-graph = log --all --graph --decorate
+w = !git branch -a && git log --branches --oneline --graph --decorate --simplify-by-decoration --since='2 months ago'
+diffstat = diff --stat -r
+last = log -1 HEAD
+graphviz = "!f() { echo 'digraph git {' ; git log --pretty='format:  %h -> { %p }' \"$@\" | sed 's/[0-9a-f][0-9a-f]*/\"&\"/g' ; echo '}'; }; f"
+changes = "!sh -c 'git status | sed -n \"/Untracked/N;//N;1,//d;s/^#/?/p\"; git diff --name-status -r \"$@\"' -"
+who = shortlog -s --
 
-	diffstat      = diff --stat -r
+lol = log --graph --decorate --pretty=oneline --abbrev-commit
+lola = log --graph --decorate --pretty=oneline --abbrev-commit --all
+lolap = log --graph --decorate --pretty=oneline --abbrev-commit --all --patch
 
-	last          = log -1 HEAD
+# for tex, markdown files
+wdiff = diff --color-words
 
-	graphviz = "!f() { echo 'digraph git {' ; git log --pretty='format:  %h -> { %p }' \"$@\" | sed 's/[0-9a-f][0-9a-f]*/\"&\"/g' ; echo '}'; }; f"
+# specialized grep command for C/C++ and programming
+# cases at all use
+g = grep --break --heading --line-number --show-function --before-context 10 --after-context 2
 
-	changes       = "!sh -c 'git status | sed -n \"/Untracked/N;//N;1,//d;s/^#/?/p\"; git diff --name-status -r \"$@\"' -"
-
-	who           = shortlog -s --
-
-	lol = log --graph --decorate --pretty=oneline --abbrev-commit
-	lola = log --graph --decorate --pretty=oneline --abbrev-commit --all
-	lolap = log --graph --decorate --pretty=oneline --abbrev-commit --all --patch
-
-	# for tex, markdown files
-	wdiff = diff --color-words
-
-	# specialized grep command for C/C++ and programming
-	# cases at all use
-	g = grep --break --heading --line-number --show-function --before-context 10 --after-context 2
-
-	merge = merge --progress --verbose
-	quick-stats = '! ~/bin/git-quick-stats'
+merge = merge --progress --verbose
+quick-stats = '! ~/bin/git-quick-stats'
 
 [core]
-	legacyheaders = false
-	excludesfile = $HOME/.gitignore
-	whitespace=fix,-indent-with-non-tab,trailing-space,cr-at-eol
-	editor = vim
-	# for windows and notepad++ the following should do the trick:
-	# unzip npp.6.9.2.bin.minimalist.7z to desktop ("unpack to npp...")
-	# echo "%UserProfile%\Desktop\npp.6.9.2.bin.minimalist\notepad++.exe"
-	#      should print something like "C:\Users\pfeif_ha\Desktop\npp.6.9.2.bin.minimalist\notepad++.exe"
-	# finally
-	# git config --global core.editor "'C:\Users\pfeif_ha\Desktop\npp.6.9.2.bin.minimalist\notepad++.exe' -multiInst -notabbar -nosession -noPlugin"
-	# For sublime the following line works:
-	# git config --global core.editor "'c:/program files/sublime text 3/subl.exe' -w"
+legacyheaders = false
+excludesfile = $HOME/.gitignore
+whitespace=fix,-indent-with-non-tab,trailing-space,cr-at-eol
+editor = vim
+# for windows and notepad++ the following should do the trick:
+# unzip npp.6.9.2.bin.minimalist.7z to desktop ("unpack to npp...")
+# echo "%UserProfile%\Desktop\npp.6.9.2.bin.minimalist\notepad++.exe"
+#      should print something like "C:\Users\pfeif_ha\Desktop\npp.6.9.2.bin.minimalist\notepad++.exe"
+# finally
+# git config --global core.editor "'C:\Users\pfeif_ha\Desktop\npp.6.9.2.bin.minimalist\notepad++.exe' -multiInst -notabbar -nosession -noPlugin"
+# For sublime the following line works:
+# git config --global core.editor "'c:/program files/sublime text 3/subl.exe' -w"
 [repack]
-	usedeltabaseoffset = true
+usedeltabaseoffset = true
 
 [push]
-	default = upstream
+default = upstream
 
-	# --follow-tags since 1.8.3. Superior to push --tags because it will
-	# a) push annotated tags, so non-annotated tags for local development to
-	#    avoid tag clashes
-	# b) won't push annotated tags on unrelated branches
-	followTags = true
+# --follow-tags since 1.8.3. Superior to push --tags because it will
+# a) push annotated tags, so non-annotated tags for local development to
+#    avoid tag clashes
+# b) won't push annotated tags on unrelated branches
+followTags = true
 
 [merge]
-	tool = vimdiff
-	log = true
-	summary = true
-	stat = true
+tool = vimdiff
+log = true
+summary = true
+stat = true
 
 [diff]
-	# Git diff will use (i)ndex, (w)ork tree, (c)ommit and (o)bject
-	# instead of a/b/c/d as prefixes for patches
-	mnemonicprefix = true
-	submodule = log
+# Git diff will use (i)ndex, (w)ork tree, (c)ommit and (o)bject
+# instead of a/b/c/d as prefixes for patches
+mnemonicprefix = true
+submodule = log
 
 [rerere]
-	# Remember my merges
-	enabled = true
+# Remember my merges
+enabled = true
 
 [apply]
-	whitespace = fix
+whitespace = fix
 
 [commit]
-	signoff = yes
+signoff = yes
 
 [fetch]
-	# remove stale branches
-	prune = true
+# remove stale branches
+prune = true
 
 [rebase]
-	autosquash = true
+autosquash = true
 
 [status]
-	submoduleSummary = true
+submoduleSummary = true
 
 [http]
-	# stop verifying SSL for self signed certificates (only if
-	# really required! Think about the consequences 
-	#sslVerify = false
+# stop verifying SSL for self signed certificates (only if
+# really required! Think about the consequences
+#sslVerify = false
 
-[https]
-  # for communication with www repositories accessable via proxy
-  # you need to define a proxy (probably also for http)
-	#proxy = https://USERNAME:PASSWORD@proxy.example.net:80
+		[https]
+# for communication with www repositories accessable via proxy
+# you need to define a proxy (probably also for http)
+#proxy = https://USERNAME:PASSWORD@proxy.example.net:80
 
-	# stop verifying SSL for self signed certificates (only if
-	# really required! Think about the consequences 
-	#sslVerify = false
+# stop verifying SSL for self signed certificates (only if
+# really required! Think about the consequences
+#sslVerify = false
 
 [sendemail]
-	bcc = hagen@jauu.net
-	smtpencryption = ssl
-	smtpserver = smtp.mailbox.org
-	smtpuser = hagen@jauu.net
-	smtpserverport = 465
-	confirm = auto
+bcc = hagen@jauu.net
+smtpencryption = ssl
+smtpserver = smtp.mailbox.org
+smtpuser = hagen@jauu.net
+smtpserverport = 465
+confirm = auto
 
-	# default since v1.7.0, reply to first in set,
-	# not reply to successor
-	chainreplyto = false
+# default since v1.7.0, reply to first in set,
+# not reply to successor
+chainreplyto = false
 
 [grep]
-	extendRegexp = true
+extendRegexp = true
 
 [credential]
-        # 2h timeout
-        helper = cache --timeout=7200
+# 2h timeout
+helper = cache --timeout=7200
+
+[giggle]
+main-window-maximized = false
+main-window-geometry = 1680x1050+0+0
+history-view-vpane-position = 331
+main-window-view = HistoryView
+file-view-vpane-position = 241
+[grep]
+extendRegexp = true

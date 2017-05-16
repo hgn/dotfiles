@@ -24,6 +24,6 @@ setxkbmap us
 
 xsetroot -solid "#101010"
 
-#pidgin &
+pidgin &
 
 exec /usr/bin/awesome

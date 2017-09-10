@@ -26,8 +26,17 @@ set shortmess+=I
 syntax on
 
 "let g:ctrlp_user_command = 'find %s -type f'
+let g:ctrlp_cmd = 'CtrlP'
 " gnore files in .gitignore" 
 let g:ctrlp_user_command = ['.git', 'cd %s && git ls-files -co --exclude-standard']
+" Set no max file limit
+"let g:ctrlp_max_files = 0
+"let g:ctrlp_working_path_mode = 'ar'
+let g:ctrlp_by_filename = 1
+let g:ctrlp_match_window = 'bottom,order:ttb,min:1,max:50,results:50'
+let g:ctrlp_use_caching = 1
+let g:ctrlp_open_new_file = 'v'
+let g:ctrlp_mruf_max = 250
 
 let g:netrw_banner=0
 let g:netrw_altw=1
@@ -314,5 +323,3 @@ nnoremap * *<c-o>
 
 
 map <silent> <F8> :Lexplore<CR>
-" Change directory to the current buffer when opening files.
-set autochdir

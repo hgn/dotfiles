@@ -28,3 +28,6 @@ create tmux.conf ~/.tmux.conf
 create irssi ~/.irssi
 mkdir ~/.gnupg
 create gpg-agent.conf ~/.gnupg/gpg-agent.conf
+mkdir -p ~/.config/inkscape/palettes/
+create inkscape-cp-flatuicolors.gpl ~/.config/inkscape/palettes/inkscape-cp-flatuicolors.gpl.gpl
+

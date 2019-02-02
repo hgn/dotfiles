@@ -14,7 +14,7 @@ fi
 ## ENV's
 
 # executable directories
-export GOPATH=$HOME/src/code/01-own/go
+export GOPATH=$HOME/src/code/go
 export PATH=$HOME/bin:/sbin:/usr/sbin/:${PATH}:$GOPATH/bin
 
 
@@ -188,6 +188,10 @@ fi
 zstyle ':completion:*:*:kill:*:processes' list-colors "=(#b) #([0-9]#)*=36=31"
 
 zstyle ':completion:*:cd:*' ignore-parents parent pwd
+
+# use z, with menu
+source ~/.zsh-z.plugin.zsh
+zstyle ':completion:*' menu select
 
 # Load the completion system
 autoload -U compinit

@@ -16,6 +16,7 @@ create()
 create vimrc ~/.vimrc
 create vimdata ~/.vim
 create zshrc ~/.zshrc
+create zsh-z.plugin.zsh ~/.zsh-z.plugin.zsh
 create xinitrc ~/.xinitrc
 create gitconfig ~/.gitconfig
 create reportbugrc ~/.reportbugrc

@@ -99,7 +99,7 @@ end
 -- }}}
 
 -- {{{ Menu
-require("freedesktop/freedesktop")
+--require("freedesktop/freedesktop")
 -- }}}
 
 -- {{{ Wibox

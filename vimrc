@@ -33,7 +33,7 @@ let g:ctrlp_user_command = ['.git', 'cd %s && git ls-files -co --exclude-standar
 "let g:ctrlp_max_files = 0
 "let g:ctrlp_working_path_mode = 'ar'
 let g:ctrlp_by_filename = 1
-let g:ctrlp_match_window = 'bottom,order:ttb,min:1,max:50,results:50'
+let g:ctrlp_match_window = 'bottom,order:ttb,min:1,max:30,results:30'
 let g:ctrlp_use_caching = 1
 let g:ctrlp_open_new_file = 'v'
 let g:ctrlp_mruf_max = 250
@@ -52,7 +52,8 @@ set path+=**
 "set splitright
 
 
-autocmd BufRead *.go set tabstop=4 shiftwidth=4 smarttab noexpandtab softtabstop=4 autoindent cindent
+"autocmd BufRead *.go set tabstop=4 shiftwidth=4 smarttab noexpandtab softtabstop=4 autoindent cindent
+autocmd FileType go setlocal noet ts=8 sw=8 sts=8 autoindent cindent
 
 let mapleader = ","
 map <Leader> <Plug>(easymotion-prefix)
@@ -74,12 +75,7 @@ autocmd BufRead,BufNewFile *.py set tabstop=4 softtabstop=4 shiftwidth=4 smartta
 highlight ExtraWhitespace ctermbg=red guibg=red
 autocmd Syntax * syn match ExtraWhitespace /\s\+$\| \+\ze\t/
 
-autocmd BufRead,BufNewFile *.js, *.html, *.css
-	\ set tabstop=2
-	\ set softtabstop=2
-	\ set shiftwidth=2
-	\ set smarttab
-	\ set autoindent
+autocmd BufRead,BufNewFile *.js,*.html,*.css set tabstop=2 softtabstop=2 shiftwidth=2 smarttab autoindent
 
 set statusline=
 set statusline+=\[%n]                               "buffernr
@@ -275,9 +271,12 @@ highlight visual		cterm=bold ctermfg=yellow ctermbg=red
 "cursor colors
 highlight cursor        cterm=bold 
 "vertical line on split screen
-highlight VertSplit     cterm=bold ctermfg=yellow ctermbg=yellow
+highlight VertSplit     cterm=bold ctermfg=black ctermbg=black
 "searchpattern
 highlight Search        cterm=bold ctermfg=black ctermbg=yellow
+
+highlight LineNr        cterm=bold ctermfg=gray ctermbg=black
+highlight CursorLineNr  cterm=bold ctermfg=white ctermbg=black
 
 
 " highlight spell errors
@@ -323,3 +322,5 @@ nnoremap * *<c-o>
 
 
 map <silent> <F8> :Lexplore<CR>
+
+

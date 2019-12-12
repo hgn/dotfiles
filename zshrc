@@ -577,5 +577,8 @@ zstyle ':completion:*' list-colors ''
 zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
 zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'
 
+source /usr/share/doc/fzf/examples/key-bindings.zsh
+source /usr/share/zsh/vendor-completions/_fzf
+export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
 
 # vim:set ts=2 tw=80 ft=zsh:

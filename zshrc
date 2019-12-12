@@ -15,7 +15,7 @@ fi
 
 # executable directories
 export GOPATH=$HOME/src/code/go
-export PATH=$HOME/bin:/sbin:/usr/sbin/:${PATH}:$GOPATH/bin
+export PATH=$HOME/.cargo/bin:$HOME/bin:/sbin:/usr/sbin/:${PATH}:$GOPATH/bin
 
 
 #export PAGER="col -b | view -c 'set nomod' -"

@@ -275,7 +275,6 @@ fi
 
 
 PROMPT=$'%{\e[01;33m%}\%1~ %{\e[01;32m%}$%{\e[0m%} '
-[ $UID = 0 ] && export PROMPT=$'%{\e[0;31m%}[%{\e[0m%}%n%{\e[0;31m%}@%{\e[0m%}%m%{\e[0;31m%}:%{\e[0m%}%~%{\e[0;31m%}]%{\e[0m%}%# '
 
 export WORDCHARS=''
 export DIRSTACKSIZE=30         # max push/pop stack

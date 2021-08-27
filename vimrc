@@ -311,8 +311,6 @@ imap <F10> <C-O><F10>
 set pastetoggle=<F10>
 
 
-set showbreak=↳
-
 " always keep searched string in the middle of the screen
 nnoremap n nzzzv
 nnoremap N Nzzzv

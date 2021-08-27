@@ -16,6 +16,8 @@ fi
 # executable directories
 export GOPATH=$HOME/src/code/go
 export PATH=$HOME/.cargo/bin:$HOME/bin:/sbin:/usr/sbin/:${PATH}:$GOPATH/bin
+export DEBUGINFOD_URLS="https://debuginfod.debian.net"
+
 
 
 #export PAGER="col -b | view -c 'set nomod' -"
@@ -35,6 +37,8 @@ export LC_CTYPE=de_DE.utf8
 
 
 ## ALIASES
+
+alias mutt-offline='ping -c 1 mailbox.org >/dev/null 2>&1 && offlineimap -o -u blinkenlights;mutt -F ~/.mutt/muttrc-offline; ping -c 1 mailbox.org >/dev/null 2>&1 && offlineimap -o -u ttyui'
 
 # some piping stuff
 alias -g V='|vim -'
@@ -305,8 +309,8 @@ export EDITOR='/usr/bin/vim'
 export PAGER='/usr/bin/less -M'
 
 # work with history mechanism
-HISTSIZE=20000
-SAVEHIST=200000
+HISTSIZE=200000
+SAVEHIST=2000000
 HISTFILE=~/.zhistory
 
 
@@ -578,7 +582,7 @@ zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
 zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'
 
 source /usr/share/doc/fzf/examples/key-bindings.zsh
-source /usr/share/zsh/vendor-completions/_fzf
-export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
+#source /usr/share/zsh/vendor-completions/_fzf
+export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border --exact'
 
 # vim:set ts=2 tw=80 ft=zsh:

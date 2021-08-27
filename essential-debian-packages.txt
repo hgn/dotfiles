@@ -34,3 +34,8 @@ git
 tig
 build-essential
 fzf
+xbindkeysrc
+apt-file
+trace-cmd
+kernelshark
+perf

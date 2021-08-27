@@ -2,7 +2,6 @@
 xrdb -merge ~/.Xdefaults
 
 eval `ssh-agent`
-#eval $(gpg-agent --daemon) &
 eval $(gpg-agent --daemon)
 
 # Turn off beeps:
@@ -25,5 +24,7 @@ setxkbmap us
 xsetroot -solid "#101010"
 
 pidgin &
+
+xinput set-prop "pointer:Logitech MX Master" "Coordinate Transformation Matrix" 4.000000, 0.000000, 0.000000, 0.000000, 4.000000, 0.000000, 0.000000, 0.000000, 1.000000
 
 exec /usr/bin/awesome

@@ -7,8 +7,6 @@ strace
 socat
 screen
 schedtool
-python-dpkt
-python-numpy
 nmap
 ngrep
 mutt
@@ -33,9 +31,12 @@ awesome
 git
 tig
 build-essential
+llvm-11
+llvm-11-tools
+llvm-9
+llvm-9-tools
 fzf
-xbindkeysrc
 apt-file
 trace-cmd
 kernelshark
-perf
+linux-perf

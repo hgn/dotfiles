@@ -15,7 +15,7 @@ fi
 
 # executable directories
 export GOPATH=$HOME/src/code/go
-export PATH=$HOME/.cargo/bin:$HOME/bin:/sbin:/usr/sbin/:${PATH}:$GOPATH/bin
+export PATH=/usr/local/bin:$HOME/.cargo/bin:$HOME/bin:/sbin:/usr/sbin/:${PATH}:$GOPATH/bin
 export DEBUGINFOD_URLS="https://debuginfod.debian.net"
 
 
@@ -38,7 +38,7 @@ export LC_CTYPE=de_DE.utf8
 
 ## ALIASES
 
-alias mutt-offline='ping -c 1 mailbox.org >/dev/null 2>&1 && offlineimap -o -u blinkenlights;mutt -F ~/.mutt/muttrc-offline; ping -c 1 mailbox.org >/dev/null 2>&1 && offlineimap -o -u ttyui'
+alias mutt-offline='ping -c 1 mailbox.org >/dev/null 2>&1 && offlineimap -o -u blinkenlights;mutt -F ~/.mutt/muttrc-offline; ping -c 1 mailbox.org >/dev/null 2>&1 && offlineimap -o -u blinkenlights'
 
 # some piping stuff
 alias -g V='|vim -'

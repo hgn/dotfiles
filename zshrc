@@ -38,7 +38,7 @@ export LC_CTYPE=de_DE.utf8
 
 ## ALIASES
 
-alias mutt-offline='ping -c 1 mailbox.org >/dev/null 2>&1 && offlineimap -o -u blinkenlights;mutt -F ~/.mutt/muttrc-offline; ping -c 1 mailbox.org >/dev/null 2>&1 && offlineimap -o -u blinkenlights'
+alias mutt-offline='toilet -f bigmono12 -F gay "Offline Mode";sleep 0.4;clean;ping -c 1 mailbox.org >/dev/null 2>&1 && offlineimap -o -u blinkenlights;mutt -F ~/.mutt/muttrc-offline; ping -c 1 mailbox.org >/dev/null 2>&1 && offlineimap -o -u blinkenlights'
 
 # some piping stuff
 alias -g V='|vim -'

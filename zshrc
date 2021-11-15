@@ -38,8 +38,6 @@ export LC_CTYPE=de_DE.utf8
 
 ## ALIASES
 
-alias mutt-offline='toilet -f bigmono12 -F gay "Offline Mode";sleep 0.4;ping -c 1 mailbox.org >/dev/null 2>&1 && offlineimap -o -u blinkenlights;mutt -F ~/.mutt/muttrc-offline; ping -c 1 mailbox.org >/dev/null 2>&1 && offlineimap -o -u blinkenlights'
-
 alias bat='batcat -pp'
 
 # some piping stuff
@@ -578,5 +576,26 @@ zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'
 source /usr/share/doc/fzf/examples/key-bindings.zsh
 #source /usr/share/zsh/vendor-completions/_fzf
 export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border --exact'
+
+function email-sync {
+	echo "Email Two-Way Synchronization Initiated"
+	# I do not ping mailbox.org because I realized strange effects
+	# for dual stack hosts during IPv6 SLAAC. Not sure if DSLite problem 
+	if ! ping -c 1 heise.de >/dev/null 2>&1; then
+    echo "Mailbox.org not pingable"
+		return
+  fi
+	offlineimap -o -u ttyui
+	notmuch new
+	notmuch tag +linux-perf -- folder:Lists.lkml subject:perf or subject:trace
+	echo "tips:"
+	echo "    notmuch search thread:{tag:linux-perf}"
+	echo "    notmuch search --sort oldest-first thread:{tag:linux-perf} date:1month..now"
+	du -sh .mail
+}
+
+alias mutt-sync-offline='echo "Offline Mode";sleep 0.4;email-sync;mutt -F ~/.mutt/muttrc-offline; email-sync'
+alias mutt-offline='mutt -F ~/.mutt/muttrc-offline'
+
 
 # vim:set ts=2 tw=80 ft=zsh:

@@ -40,3 +40,6 @@ apt-file
 trace-cmd
 kernelshark
 linux-perf
+notmuch-mutt
+notmuch-addrlookup
+offlineimap

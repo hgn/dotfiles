@@ -79,6 +79,9 @@ g = grep --break --heading --line-number --show-function --before-context 10 --a
 merge = merge --progress --verbose
 quick-stats = '! ~/bin/git-quick-stats'
 
+where = "!f() { git rev-parse --abbrev-ref HEAD; git log -1 --pretty=%s;}; f"
+
+
 [core]
 legacyheaders = false
 excludesfile = $HOME/.gitignore
@@ -137,6 +140,7 @@ autosquash = true
 submoduleSummary = true
 
 [http]
+	postBuffer = 157286400
 # stop verifying SSL for self signed certificates (only if
 # really required! Think about the consequences
 #sslVerify = false
@@ -179,3 +183,5 @@ file-view-vpane-position = 241
 extendRegexp = true
 [mergetool]
 	keepBackup = false
+[init]
+	defaultBranch = main

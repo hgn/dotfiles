@@ -38,6 +38,8 @@ export LC_CTYPE=de_DE.utf8
 
 ## ALIASES
 
+alias mutt-offline='mutt -F ~/.mutt/muttrc-offline'
+
 alias bat='batcat -pp'
 
 # some piping stuff
@@ -66,9 +68,13 @@ alias dirs='dirs -v'
 
 # ls - list directory contents
 alias d="ls --color=auto -T 0"
-alias ls="ls --color=auto -T 0"
+alias ls='LC_COLLATE=C ls -h --group-directories-first --color=auto'
 alias la="ls --color=auto -Al -T 0"
 alias ll="ls --color -l -T 0"
+
+alias m="make"
+alias v="vim"
+
 # ls-tips
 #   ls -sS    list for Size
 #   ls -sSr   list for Reverse size
@@ -117,36 +123,9 @@ alias pyclean='find . -type f -name "*.py[co]" -exec rm -f \{\} \;'
 alias pbcopy='xsel --clipboard --input'
 alias pbpaste='xsel --clipboard --output'
 
+alias fd=fdfind
+
 [ -x /usr/bin/lesspipe ] && eval "$(lesspipe)"
-
-### check for OS
-case $(uname -s) in 
-  Linux)
-    OS="linux"
-    alias psa='ps axo "user,pid,ppid,%cpu,%mem,tty,stime,state,command"'
-    # 0x20C3F4DD is my certification only key 
-    alias gpgsign='gpg -u 20C3F4DD --sign-key'
-  ;;
-  *[bB][Ss][Dd])
-    OS="bsd"
-    alias psa='ps axo "user,pid,ppid,%cpu,%mem,tty,start,state,command"'
-  ;;
-  *)
-    OS="unknown"
-  ;; 
-esac
-
-### check for DIST
-if [ -f /etc/redhat-release ]; then
-  DIST="redhat"
-elif [ -f /etc/debian_version ]; then
-  DIST="debian"
-elif [ -f /etc/gentoo-release ] || [ -f /usr/bin/emerge ]; then
-  DIST="gentoo"
-elif [ -f /etc/arch-release ]; then
-  DIST="arch"
-fi
-
 
 ## get keys working
 # found at http://maxime.ritter.eu.org/stuff/zshrc
@@ -192,6 +171,7 @@ fi
 zstyle ':completion:*:*:kill:*:processes' list-colors "=(#b) #([0-9]#)*=36=31"
 
 zstyle ':completion:*:cd:*' ignore-parents parent pwd
+HISTORY_IGNORE="(ls|ll|rm|fg|cd|pwd|exit|cd ..)"
 
 # use z, with menu
 source ~/.zsh-z.plugin.zsh
@@ -266,6 +246,8 @@ alias dh='dirs -v'
 
 setopt long_list_jobs
 alias jobs='jobs -l'
+
+alias fd="fdfind"
 
 # aptitude install autojump
 if [ -f /usr/share/autojump/autojump.zsh ]; then
@@ -349,7 +331,7 @@ function psm {
 
 
 function ff () {
-  find . -iregex "${*}" -print
+  fd "${*}"
 }
 
 function ffg () {
@@ -358,15 +340,6 @@ function ffg () {
     echo "Usage: $0 directory filenamepattern filecontentpattern"
   else
     find $1 -iregex $2 -print0 | xargs -0 grep -in $3
-  fi
-}
-
-function sgrep () {
-  if [[ $# != 1 ]]
-  then
-    echo "Usage: $0 pattern"
-  else
-		grep -C 3 -rni $1 **/*.[ch]
   fi
 }
 
@@ -397,27 +370,6 @@ show-archive()
 	else
 		echo "'$1' is not a valid archive"
 	fi
-}
-
-# if [ Now-Playing == "relaxmusic" ];then .. ;-)
-beer()
-{
-  echo "         _.._..,_,_"
-  echo "        (          )"
-  echo "         ]~,\"-.-~~["
-  echo "       .=])' (;  ([    Cheers!"
-  echo "       | ]:: '    ["
-  echo "       '=]): .)  (["
-  echo "         |:: '    |"
-  echo "          ~~----~~"
-}
-
-# gpg
-function sgpg { gpg --keyserver pgp.mit.edu --search-key "$1"; }
-
-# Process search
-function psgrep {
-    ps ax | grep $1 | fgrep -v "grep $1"
 }
 
 # Exchange ' ' for '_' in filenames.
@@ -476,27 +428,24 @@ function radio()
 {
   if [[ $# != 1 ]]
   then
-    echo "Usage: $0 [egofm | fm4 ]"
+    echo "Usage: $0 [egofm | dlf ]"
 		return
   fi
 
 	case $1 in
-		fm4)
-			mplayer -playlist http://mp3stream1.apasf.apa.at:8000/listen.pls
-			;;
 		egofm)
-			mplayer http://www.egofm.de/stream/192kb
+			mplayer "https://streams.egofm.de/egoRAP-hq"
+			;;
+		dlf)
+			mplayer "https://st01.sslstream.dlf.de/dlf/01/high/opus/stream.opus?aggregator=web"
 			;;
 		*)
-			echo "Usage: $0 [egofm | fm4 ]"
+			echo "Usage: $0 [egofm | dlf ]"
 			;;
 	esac
 }
 
-
-
-
-allulimit() {
+ulimitall() {
   ulimit -c unlimited
   ulimit -d unlimited
   ulimit -f unlimited
@@ -507,63 +456,33 @@ allulimit() {
 }
 
 
-# A quick globbing reference, stolen from GRML.
-help-glob() {
-echo -e "
-/      directories
-.      plain files
-@      symbolic links
-=      sockets
-p      named pipes (FIFOs)
-*      executable plain files (0100)
-%      device files (character or block special)
-%b     block special files
-%c     character special files
-r      owner-readable files (0400)
-w      owner-writable files (0200)
-x      owner-executable files (0100)
-A      group-readable files (0040)
-I      group-writable files (0020)
-E      group-executable files (0010)
-R      world-readable files (0004)
-W      world-writable files (0002)
-X      world-executable files (0001)
-s      setuid files (04000)
-S      setgid files (02000)
-t      files with the sticky bit (01000)
-print *(m-1)          # Dateien, die vor bis zu einem Tag modifiziert wurden.
-print *(a1)           # Dateien, auf die vor einem Tag zugegriffen wurde.
-print *(@)            # Nur Links
-print *(Lk+50)        # Dateien die ueber 50 Kilobytes grosz sind
-print *(Lk-50)        # Dateien die kleiner als 50 Kilobytes sind
-print **/*.c          # Alle *.c - Dateien unterhalb von \$PWD
-print **/*.c~file.c   # Alle *.c - Dateien, aber nicht 'file.c'
-print (foo|bar).*     # Alle Dateien mit 'foo' und / oder 'bar' am Anfang
-print *~*.*           # Nur Dateien ohne '.' in Namen
-chmod 644 *(.^x)      # make all non-executable files publically readable
-print -l *(.c|.h)     # Nur Dateien mit dem Suffix '.c' und / oder '.h'
-print **/*(g:users:)  # Alle Dateien/Verzeichnisse der Gruppe >users<
-echo /proc/*/cwd(:h:t:s/self//) # Analog zu >ps ax | awk '{print $1}'<"
-  }
+# aptitude install apcalc
+#alias calc="noglob _calc"
+#function _calc () {
+#             awk "BEGIN { print $* ; }"
+#}
 
-
-function netstate {
-	netstat -tan | grep "^tcp" | cut -c 68- | sort | uniq -c | sort -n
+function mail-classify () {
+  # lkml stuff
+	notmuch tag +lkml +list folder:Lists.lkml
+	notmuch tag +keep -- tag:lkml and to:hagen.pfeifer@jauu.net
+	notmuch tag +keep -- tag:lkml and subject:perf
+	notmuch tag +keep -- tag:lkml and subject:trace
+	# mark all messages older 1 month and not to me, not perf, trace as "killed"
+	notmuch tag +killed -- tag:lkml and not tag:keep and date:..1month
 }
-
-
-alias calc="noglob _calc" calcfx="noglob _calcfx"
-function _calc () {
-             awk "BEGIN { print $* ; }"
+function mail-cleanup () {
+  echo "did you call mail-classify first?"
+	echo "now will delete killed tagged email"
+	notmuch search tag:killed
+	notmuch search --output=files --format=text0 tag:killed | xargs --no-run-if-empty rm
+  notmuch new
+	offlineimap -o -u basic
 }
-
-function _calcfx () {
-            gawk -v CONVFMT="%12.2f" -v OFMT="%.9g"  "BEGIN { print $* ; }"
-}
-
-function android-dev-mode {
-	echo "add android path"
-	export PATH=$PATH:~/src/code/01-own/android/android-studio/bin:~/Android/Sdk/platform-tools
+function mail-sync-offline () {
+	offlineimap -o -u basic
+	mail-classify
+	mail-cleanup
 }
 
 eval "$(dircolors -b)"
@@ -599,3 +518,6 @@ alias mutt-offline='mutt -F ~/.mutt/muttrc-offline'
 
 
 # vim:set ts=2 tw=80 ft=zsh:
+
+autoload -Uz compinit
+fpath+=~/.zfunc

@@ -51,11 +51,11 @@ Xft.rgba: rgb
 Xft.lcdfilter: lcddefault
 
 !urxvt.font: xft:DejaVu Sans Mono:pixelsize=14,xft:Bitstream Vera Sans Mono,xft:Baekmuk Gulim,xft:Kochi Gothic,xft:AR PL ShanHeiSun Uni,xft:FreeMono:autohint=true
-urxvt.font: xft:Inconsolata:pixelsize=14
+urxvt.font: xft:Inconsolata:pixelsize=28
 
 urxvt.keysym.C-minus: command:\033]710;xft:Inconsolata:pixelsize=17\007
 urxvt.keysym.C-0: command:\033]710;xft:Inconsolata:pixelsize=22\007
-urxvt.keysym.C-equal: command:\033]710;xft:Inconsolata:pixelsize=28\007
+urxvt.keysym.C-equal: command:\033]710;xft:Inconsolata:pixelsize=70\007
 
 URxvt.boldFont:
 

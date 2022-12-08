@@ -464,6 +464,7 @@ ulimitall() {
 
 function mail-classify () {
   # lkml stuff
+  notmuch new
 	notmuch tag +lkml +list folder:Lists.lkml
 	notmuch tag +keep -- tag:lkml and to:hagen.pfeifer@jauu.net
 	notmuch tag +keep -- tag:lkml and subject:perf

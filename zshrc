@@ -37,6 +37,7 @@ export LC_CTYPE=de_DE.utf8
 
 
 ## ALIASES
+alias vim='nvim'
 
 alias mutt-offline='mutt -F ~/.mutt/muttrc-offline'
 

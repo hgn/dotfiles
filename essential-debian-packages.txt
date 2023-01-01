@@ -39,3 +39,6 @@ notmuch-addrlookup
 offlineimap
 universal-ctags
 ripgrep
+qemu-utils
+zstd
+apcalc

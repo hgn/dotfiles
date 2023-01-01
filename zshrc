@@ -465,26 +465,38 @@ ulimitall() {
 
 function mail-classify () {
   # lkml stuff
-  notmuch new
 	notmuch tag +lkml +list folder:Lists.lkml
-	notmuch tag +keep -- tag:lkml and to:hagen.pfeifer@jauu.net
-	notmuch tag +keep -- tag:lkml and subject:perf
-	notmuch tag +keep -- tag:lkml and subject:trace
+	notmuch tag +keep-infty -- tag:lkml and to:hagen.pfeifer@jauu.net
+	notmuch tag +keep-longer +linux-perf -- tag:lkml and subject:perf
+	notmuch tag +keep-longer +linux-perf -- tag:lkml and subject:trace
+	notmuch tag +keep-longer +linux-bpf  -- tag:lkml and subject:ebpf
+	notmuch tag +keep-longer +linux-bpf  -- tag:lkml and subject:bpf
 	# mark all messages older 1 month and not to me, not perf, trace as "killed"
-	notmuch tag +killed -- tag:lkml and not tag:keep and date:..1month
+  # please not, month means "not that month", not 30 days.
+	notmuch tag +killed -- tag:lkml and not tag:keep-longer and not tag:keep-infty and date:..30days
+	notmuch tag +killed -- tag:lkml and not tag:keep-infty and date:..365days
 }
 function mail-cleanup () {
   echo "did you call mail-classify first?"
 	echo "now will delete killed tagged email"
 	notmuch search tag:killed
-	notmuch search --output=files --format=text0 tag:killed | xargs --no-run-if-empty rm
+	notmuch search --output=files --format=text0 tag:killed | xargs --null --no-run-if-empty rm
   notmuch new
-	offlineimap -o -u basic
 }
-function mail-sync-offline () {
+function email-sync () {
+	echo "Email Two-Way Synchronization Initiated"
+	if ! ping -c 1 heise.de >/dev/null 2>&1; then
+    echo "heise.de not pingable - failed to sync emails"
+		return
+  fi
 	offlineimap -o -u basic
 	mail-classify
 	mail-cleanup
+	offlineimap -o -u basic
+	echo "tips:"
+	echo "    notmuch search thread:{tag:linux-perf}"
+	echo "    notmuch search --sort oldest-first thread:{tag:linux-perf} date:1month..now"
+	du -sh .mail
 }
 
 eval "$(dircolors -b)"
@@ -498,22 +510,6 @@ source /usr/share/doc/fzf/examples/key-bindings.zsh
 #source /usr/share/zsh/vendor-completions/_fzf
 export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border --exact'
 
-function email-sync {
-	echo "Email Two-Way Synchronization Initiated"
-	# I do not ping mailbox.org because I realized strange effects
-	# for dual stack hosts during IPv6 SLAAC. Not sure if DSLite problem 
-	if ! ping -c 1 heise.de >/dev/null 2>&1; then
-    echo "Mailbox.org not pingable"
-		return
-  fi
-	offlineimap -o -u ttyui
-	notmuch new
-	notmuch tag +linux-perf -- folder:Lists.lkml subject:perf or subject:trace
-	echo "tips:"
-	echo "    notmuch search thread:{tag:linux-perf}"
-	echo "    notmuch search --sort oldest-first thread:{tag:linux-perf} date:1month..now"
-	du -sh .mail
-}
 
 alias mutt-sync-offline='echo "Offline Mode";sleep 0.4;email-sync;mutt -F ~/.mutt/muttrc-offline; email-sync'
 alias mutt-offline='mutt -F ~/.mutt/muttrc-offline'

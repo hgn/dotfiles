@@ -42,3 +42,6 @@ ripgrep
 qemu-utils
 zstd
 apcalc
+flent
+irtt
+netperf

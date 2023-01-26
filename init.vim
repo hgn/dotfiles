@@ -475,3 +475,6 @@ vnoremap <leader>p "+p
 vnoremap <leader>P "+P
 
 set cursorline
+"highlight CursorLine guibg=#000050 guifg=fg
+set cursorcolumn
+highlight CursorColumn guibg=#2d2f3f

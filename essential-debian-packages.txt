@@ -1,6 +1,5 @@
 zsh
 x86info
-vim-tiny
 traceroute
 tcpdump
 strace
@@ -10,7 +9,6 @@ schedtool
 nmap
 ngrep
 mutt
-mplayer
 manpages-dev
 manpages
 make
@@ -43,5 +41,7 @@ qemu-utils
 zstd
 apcalc
 flent
-irtt
 netperf
+libbabeltrace-dev
+libzstd-dev
+libcap-dev

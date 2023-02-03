@@ -35,3 +35,7 @@ mkdir -p ~/.config/nvim/
 create init.vim ~/.config/nvim/init.vim
 mkdir -p ~/.config/alacritty
 create alacritty.yml ~/.config/alacritty/alacritty.yml
+
+# blacklist things, no differentiation here
+sudo cp module-blacklist.conf /etc/modprobe.d/
+sudo cp iwlwifi.conf /etc/modprobe.d/

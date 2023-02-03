@@ -1,10 +1,10 @@
 servers = (
   {
-    address = "irc.freenode.net";
-    chatnet = "Freenode";
-    port = "6667";
-    use_ssl = "no";
-    ssl_verify = "no";
+    address = "irc.libera.chat";
+    chatnet = "Libera.chat";
+    port = "6697";
+    use_ssl = "yes";
+    ssl_verify = "yes";
     autoconnect = "yes";
   }
 );
@@ -16,6 +16,7 @@ chatnets = {
     max_msgs = "4";
     max_whois = "1";
   };
+  "Libera.chat" = { type = "IRC"; };
 };
 
 channels = (

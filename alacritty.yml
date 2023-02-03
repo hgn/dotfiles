@@ -174,7 +174,10 @@ cursor:
   #   - ▇ Block
   #   - _ Underline
   #   - | Beam
-  style: Beam
+  style:
+    shape: Block
+    blinking: On
+  blink_interval: 550
 
   # If this is `true`, the cursor will be rendered as a hollow box when the
   # window is not focused.
@@ -296,12 +299,21 @@ alt_send_esc: true
 #   - ~AppKeypad
 #   - AppKeypad
 
+custom_cursor_colors: true
 
 colors:
   # Default colors
   primary:
     background: '0x1b182c'
     foreground: '0xcbe3e7'
+  cursor:
+    text: '0x1d1f21'
+    cursor: '0xc5c8c6'
+
+bell:
+  animation: EaseOutCirc
+  color: '0xff0000'
+  duration: 200
 
 key_bindings:
     # (Windows, Linux, and BSD only)

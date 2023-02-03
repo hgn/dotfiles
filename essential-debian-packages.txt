@@ -45,3 +45,5 @@ netperf
 libbabeltrace-dev
 libzstd-dev
 libcap-dev
+alacritty
+speedtest-cli

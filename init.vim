@@ -26,7 +26,7 @@ set laststatus=2
 
 "Plug 'nvim-telescope/telescope.nvim', { 'tag': '0.1.0' }
 call plug#begin("~/.config/nvim/plugged")
- Plug 'scrooloose/nerdtree'
+ "Plug 'scrooloose/nerdtree'
  Plug 'startup-nvim/startup.nvim'
  Plug 'dracula/vim'
  Plug 'nvim-lua/plenary.nvim'
@@ -38,6 +38,7 @@ call plug#begin("~/.config/nvim/plugged")
  Plug 'windwp/nvim-autopairs'
  Plug 'majutsushi/tagbar'
  Plug 'b3nj5m1n/kommentary'
+ Plug 'sunjon/shade.nvim'
  "Plug 'tpope/vim-sleuth'
  "Plug 'nvim-tree/nvim-tree.lua'
 call plug#end()
@@ -89,6 +90,11 @@ require('lualine').setup {
     icons_enabled = false,
     component_separators = '|',
     section_separators = '',
+    refresh = {
+      statusline = 2000,
+      tabline = 2000,
+      winbar = 2000,
+    }
 
     },
     sections = {
@@ -105,6 +111,8 @@ require'hop'.setup()
 -- place this in one of your configuration file(s)
 local hop = require('hop')
 
+require("telescope").load_extension "file_browser"
+
 vim.api.nvim_set_keymap(
   "n",
   "<space>fb",
@@ -114,10 +122,17 @@ vim.api.nvim_set_keymap(
 
 require("nvim-autopairs").setup {}
 
+require'shade'.setup({
+  overlay_opacity = 60,
+  opacity_step = 1,
+  keys = {
+    brightness_up    = '<C-Up>',
+    brightness_down  = '<C-Down>',
+  }
+})
 
 
 END
-
 
 " color schemes
 if (has("termguicolors"))
@@ -396,10 +411,10 @@ endif
 "search the current word under cursor in all files in working directory
 "map <F3> :Sexplore<CR>
 
-:nmap <F1> :Telescope find_files<CR>
-:imap <F1> <C-o>:Telescope find_files<CR>
-:nmap <F2> :Telescope oldfiles<CR>
-:imap <F2> <C-o>:Telescope oldfiles<CR>
+:nmap <F1> :Telescope oldfiles<CR>
+:imap <F1> <C-o>:Telescope oldfiles<CR>
+:nmap <F2> :Telescope find_files<CR>
+:imap <F2> <C-o>:Telescope find_files<CR>
 :nmap <F3> :Telescope live_grep<CR>
 :imap <F3> <C-o>:Telescope live_grep<CR>
 
@@ -416,6 +431,17 @@ endif
 :nmap <F6> :TagbarToggle<CR>
 :imap <F6> <C-o>:TagbarToggle<CR>
 
+:nmap <F7> :Telescope man_pages<CR>
+:imap <F7> <C-o>:Telescope man_pages<CR>
+
+:nmap <F8> :Telescope marks<CR>
+:imap <F8> <C-o>:Telescope marks<CR>
+
+:nmap <F8> :Telescope git_commits<CR>
+:imap <F8> <C-o>:Telescope git_commits<CR>
+
+:nmap <F9> :Telescope command_history<CR>
+:imap <F9> <C-o>:Telescope command_history<CR>
 
 "F11 -> F12 == resize window
 map <F11>   <ESC>:resize -5 <CR>

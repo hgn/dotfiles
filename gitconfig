@@ -56,6 +56,8 @@ serve = !git daemon --reuseaddr --verbose  --base-path=. --export-all ./.git
 stash = stash --include-untracked
 
 gb = branch -av
+b = branch -av
+
 lg = log --color --graph --all --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
 log-graph = log --all --graph --decorate
 w = !git branch -a && git log --branches --oneline --graph --decorate --simplify-by-decoration --since='2 months ago'

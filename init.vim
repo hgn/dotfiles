@@ -113,13 +113,6 @@ local hop = require('hop')
 
 require("telescope").load_extension "file_browser"
 
-vim.api.nvim_set_keymap(
-  "n",
-  "<space>fb",
-  ":Telescope file_browser",
-  { noremap = true }
-)
-
 require("nvim-autopairs").setup {}
 
 require'shade'.setup({
@@ -440,8 +433,8 @@ endif
 :nmap <F8> :Telescope git_commits<CR>
 :imap <F8> <C-o>:Telescope git_commits<CR>
 
-:nmap <F9> :Telescope command_history<CR>
-:imap <F9> <C-o>:Telescope command_history<CR>
+:nmap <F9> :Telescope file_browser<CR>
+:imap <F9> <C-o>:Telescope file_browser<CR>
 
 "F11 -> F12 == resize window
 map <F11>   <ESC>:resize -5 <CR>

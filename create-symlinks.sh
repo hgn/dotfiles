@@ -33,3 +33,5 @@ mkdir -p ~/.config/inkscape/palettes/
 create inkscape-cp-flatuicolors.gpl ~/.config/inkscape/palettes/inkscape-cp-flatuicolors.gpl
 mkdir -p ~/.config/nvim/
 create init.vim ~/.config/nvim/init.vim
+mkdir -p ~/.config/alacritty
+create alacritty.yml ~/.config/alacritty/alacritty.yml

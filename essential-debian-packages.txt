@@ -47,3 +47,4 @@ libzstd-dev
 libcap-dev
 alacritty
 speedtest-cli
+ncdu

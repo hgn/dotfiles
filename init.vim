@@ -58,6 +58,7 @@ vim.api.nvim_set_keymap("v", "<leader>c", "<Plug>kommentary_visual_default<C-c>"
 
 vim.keymap.set("n", "<leader><space>", require('telescope.builtin').buffers, { desc = '{} find existing buffers'})
 
+
 -- disable netrw at the very start of your init.lua (strongly advised)
 -- vim.g.loaded_netrw = 1
 -- vim.g.loaded_netrwPlugin = 1
@@ -111,6 +112,38 @@ require'hop'.setup()
 -- place this in one of your configuration file(s)
 local hop = require('hop')
 
+require("telescope").setup {
+ defaults = {
+    -- Your defaults config goes in here
+  },
+  pickers = {
+    -- Your special builtin config goes in here
+    buffers = {
+      sort_lastused = true,
+      theme = "dropdown",
+    },
+    find_files = {
+      theme = "dropdown"
+    }
+  },
+  extensions = {
+    file_browser = {
+      theme = "dropdown",
+      -- disables netrw and use telescope-file-browser in its place
+      hijack_netrw = true,
+      mappings = {
+        ["i"] = {
+          -- your custom insert mode mappings
+        },
+        ["n"] = {
+          -- your custom normal mode mappings
+        },
+      },
+    },
+  },
+}
+
+
 require("telescope").load_extension "file_browser"
 
 require("nvim-autopairs").setup {}
@@ -135,6 +168,7 @@ syntax enable
  " colorscheme evening
 let g:dracula_italic=0
 colorscheme dracula
+
 " open new split panes to right and below
 "set splitright
 ""set splitbelow
@@ -239,8 +273,6 @@ if g:myLang == 1 | setlocal spell spelllang=de_de | endif
 if g:myLang == 2 | setlocal spell spelllang=en_us | endif
 echo "language:" g:myLangList[g:myLang]
 endf
-map <F7> :call MySpellLang()<CR>
-imap <F7> <C-o>:call MySpellLang()<CR> 
 
 " what a stupid feature - mouse support for the terminal!
 " If I want X I use X, or Emacs, ...
@@ -424,8 +456,8 @@ endif
 :nmap <F6> :TagbarToggle<CR>
 :imap <F6> <C-o>:TagbarToggle<CR>
 
-:nmap <F7> :Telescope man_pages<CR>
-:imap <F7> <C-o>:Telescope man_pages<CR>
+map <F7> :call MySpellLang()<CR>
+imap <F7> <C-o>:call MySpellLang()<CR> 
 
 :nmap <F8> :Telescope marks<CR>
 :imap <F8> <C-o>:Telescope marks<CR>

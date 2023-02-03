@@ -174,14 +174,14 @@ cursor:
   #   - ▇ Block
   #   - _ Underline
   #   - | Beam
-  style: Block
+  style: Beam
 
   # If this is `true`, the cursor will be rendered as a hollow box when the
   # window is not focused.
   unfocused_hollow: true
 
 # Live config reload (changes require restart)
-live_config_reload: true
+live_config_reload: false
 
 # Shell
 #
@@ -295,6 +295,13 @@ alt_send_esc: true
 #   - AppCursor
 #   - ~AppKeypad
 #   - AppKeypad
+
+
+colors:
+  # Default colors
+  primary:
+    background: '0x1b182c'
+    foreground: '0xcbe3e7'
 
 key_bindings:
     # (Windows, Linux, and BSD only)

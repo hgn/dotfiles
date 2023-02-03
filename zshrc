@@ -42,7 +42,7 @@ alias vim='nvim'
 alias mutt-offline='mutt -F ~/.mutt/muttrc-offline'
 
 alias bat='batcat --color always -pp'
-alias l='exa -bl -s oldest --color always'
+alias l='exa -bl -s oldest --color always --time-style=long-iso'
 alias less="less -r"
 
 # some piping stuff

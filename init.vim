@@ -191,21 +191,9 @@ set switchbuf=useopen
 set titlestring=%<%F\ %M%=%l/%L\ -\ %p%% titlelen=70
 " dont show startup message when opening new file
 set shortmess+=I
+set shortmess+=c    " Don't pass messages to |ins-completion-menu|
 
 syntax on
-
-"let g:ctrlp_user_command = 'find %s -type f'
-let g:ctrlp_cmd = 'CtrlP'
-" gnore files in .gitignore" 
-let g:ctrlp_user_command = ['.git', 'cd %s && git ls-files -co --exclude-standard']
-" Set no max file limit
-"let g:ctrlp_max_files = 0
-"let g:ctrlp_working_path_mode = 'ar'
-let g:ctrlp_by_filename = 0
-let g:ctrlp_match_window = 'bottom,order:ttb,min:1,max:10,results:200'
-let g:ctrlp_use_caching = 1
-let g:ctrlp_open_new_file = 'v'
-let g:ctrlp_mruf_max = 250
 
 " search recursively for :find
 set path+=**
@@ -320,7 +308,9 @@ else
 endif
 
 " Minimal number of screen lines to keep above and below the cursor
-set scrolloff=2
+set scrolloff=5
+
+set lazyredraw
 
 " highlight advanced perl vars inside strings
 let perl_extended_vars=1
@@ -394,6 +384,10 @@ if has("autocmd")
 
   "for Perl programming, have things in braces indenting themselves:
   autocmd FileType perl set smartindent tabstop=4 shiftwidth=4
+
+  autocmd FileType markdown setlocal spell
+
+  autocmd FileType text setlocal spell
 
 
   "in makefiles, don't expand tabs to spaces, since actual tab characters are

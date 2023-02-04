@@ -20,8 +20,8 @@ chatnets = {
 };
 
 channels = (
-  { name = "#irssi"; chatnet = "ircnet"; autojoin = "No"; },
-  { name = "#captcp"; chatnet = "Freenode"; autojoin = "No"; }
+  { name = "#neovim"; chatnet = "Libera.chat"; autojoin = "Yes"; },
+  { name = "#captcp"; chatnet = "Libera.chat"; autojoin = "No"; }
 );
 
 aliases = {

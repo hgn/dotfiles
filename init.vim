@@ -39,6 +39,7 @@ call plug#begin("~/.config/nvim/plugged")
  Plug 'majutsushi/tagbar'
  Plug 'b3nj5m1n/kommentary'
  Plug 'sunjon/shade.nvim'
+ Plug 'lukas-reineke/virt-column.nvim'
  "Plug 'tpope/vim-sleuth'
  "Plug 'nvim-tree/nvim-tree.lua'
 call plug#end()
@@ -157,6 +158,7 @@ require'shade'.setup({
   }
 })
 
+require("virt-column").setup()
 
 END
 
@@ -372,6 +374,9 @@ if has("autocmd")
   autocmd FileType mail,human
          \ set spelllang=de formatoptions+=t textwidth=78 nocindent dictionary=/usr/share/dict/words
 
+  autocmd FileType tex
+         \ set spelllang=de ff=unix cc=90 textwidth=90 expandtab nocindent dictionary=/usr/share/dict/words
+
 	autocmd FileType ruby set tabstop=4 shiftwidth=4 expandtab
 
 
@@ -380,9 +385,6 @@ if has("autocmd")
       au!
       autocmd BufRead *html source $HOME/.vim/mail.vim
   augroup END
-
-	" 80 is to short, especially for tables and the like
-  autocmd FileType tex set formatoptions+=t textwidth=170 nocindent
 
   autocmd FileType c,cpp set formatoptions+=ro dictionary=$HOME/.vim/c_dictionary
                        \ tw=78 tabstop=8 shiftwidth=8 noexpandtab cindent

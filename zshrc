@@ -18,10 +18,9 @@ export GOPATH=$HOME/src/code/go
 export PATH=/usr/local/bin:$HOME/.cargo/bin:$HOME/bin:/sbin:/usr/sbin/:${PATH}:$GOPATH/bin
 export DEBUGINFOD_URLS="https://debuginfod.debian.net"
 
-
-
 #export PAGER="col -b | view -c 'set nomod' -"
 #export MANPAGER="col -b | view -c 'hi StatusLine ctermbg=green| set ft=man nomod nolist' -"
+export MANPAGER="sh -c 'col -bx | batcat -l man -p'"
 
 # default encrypted session via rsync
 export RSYNC_RSH=ssh

@@ -88,7 +88,7 @@ where = "!f() { git rev-parse --abbrev-ref HEAD; git log -1 --pretty=%s;}; f"
 legacyheaders = false
 excludesfile = $HOME/.gitignore
 whitespace=fix,-indent-with-non-tab,trailing-space,cr-at-eol
-editor = vim
+editor = nvim
 # for windows and notepad++ the following should do the trick:
 # unzip npp.6.9.2.bin.minimalist.7z to desktop ("unpack to npp...")
 # echo "%UserProfile%\Desktop\npp.6.9.2.bin.minimalist\notepad++.exe"

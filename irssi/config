@@ -21,6 +21,14 @@ chatnets = {
 
 channels = (
   { name = "#neovim"; chatnet = "Libera.chat"; autojoin = "Yes"; },
+  { name = "#kernel"; chatnet = "Libera.chat"; autojoin = "Yes"; },
+  { name = "#python"; chatnet = "Libera.chat"; autojoin = "Yes"; },
+  { name = "#security"; chatnet = "Libera.chat"; autojoin = "Yes"; },
+  {
+    name = "#linux-hardening";
+    chatnet = "Libera.chat";
+    autojoin = "Yes";
+  },
   { name = "#captcp"; chatnet = "Libera.chat"; autojoin = "No"; }
 );
 

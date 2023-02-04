@@ -50,3 +50,5 @@ speedtest-cli
 ncdu
 irssi
 irssi-scripts
+duf
+tldr

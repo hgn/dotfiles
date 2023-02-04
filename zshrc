@@ -512,7 +512,7 @@ source /usr/share/doc/fzf/examples/key-bindings.zsh
 export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border --exact'
 
 
-alias mutt-sync-offline='echo "Offline Mode";sleep 0.4;email-sync;mutt -F ~/.mutt/muttrc-offline; email-sync'
+alias mutt-offline-resync='email-sync;mutt -F ~/.mutt/muttrc-offline; email-sync'
 alias mutt-offline='mutt -F ~/.mutt/muttrc-offline'
 
 

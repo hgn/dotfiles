@@ -374,6 +374,9 @@ if has("autocmd")
   autocmd FileType mail,human
          \ set spelllang=de formatoptions+=t textwidth=78 nocindent dictionary=/usr/share/dict/words
 
+  autocmd FileType gitcommit
+         \ set spelllang=en ff=unix cc=50,72 textwidth=90 expandtab nocindent
+
   autocmd FileType tex
          \ set spelllang=de ff=unix cc=90 textwidth=90 expandtab nocindent dictionary=/usr/share/dict/words
 

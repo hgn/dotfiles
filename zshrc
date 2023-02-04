@@ -498,7 +498,7 @@ function email-sync () {
 	echo "tips:"
 	echo "    notmuch search thread:{tag:linux-perf}"
 	echo "    notmuch search --sort oldest-first thread:{tag:linux-perf} date:1month..now"
-	du -sh .mail
+	du -sh $HOME/.mail
 }
 
 eval "$(dircolors -b)"

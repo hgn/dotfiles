@@ -40,6 +40,7 @@ call plug#begin("~/.config/nvim/plugged")
  Plug 'b3nj5m1n/kommentary'
  Plug 'sunjon/shade.nvim'
  Plug 'lukas-reineke/virt-column.nvim'
+ Plug 'rainbowhxch/beacon.nvim'
  "Plug 'tpope/vim-sleuth'
  "Plug 'nvim-tree/nvim-tree.lua'
 call plug#end()
@@ -88,7 +89,7 @@ vim.keymap.set("n", "<leader><space>", require('telescope.builtin').buffers, { d
 
 require('lualine').setup {
   options = {
-    theme = 'material',
+    --theme = 'material',
     icons_enabled = false,
     component_separators = '|',
     section_separators = '',
@@ -323,7 +324,7 @@ else
 endif
 
 " Minimal number of screen lines to keep above and below the cursor
-set scrolloff=5
+set scrolloff=2
 
 set lazyredraw
 

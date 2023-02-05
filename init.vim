@@ -318,8 +318,8 @@ map <S-h> gT
 map <S-l> gt
 else
 " spell check for the folloging files
-  let spell_auto_type = "tex,mail,text,human"
-  let spell_markup_ft = ",tex,mail,text,human,,"
+  let spell_auto_type = "tex,mail,text"
+  let spell_markup_ft = ",tex,mail,text"
   let spell_guess_language_ft = ""
 endif
 
@@ -365,7 +365,6 @@ if has("autocmd")
   filetype on
     augroup filetype
     filetype plugin indent on
-    autocmd BufNewFile,BufRead *.txt set filetype=human
 		"autocmd BufRead *.py set tabstop=4 shiftwidth=4 smarttab expandtab softtabstop=4 autoindent smartindent
   augroup END
 
@@ -377,14 +376,14 @@ if has("autocmd")
     \ endif
 
   "in human-language files, automatically format everything at 78 chars:
-  autocmd FileType mail,human
+  autocmd FileType mail
          \ set spelllang=de formatoptions+=t textwidth=78 nocindent dictionary=/usr/share/dict/words
 
   autocmd FileType gitcommit
          \ set spelllang=en ff=unix cc=50,72 textwidth=90 expandtab nocindent
 
   autocmd FileType tex
-         \ set spelllang=de ff=unix cc=90 textwidth=90 expandtab nocindent dictionary=/usr/share/dict/words
+         \ set ff=unix cc=90 textwidth=90 expandtab nocindent dictionary=/usr/share/dict/words
 
 	autocmd FileType ruby set tabstop=4 shiftwidth=4 expandtab
 
@@ -402,8 +401,6 @@ if has("autocmd")
   autocmd FileType perl set smartindent tabstop=4 shiftwidth=4
 
   autocmd FileType markdown setlocal spell
-
-  autocmd FileType text setlocal spell
 
 
   "in makefiles, don't expand tabs to spaces, since actual tab characters are

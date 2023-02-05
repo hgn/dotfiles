@@ -27,7 +27,7 @@ set laststatus=2
 "Plug 'nvim-telescope/telescope.nvim', { 'tag': '0.1.0' }
 call plug#begin("~/.config/nvim/plugged")
  "Plug 'scrooloose/nerdtree'
- Plug 'startup-nvim/startup.nvim'
+ "Plug 'startup-nvim/startup.nvim'
  Plug 'dracula/vim'
  Plug 'nvim-lua/plenary.nvim'
  Plug 'nvim-telescope/telescope.nvim'
@@ -108,7 +108,7 @@ require('lualine').setup {
         }
       }
   }
-require("startup").setup({theme = "dashboard"})
+--require("startup").setup({theme = "dashboard"})
 require'hop'.setup()
 -- place this in one of your configuration file(s)
 local hop = require('hop')
@@ -159,6 +159,21 @@ require'shade'.setup({
 })
 
 require("virt-column").setup()
+
+local lastplace = vim.api.nvim_create_augroup("LastPlace", {})
+vim.api.nvim_clear_autocmds({ group = lastplace })
+vim.api.nvim_create_autocmd("BufReadPost", {
+    group = lastplace,
+    pattern = { "*" },
+    desc = "remember last cursor place",
+    callback = function()
+        local mark = vim.api.nvim_buf_get_mark(0, '"')
+        local lcount = vim.api.nvim_buf_line_count(0)
+        if mark[1] > 0 and mark[1] <= lcount then
+            pcall(vim.api.nvim_win_set_cursor, 0, mark)
+        end
+    end,
+})
 
 END
 

@@ -40,7 +40,8 @@ call plug#begin("~/.config/nvim/plugged")
  Plug 'b3nj5m1n/kommentary'
  Plug 'sunjon/shade.nvim'
  Plug 'lukas-reineke/virt-column.nvim'
- Plug 'rainbowhxch/beacon.nvim'
+ Plug 'lewis6991/gitsigns.nvim'
+
  "Plug 'tpope/vim-sleuth'
  "Plug 'nvim-tree/nvim-tree.lua'
 call plug#end()
@@ -176,6 +177,48 @@ vim.api.nvim_create_autocmd("BufReadPost", {
     end,
 })
 
+require('gitsigns').setup {
+  signs = {
+    add          = { text = '│' },
+    change       = { text = '│' },
+    delete       = { text = '_' },
+    topdelete    = { text = '‾' },
+    changedelete = { text = '~' },
+    untracked    = { text = '┆' },
+  },
+  signcolumn = true,  -- Toggle with `:Gitsigns toggle_signs`
+  numhl      = false, -- Toggle with `:Gitsigns toggle_numhl`
+  linehl     = false, -- Toggle with `:Gitsigns toggle_linehl`
+  word_diff  = false, -- Toggle with `:Gitsigns toggle_word_diff`
+  watch_gitdir = {
+    interval = 2000,
+    follow_files = true
+  },
+  attach_to_untracked = true,
+  current_line_blame = false, -- Toggle with `:Gitsigns toggle_current_line_blame`
+  current_line_blame_opts = {
+    virt_text = true,
+    virt_text_pos = 'eol', -- 'eol' | 'overlay' | 'right_align'
+    delay = 1000,
+    ignore_whitespace = false,
+  },
+  current_line_blame_formatter = '<author>, <author_time:%Y-%m-%d> - <summary>',
+  sign_priority = 6,
+  update_debounce = 100,
+  status_formatter = nil, -- Use default
+  max_file_length = 40000, -- Disable if file is longer than this (in lines)
+  preview_config = {
+    -- Options passed to nvim_open_win
+    border = 'single',
+    style = 'minimal',
+    relative = 'cursor',
+    row = 0,
+    col = 1
+  },
+  yadm = {
+    enable = false
+  },
+}
 END
 
 " color schemes
@@ -455,37 +498,39 @@ endif
 "search the current word under cursor in all files in working directory
 "map <F3> :Sexplore<CR>
 
-:nmap <F1> :Telescope oldfiles<CR>
-:imap <F1> <C-o>:Telescope oldfiles<CR>
-:nmap <F2> :Telescope find_files<CR>
-:imap <F2> <C-o>:Telescope find_files<CR>
-:nmap <F3> :Telescope live_grep<CR>
-:imap <F3> <C-o>:Telescope live_grep<CR>
+nmap <F1> :Telescope oldfiles<CR>
+imap <F1> <C-o>:Telescope oldfiles<CR>
 
-:nmap <F4> :HopWord<CR>
-:imap <F4> <C-o>:HopWord<CR>
-:nmap <F5> :HopWord<CR>
-:imap <F5> <C-o>:HopWord<CR>
+nmap <F2> :Telescope find_files<CR>
+imap <F2> <C-o>:Telescope find_files<CR>
+
+nmap <F3> :Telescope live_grep<CR>
+imap <F3> <C-o>:Telescope live_grep<CR>
+
+"nmap <F4> :HopWord<CR>
+"imap <F4> <C-o>:HopWord<CR>
+"nmap <F5> :HopWord<CR>
+"imap <F5> <C-o>:HopWord<CR>
 "
-":nmap <F4> :HopWordBC<CR>
-":imap <F4> <C-o>:HopWordBC<CR>
-":nmap <F5> :HopWordAC<CR>
-":imap <F5> <C-o>:HopWordAC<CR>
+nmap <F4> :HopWordBC<CR>
+imap <F4> <C-o>:HopWordBC<CR>
+nmap <F5> :HopWordAC<CR>
+imap <F5> <C-o>:HopWordAC<CR>
 
-:nmap <F6> :TagbarToggle<CR>
-:imap <F6> <C-o>:TagbarToggle<CR>
+nmap <F6> :TagbarToggle<CR>
+imap <F6> <C-o>:TagbarToggle<CR>
 
 map <F7> :call MySpellLang()<CR>
 imap <F7> <C-o>:call MySpellLang()<CR> 
 
-:nmap <F8> :Telescope marks<CR>
-:imap <F8> <C-o>:Telescope marks<CR>
+nmap <F8> :Telescope file_browser<CR>
+imap <F8> <C-o>:Telescope file_browser<CR>
 
-:nmap <F8> :Telescope git_commits<CR>
-:imap <F8> <C-o>:Telescope git_commits<CR>
+nmap <F9> :Telescope marks<CR>
+imap <F9> <C-o>:Telescope marks<CR>
 
-:nmap <F9> :Telescope file_browser<CR>
-:imap <F9> <C-o>:Telescope file_browser<CR>
+nmap <F10> :Telescope git_commits<CR>
+imap <F10> <C-o>:Telescope git_commits<CR>
 
 "F11 -> F12 == resize window
 map <F11>   <ESC>:resize -5 <CR>

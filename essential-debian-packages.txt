@@ -53,3 +53,4 @@ irssi-scripts
 duf
 tldr
 mosh
+curl

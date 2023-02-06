@@ -54,3 +54,4 @@ duf
 tldr
 mosh
 curl
+wireguard

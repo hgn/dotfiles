@@ -41,6 +41,8 @@ window:
   #     - buttonless: Title bar, transparent background, but no title bar buttons
   decorations: full
 
+  dynamic_title: true
+
   # When true, alacritty starts maximized.
   startup_mode: Windowed
 

@@ -287,8 +287,8 @@ set mousehide
 
 
 " makes scrolling more smother (:he scroll-smooth)
-map <C-U> <C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y><C-Y>
-map <C-D> <C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E><C-E>
+ map <C-U> <C-Y><C-Y><C-Y>
+ map <C-D> <C-E><C-E><C-E>
 
 
 set tabpagemax=25
@@ -327,6 +327,13 @@ endif
 set scrolloff=2
 
 set lazyredraw
+
+highlight Cursor guibg=yellow
+highlight iCursor guibg=yellow
+set guicursor=n-v-c:block-Cursor
+set guicursor+=i:ver100-iCursor
+set guicursor+=n-v-c:blinkon1000
+set guicursor+=i:blinkon1000
 
 " highlight advanced perl vars inside strings
 let perl_extended_vars=1

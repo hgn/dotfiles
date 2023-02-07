@@ -127,6 +127,8 @@ alias pbpaste='xsel --clipboard --output'
 
 alias fd=fdfind
 
+alias bb='git branch --sort=-committerdate| fzf --height=20% |xargs git checkout '
+
 [ -x /usr/bin/lesspipe ] && eval "$(lesspipe)"
 
 ## get keys working

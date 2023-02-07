@@ -33,7 +33,9 @@ call plug#begin("~/.config/nvim/plugged")
  Plug 'nvim-telescope/telescope.nvim'
  Plug 'nvim-telescope/telescope-file-browser.nvim'
  Plug 'editorconfig/editorconfig-vim'
- Plug 'phaazon/hop.nvim'
+ "Plug 'phaazon/hop.nvim'
+ Plug 'ggandor/leap.nvim'
+ Plug 'ggandor/flit.nvim'
  Plug 'nvim-lualine/lualine.nvim'
  Plug 'windwp/nvim-autopairs'
  Plug 'majutsushi/tagbar'
@@ -111,9 +113,9 @@ require('lualine').setup {
       }
   }
 --require("startup").setup({theme = "dashboard"})
-require'hop'.setup()
+--require'hop'.setup()
 -- place this in one of your configuration file(s)
-local hop = require('hop')
+-- local hop = require('hop')
 
 require("telescope").setup {
  defaults = {
@@ -203,7 +205,7 @@ require('gitsigns').setup {
     ignore_whitespace = false,
   },
   current_line_blame_formatter = '<author>, <author_time:%Y-%m-%d> - <summary>',
-  sign_priority = 6,
+  sign_priority = 1,
   update_debounce = 100,
   status_formatter = nil, -- Use default
   max_file_length = 40000, -- Disable if file is longer than this (in lines)
@@ -219,6 +221,28 @@ require('gitsigns').setup {
     enable = false
   },
 }
+
+-- leap configuration
+vim.api.nvim_set_hl(0, 'LeapBackdrop', { link = 'Comment' })
+vim.api.nvim_set_hl(0, 'LeapMatch', {
+  fg = 'white',  -- for light themes, set to 'black' or similar
+  bold = false,
+  nocombine = true,
+})
+require('leap').opts.highlight_unlabeled_phase_one_targets = true
+require('leap').opts.safe_labels = {}
+require('leap').add_default_mappings()
+
+require('flit').setup {
+  keys = { f = 'f', F = 'F', t = 't', T = 'T' },
+  -- A string like "nv", "nvo", "o", etc.
+  labeled_modes = "v",
+  multiline = true,
+  -- Like `leap`s similar argument (call-specific overrides).
+  -- E.g.: opts = { equivalence_classes = {} }
+  opts = {}
+}
+
 END
 
 " color schemes
@@ -233,6 +257,10 @@ colorscheme dracula
 " open new split panes to right and below
 "set splitright
 ""set splitbelow
+
+" always show the gitsigns column on the right site. This prevents
+" indent if a file is newly modified and reduce startup flicker as well
+set signcolumn=yes:1
 
 set backspace=indent,eol,start
 set tabstop=2
@@ -512,10 +540,10 @@ imap <F3> <C-o>:Telescope live_grep<CR>
 "nmap <F5> :HopWord<CR>
 "imap <F5> <C-o>:HopWord<CR>
 "
-nmap <F4> :HopWordBC<CR>
-imap <F4> <C-o>:HopWordBC<CR>
-nmap <F5> :HopWordAC<CR>
-imap <F5> <C-o>:HopWordAC<CR>
+"nmap <F4> :HopWordBC<CR>
+"imap <F4> <C-o>:HopWordBC<CR>
+"nmap <F5> :HopWordAC<CR>
+"imap <F5> <C-o>:HopWordAC<CR>
 
 nmap <F6> :TagbarToggle<CR>
 imap <F6> <C-o>:TagbarToggle<CR>

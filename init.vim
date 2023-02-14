@@ -466,11 +466,7 @@ if has("autocmd")
 	autocmd FileType ruby set tabstop=4 shiftwidth=4 expandtab
 
 
-  " mail macros
-  augroup mail
-      au!
-      autocmd BufRead *html source $HOME/.vim/mail.vim
-  augroup END
+  autocmd BufNewFile,BufRead /tmp/*mutt* set noautoindent filetype=mail wm=0 tw=78 nonumber digraph nolist nopaste
 
   autocmd FileType c,cpp set formatoptions+=ro dictionary=$HOME/.vim/c_dictionary
                        \ tw=78 tabstop=8 shiftwidth=8 noexpandtab cindent

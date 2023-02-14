@@ -8,7 +8,6 @@ screen
 schedtool
 nmap
 ngrep
-mutt
 manpages-dev
 manpages
 make
@@ -33,6 +32,7 @@ trace-cmd
 kernelshark
 linux-perf
 notmuch-mutt
+neomutt
 notmuch-addrlookup
 offlineimap
 universal-ctags
@@ -55,3 +55,4 @@ tldr
 mosh
 curl
 wireguard
+libnotify-bin

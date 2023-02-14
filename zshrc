@@ -468,11 +468,18 @@ ulimitall() {
 #}
 
 function mail-classify () {
+  # linux-pm
+	notmuch tag +linux-pm +list folder:Lists.linux-pm
+	notmuch tag +keep-longer +linux-pm-intel -- tag:linux-pm and subject:\*intel\*
+	notmuch tag +keep-longer +linux-pm-intel -- tag:linux-pm and subject:\*rapl\*
+	notmuch tag +killed -- tag:linux-pm and not tag:keep-longer and date:..365days
+	notmuch tag +killed -- tag:linux-pm and date:..1024days
   # lkml stuff
 	notmuch tag +lkml +list folder:Lists.lkml
 	notmuch tag +keep-infty -- tag:lkml and to:hagen.pfeifer@jauu.net
 	notmuch tag +keep-longer +linux-perf -- tag:lkml and subject:perf
-	notmuch tag +keep-longer +linux-perf -- tag:lkml and subject:trace
+	notmuch tag +keep-longer +linux-trace -- tag:lkml and subject:trace
+	notmuch tag +keep-longer +linux-trace -- tag:lkml and subject:ftrace
 	notmuch tag +keep-longer +linux-bpf  -- tag:lkml and subject:ebpf
 	notmuch tag +keep-longer +linux-bpf  -- tag:lkml and subject:bpf
 	# mark all messages older 1 month and not to me, not perf, trace as "killed"
@@ -517,6 +524,7 @@ export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border --exact'
 
 alias mutt-offline-resync='email-sync;mutt -F ~/.mutt/muttrc-offline; email-sync'
 alias mutt-offline='mutt -F ~/.mutt/muttrc-offline'
+alias mutt="neomutt"
 
 
 # vim:set ts=2 tw=80 ft=zsh:

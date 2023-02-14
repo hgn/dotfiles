@@ -507,6 +507,8 @@ function email-sync () {
 	echo "tips:"
 	echo "    notmuch search thread:{tag:linux-perf}"
 	echo "    notmuch search --sort oldest-first thread:{tag:linux-perf} date:1month..now"
+  echo "    Available notmuch tags are"
+  notmuch search --output=tags '*' | python3 -c 'import sys; print(", ".join(sys.stdin.read().splitlines()))'
 	du -sh $HOME/.mail
 }
 

@@ -354,6 +354,19 @@ function ffg () {
 # mkdir && cd
 function mcd() { mkdir "$@"; cd "$@" }
 
+# mkdir /tmp/$rand && cd
+function mcdt() {
+  local TMP=$(head -n 1000 /usr/share/dict/words | \
+              sort -R | \
+              tr -d "\'" | \
+              tr '[:upper:]' '[:lower:]' | \
+              head -n 1)
+  TMP=/tmp/$TMP
+  mkdir $TMP
+  cd $TMP
+  echo "Created and changed directory to $TMP"
+}
+
 # cd && ls
 function cl() { cd $1 && ls -l }
 

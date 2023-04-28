@@ -13,6 +13,7 @@ create()
 	fi
 }
 
+create bin ~/bin
 create vimrc ~/.vimrc
 create vimdata ~/.vim
 create zshrc ~/.zshrc

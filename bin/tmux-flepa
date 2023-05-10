@@ -1,0 +1,20 @@
+#!/bin/bash
+
+session="flepa"
+directory="/home/pfeifer/src/misc/flepa/flepa-book"
+
+tmux new-session -d -c $directory -s $session
+
+window=1
+tmux rename-window -t $session:$window 'edit'
+tmux send-keys -t $session:$window 'vim' C-m
+
+window=2
+tmux new-window -t $session:$window -c $directory -n 'make'
+tmux send-keys -t $session:$window 'make preview' C-m 'make' C-m
+
+# make edit window the default
+tmux select-window -t "1"
+
+
+tmux attach-session -t $session

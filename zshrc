@@ -260,10 +260,10 @@ if [ -f /usr/share/autojump/autojump.zsh ]; then
 fi
 
 
-if [[ "$USER" != "$DEFAULT_USER" || -n "$SSH_CLIENT" ]]; then
-  PROMPT=$'%{\e[01;33m%}\%1~ %{\e[01;32m%}$%{\e[0m%} '
-else
+if [[ ${SSH_TTY} ]] ; then
   PROMPT=$'%{\e[01;35m%}\%1 @%m %{\e[01;33m%}\%1~ %{\e[01;32m%}$%{\e[0m%} '
+else
+  PROMPT=$'%{\e[01;33m%}\%1~ %{\e[01;32m%}$%{\e[0m%} '
 fi
 
 export WORDCHARS=''

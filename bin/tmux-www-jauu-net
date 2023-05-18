@@ -1,0 +1,20 @@
+#!/bin/bash
+
+session="jauu-net"
+directory="/home/pfeifer/src/www/jauu-net"
+
+tmux new-session -d -c $directory -s $session
+
+window=1
+tmux rename-window -t $session:$window 'edit'
+tmux send-keys -t $session:$window 'l' C-m
+
+window=2
+tmux new-window -t $session:$window -c $directory -n 'httpd'
+tmux send-keys -t $session:$window 'hugo' C-m 'hugo server' C-m
+
+# make edit window the default
+tmux select-window -t "1"
+
+
+tmux attach-session -t $session

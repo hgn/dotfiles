@@ -540,9 +540,11 @@ source /usr/share/doc/fzf/examples/key-bindings.zsh
 export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border --exact'
 
 
-alias mutt-offline-resync='email-sync;mutt -F ~/.mutt/muttrc-offline; email-sync'
+alias mutt-offline-resync='email-sync 1>/dev/null 2>&1 &;mutt -F ~/.mutt/muttrc-offline; email-sync'
 alias mutt-offline='mutt -F ~/.mutt/muttrc-offline'
 alias mutt="neomutt"
+
+alias mosh="mosh --no-init"
 
 
 # vim:set ts=2 tw=80 ft=zsh:

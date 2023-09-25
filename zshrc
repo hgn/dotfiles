@@ -1,8 +1,6 @@
 # Hagen Paul Pfeifer - hagen@jauu.net
 # http://www.jauu.net
 
-setopt HIST_VERIFY
-
 # core dumps up to 10000 blocks
 ulimit -c 10000
 
@@ -176,7 +174,6 @@ fi
 zstyle ':completion:*:*:kill:*:processes' list-colors "=(#b) #([0-9]#)*=36=31"
 
 zstyle ':completion:*:cd:*' ignore-parents parent pwd
-HISTORY_IGNORE="(ls|ll|rm|fg|cd|pwd|exit|cd ..)"
 
 # use z, with menu
 source ~/.zsh-z.plugin.zsh
@@ -210,10 +207,6 @@ setopt nocorrect
 # ORRECTALL option turns on spelling correction for all arguments
 setopt nocorrectall
 
-# ignore duplicated entrys in history and with trailing spaces
-setopt histignoredups
-setopt histignorespace
-
 #report to me when people login/logout
 watch=(notme)
 
@@ -232,17 +225,32 @@ setopt AUTOLIST         # ... and list the possibilities.
 setopt AUTO_PARAM_SLASH # Make directories pretty.
 setopt ALWAYS_TO_END    # Push that cursor on completions.
 setopt AUTOCD           # jump to the directory.
-setopt HIST_VERIFY      # Make those history commands nice
 setopt NO_BEEP          # self explanatory
 setopt AUTO_NAME_DIRS   # change directories  to variable names
 setopt CHASE_LINKS      # if you pwd from a symlink, you get the actual path
 setopt AUTO_CONTINUE    # automatically sent a CONT signal by disown
 setopt LONG_LIST_JOBS   # List jobs in the long format by default
 
+# history related options
+# number of commands that are stored in the zsh history file
+SAVEHIST=2000000
+# number of commands that are loaded into memory from the history file
+HISTSIZE=$SAVEHIST
+# path/location of the history file
+HISTFILE=~/.zhistory
+# dont save clutter
+HISTORY_IGNORE="(ls|ll|rm|fg|cd|pwd|exit|cd ..)"
+# Whenever the user enters a line with history expansion, don’t execute the line directly
+setopt HIST_VERIFY
+# records the timestamp of each command in HISTFILE
 setopt EXTENDED_HISTORY
+# do not write duplicates to the history file at all
 setopt HIST_IGNORE_ALL_DUPS
+# Remove function definitions from the history list
 setopt HIST_NO_FUNCTIONS
+# Remove superfluous blanks from each command line being added to the history list
 setopt HIST_REDUCE_BLANKS
+
 
 # some testings (found on http://zsh.sunsite.dk/Intro/intro_6.html)
 export DIRSTACKSIZE=10
@@ -289,11 +297,6 @@ export EDITOR='/usr/bin/vim'
 
 # favorite pager (give more information)
 export PAGER='/usr/bin/less -M'
-
-# work with history mechanism
-HISTSIZE=200000
-SAVEHIST=2000000
-HISTFILE=~/.zhistory
 
 
 #############################################################################

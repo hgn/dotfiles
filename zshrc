@@ -126,7 +126,7 @@ alias pbpaste='xsel --clipboard --output'
 alias fd=fdfind
 
 # git branch checkout
-alias gbc='git branch --sort=-committerdate | fzf --height=20% | xargs git checkout '
+alias gitb='git branch --sort=-committerdate | fzf --height=20% | xargs git checkout '
 
 [ -x /usr/bin/lesspipe ] && eval "$(lesspipe)"
 
@@ -340,7 +340,6 @@ function psm {
      sed 's/^/ /' | less
 }
 
-
 function ff () {
   fd "${*}"
 }
@@ -354,6 +353,9 @@ function ffg () {
   fi
 }
 
+function lolbanner {
+  figlet -c  $@ | /usr/games/lolcat
+}
 
 # the following funtion found on http://status.deifl-web.de/dotfiles/zsh/zshfunctions
 

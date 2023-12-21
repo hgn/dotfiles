@@ -151,10 +151,10 @@ require("telescope").setup {
 
 require("telescope").load_extension "file_browser"
 
-require("nvim-autopairs").setup {}
+--require("nvim-autopairs").setup {}
 
 require'shade'.setup({
-  overlay_opacity = 60,
+  overlay_opacity = 80,
   opacity_step = 1,
   keys = {
     brightness_up    = '<C-Up>',
@@ -279,6 +279,7 @@ set titlestring=%<%F\ %M%=%l/%L\ -\ %p%% titlelen=70
 " dont show startup message when opening new file
 set shortmess+=I
 set shortmess+=c    " Don't pass messages to |ins-completion-menu|
+
 
 syntax on
 

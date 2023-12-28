@@ -174,10 +174,15 @@ fi
 zstyle ':completion:*:*:kill:*:processes' list-colors "=(#b) #([0-9]#)*=36=31"
 
 zstyle ':completion:*:cd:*' ignore-parents parent pwd
+zstyle ':completion:*' file-sort modification
 
 # use z, with menu
 source ~/.zsh-z.plugin.zsh
 zstyle ':completion:*' menu select
+
+zstyle ':completion:*:*:*:*:corrections' format '%F{yellow}!- %d (errors: %e) -!%f'
+zstyle ':completion:*:messages' format ' %F{purple} -- %d --%f'
+zstyle ':completion:*:warnings' format ' %F{red}-- no matches found --%f'
 
 # Load the completion system
 autoload -U compinit
@@ -197,6 +202,8 @@ zstyle ':completion:*' users $_users
 
 # Functions autoloading
 autoload zmv
+
+zstyle ':completion:*' completer _extensions _complete _approximate
 
 # cache
 zstyle ':completion:*' use-cache on

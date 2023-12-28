@@ -604,9 +604,8 @@ set smartcase
 
 " " Copy to clipboard
 vnoremap  <leader>y  "+y
-nnoremap  <leader>Y  "+yg_
 nnoremap  <leader>y  "+y
-nnoremap  <leader>yy  "+yy
+"nnoremap  <leader>yy  "+yy
 
 " " Paste from clipboard
 nnoremap <leader>p "+p
@@ -618,3 +617,14 @@ set cursorline
 "highlight CursorLine guibg=#000050 guifg=fg
 set cursorcolumn
 highlight CursorColumn guibg=#2d2f3f
+
+
+function! GPTGermanFix()
+  let temp_file = tempname()
+    silent execute "!echo \"In der Rolle als technischer Autor eines Linux basierten Textes, bitte verbessere den nachfolgenden Text und mache ihn einfacher verständlich. Forme in von aktiv in passiv um. Die Leser haben ein grundsätzliches Verständniss von Linux. Bitte entferne Redundanzen im Text. Erstelle einen ausführlicheren Text.\\n\\n\"       > " . temp_file
+    silent execute "silent '<,'>w !cat >> " . temp_file
+    silent execute "!xclip -selection clipboard < " . temp_file
+    call delete(temp_file)  | redraw!
+endfunction
+
+vnoremap <Leader>yy :call GPTGermanFix()<CR>

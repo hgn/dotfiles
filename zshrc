@@ -18,7 +18,7 @@ export DEBUGINFOD_URLS="https://debuginfod.debian.net"
 
 #export PAGER="col -b | view -c 'set nomod' -"
 #export MANPAGER="col -b | view -c 'hi StatusLine ctermbg=green| set ft=man nomod nolist' -"
-export MANPAGER="sh -c 'col -bx | batcat -l man -p'"
+#export MANPAGER="sh -c 'col -bx | batcat -l man -p'"
 
 # default encrypted session via rsync
 export RSYNC_RSH=ssh
@@ -385,6 +385,11 @@ function mcdt() {
 # cd && ls
 function cl() { cd $1 && ls -l }
 
+# head and tail replacement
+function h() { bat --color=always $@ | head -n 30 }
+function t() { bat --color=always $@ | tail -n 30 }
+function c() { batcat --color always --theme Dracula $@ }
+
 # Usage: show-archive <archive>
 # Description: view archive without unpack
 show-archive()
@@ -558,8 +563,15 @@ alias mutt="neomutt"
 
 alias mosh="mosh --no-init"
 
+_feh_completion() {
+    _files -g "*.png" -g "*.gif" -g "*.jpg"
+}
+compdef _feh_completion feh
 
-# vim:set ts=2 tw=80 ft=zsh:
+_xpdf_completion() {
+    _files -g "*.pdf"
+}
+compdef _xpdf_completion xpdf
 
 autoload -Uz compinit
 fpath+=~/.zfunc

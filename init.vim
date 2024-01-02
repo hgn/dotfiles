@@ -24,13 +24,13 @@ set showmatch
 set matchtime=2
 set laststatus=2
 
-"Plug 'nvim-telescope/telescope.nvim', { 'tag': '0.1.0' }
+"Plug 'nvim-telescope/telescope.nvim', { 'tag': '0.1.4' }
 call plug#begin("~/.config/nvim/plugged")
  "Plug 'scrooloose/nerdtree'
  "Plug 'startup-nvim/startup.nvim'
  Plug 'dracula/vim'
  Plug 'nvim-lua/plenary.nvim'
- Plug 'nvim-telescope/telescope.nvim'
+ Plug 'nvim-telescope/telescope.nvim', { 'tag': '0.1.4' }
  Plug 'nvim-telescope/telescope-file-browser.nvim'
  Plug 'editorconfig/editorconfig-vim'
  "Plug 'phaazon/hop.nvim'
@@ -39,10 +39,10 @@ call plug#begin("~/.config/nvim/plugged")
  Plug 'nvim-lualine/lualine.nvim'
  Plug 'windwp/nvim-autopairs'
  Plug 'majutsushi/tagbar'
- Plug 'b3nj5m1n/kommentary'
+ "Plug 'b3nj5m1n/kommentary'
  Plug 'sunjon/shade.nvim'
  Plug 'lukas-reineke/virt-column.nvim'
- Plug 'lewis6991/gitsigns.nvim'
+ Plug 'lewis6991/gitsigns.nvim', { 'tag': 'v0.6' }
 
  "Plug 'tpope/vim-sleuth'
  "Plug 'nvim-tree/nvim-tree.lua'
@@ -55,13 +55,19 @@ vim.g.mapleader = " "
 
 vim.g.kommentary_create_default_mappings = false
 
-require('kommentary.config').use_extended_mappings()
+-- require('kommentary.config').use_extended_mappings()
 
 vim.api.nvim_set_keymap("n", "<leader>cc", "<Plug>kommentary_line_default", {})
 vim.api.nvim_set_keymap("n", "<leader>c", "<Plug>kommentary_motion_default", {})
 vim.api.nvim_set_keymap("v", "<leader>c", "<Plug>kommentary_visual_default<C-c>", {})
 
-vim.keymap.set("n", "<leader><space>", require('telescope.builtin').buffers, { desc = '{} find existing buffers'})
+-- vim.keymap.set("n", "<leader><space>", require('telescope.builtin').buffers, { desc = '{} find existing buffers'})
+vim.api.nvim_set_keymap('n', '<leader><space>', '<Plug>(leap-forward)', {})
+vim.api.nvim_set_keymap('x', '<leader><space>', '<Plug>(leap-forward)', {})
+vim.api.nvim_set_keymap('o', '<leader><space>', '<Plug>(leap-forward)', {})
+vim.api.nvim_set_keymap('n', '<leader><esc>', '<Plug>(leap-backward)', {})
+vim.api.nvim_set_keymap('x', '<leader><esc>', '<Plug>(leap-backward)', {})
+vim.api.nvim_set_keymap('o', '<leader><esc>', '<Plug>(leap-backward)', {})
 
 
 -- disable netrw at the very start of your init.lua (strongly advised)
@@ -120,6 +126,9 @@ require('lualine').setup {
 require("telescope").setup {
  defaults = {
     -- Your defaults config goes in here
+    sort_lastused = true,
+    layout_strategy = "horizontal",
+    theme = "dropdown"
   },
   pickers = {
     -- Your special builtin config goes in here
@@ -138,10 +147,8 @@ require("telescope").setup {
       hijack_netrw = true,
       mappings = {
         ["i"] = {
-          -- your custom insert mode mappings
         },
         ["n"] = {
-          -- your custom normal mode mappings
         },
       },
     },
@@ -162,7 +169,7 @@ require'shade'.setup({
   }
 })
 
-require("virt-column").setup()
+--require("virt-column").setup()
 
 local lastplace = vim.api.nvim_create_augroup("LastPlace", {})
 vim.api.nvim_clear_autocmds({ group = lastplace })
@@ -266,7 +273,10 @@ set backspace=indent,eol,start
 set tabstop=2
 set shiftwidth=2
 set ruler
-set viminfo='20,<50,s10,h,%
+" 500 maximum number of oldfiles
+" 50 maximum number of lines for each register
+" 500 size of the saved command-line history
+set viminfo='500,<50,s500,h,%
 set incsearch
 set hlsearch
 set nobackup
@@ -466,7 +476,6 @@ if has("autocmd")
 
 	autocmd FileType ruby set tabstop=4 shiftwidth=4 expandtab
 
-
   autocmd BufNewFile,BufRead /tmp/*mutt* set noautoindent filetype=mail wm=0 tw=78 nonumber digraph nolist nopaste
 
   autocmd FileType c,cpp set formatoptions+=ro dictionary=$HOME/.vim/c_dictionary
@@ -493,13 +502,13 @@ endif " has("autocmd")
 "common bg fg color
 "highlight Normal        ctermfg=black ctermbg=white
 "modus (insert,visual ...)
-highlight modeMsg	    cterm=bold ctermfg=white  ctermbg=red
+"highlight modeMsg	    cterm=bold ctermfg=white  ctermbg=red
 "active statusLine
-highlight statusLine   cterm=bold ctermfg=yellow ctermbg=blue
+"highlight statusLine   cterm=bold ctermfg=yellow ctermbg=blue
 "inactive statusLine
-highlight statusLineNC 	cterm=bold ctermfg=black  ctermbg=white
+"highlight statusLineNC 	cterm=bold ctermfg=black  ctermbg=white
 "visual mode
-highlight visual		cterm=bold ctermfg=yellow ctermbg=red
+"highlight visual		cterm=bold ctermfg=yellow ctermbg=red
 "cursor colors
 highlight cursor        cterm=bold 
 "vertical line on split screen
@@ -529,39 +538,32 @@ imap <F1> <C-o>:Telescope oldfiles<CR>
 nmap <F2> :Telescope find_files<CR>
 imap <F2> <C-o>:Telescope find_files<CR>
 
-nmap <F3> :Telescope live_grep<CR>
-imap <F3> <C-o>:Telescope live_grep<CR>
+nmap <F3> :lua require'telescope.builtin'.find_files({cwd = vim.fn.expand("~")})<CR>
+imap <F3> :lua require'telescope.builtin'.find_files({cwd = vim.fn.expand("~")})<CR>
 
-"nmap <F4> :HopWord<CR>
-"imap <F4> <C-o>:HopWord<CR>
-"nmap <F5> :HopWord<CR>
-"imap <F5> <C-o>:HopWord<CR>
-"
-"nmap <F4> :HopWordBC<CR>
-"imap <F4> <C-o>:HopWordBC<CR>
-"nmap <F5> :HopWordAC<CR>
-"imap <F5> <C-o>:HopWordAC<CR>
+nmap <F4> :Telescope live_grep<CR>
+imap <F4> <C-o>:Telescope live_grep<CR>
 
-nmap <F6> :TagbarToggle<CR>
-imap <F6> <C-o>:TagbarToggle<CR>
+nmap <F5> :TagbarToggle<CR>
+imap <F5> <C-o>:TagbarToggle<CR>
+
+nmap <F6> :Telescope file_browser<CR>
+imap <F6> <C-o>:Telescope file_browser<CR>
 
 map <F7> :call MySpellLang()<CR>
 imap <F7> <C-o>:call MySpellLang()<CR> 
 
-nmap <F8> :Telescope file_browser<CR>
-imap <F8> <C-o>:Telescope file_browser<CR>
-
 nmap <F9> :Telescope marks<CR>
 imap <F9> <C-o>:Telescope marks<CR>
 
-nmap <F10> :Telescope git_commits<CR>
-imap <F10> <C-o>:Telescope git_commits<CR>
+"set pastetoggle=<F10>
+nnoremap <F10> :se invpaste paste?<Enter>
+imap <F10> <C-O><F10>
+set pastetoggle=<F10>
 
 "F11 -> F12 == resize window
 map <F11>   <ESC>:resize -5 <CR>
 map <F12>   <ESC>:resize +5 <CR>
-
-
 
 "common c command
 ab #d #define
@@ -570,11 +572,6 @@ ab #i #include <.h><Esc>hhi<C-R><CR>
 autocmd Filetype gitcommit setlocal spell textwidth=72
 
 set comments=sl:/*,mb:\ *,elx:\ */
-
-"set pastetoggle=<F10>
-nnoremap <F10> :se invpaste paste?<Enter>
-imap <F10> <C-O><F10>
-set pastetoggle=<F10>
 
 
 " always keep searched string in the middle of the screen
@@ -614,14 +611,14 @@ vnoremap <leader>p "+p
 vnoremap <leader>P "+P
 
 set cursorline
-"highlight CursorLine guibg=#000050 guifg=fg
+highlight CursorLine guibg=#2d2f3f
 set cursorcolumn
 highlight CursorColumn guibg=#2d2f3f
 
 
 function! GPTGermanFix()
   let temp_file = tempname()
-    silent execute "!echo \"In der Rolle als technischer Autor eines Linux basierten Textes, bitte verbessere den nachfolgenden Text und mache ihn einfacher verständlich. Forme in von aktiv in passiv um. Die Leser haben ein grundsätzliches Verständniss von Linux. Bitte entferne Redundanzen im Text. Erstelle einen ausführlicheren Text.\\n\\n\"       > " . temp_file
+    silent execute "!echo \"In der Rolle als technischer Autor eines Linux basierten Textes, bitte verbessere den nachfolgenden Text. Bitte führe eine Dudenkorrektur durch. Forme den Text von Aktiv in Passiv um. Bitte überprüfe die Interpunktion und Kommasetzung. Bitte entferne Redundanzen im Text. Entferne keine LaTex Kommandos oder Umgebungen.\\n\\n\"       > " . temp_file
     silent execute "silent '<,'>w !cat >> " . temp_file
     silent execute "!xclip -selection clipboard < " . temp_file
     call delete(temp_file)  | redraw!

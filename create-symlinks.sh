@@ -36,6 +36,9 @@ mkdir -p ~/.config/nvim/
 create init.vim ~/.config/nvim/init.vim
 mkdir -p ~/.config/alacritty
 create alacritty.yml ~/.config/alacritty/alacritty.yml
+mkdir -p ~/.config/kitty
+create kitty.conf ~/.config/kitty/kitty.yml
+
 
 # blacklist things, no differentiation here
 sudo cp module-blacklist.conf /etc/modprobe.d/

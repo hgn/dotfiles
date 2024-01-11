@@ -37,7 +37,7 @@ create init.vim ~/.config/nvim/init.vim
 mkdir -p ~/.config/alacritty
 create alacritty.yml ~/.config/alacritty/alacritty.yml
 mkdir -p ~/.config/kitty
-create kitty.conf ~/.config/kitty/kitty.yml
+create kitty.conf ~/.config/kitty/kitty.conf
 
 
 # blacklist things, no differentiation here

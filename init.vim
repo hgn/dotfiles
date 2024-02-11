@@ -33,19 +33,12 @@ call plug#begin("~/.config/nvim/plugged")
  Plug 'nvim-telescope/telescope.nvim', { 'tag': '0.1.4' }
  Plug 'nvim-telescope/telescope-file-browser.nvim'
  Plug 'editorconfig/editorconfig-vim'
- "Plug 'phaazon/hop.nvim'
  Plug 'ggandor/leap.nvim'
  Plug 'ggandor/flit.nvim'
  Plug 'nvim-lualine/lualine.nvim'
- Plug 'windwp/nvim-autopairs'
  Plug 'majutsushi/tagbar'
- "Plug 'b3nj5m1n/kommentary'
  Plug 'sunjon/shade.nvim'
- Plug 'lukas-reineke/virt-column.nvim'
  Plug 'lewis6991/gitsigns.nvim', { 'tag': 'v0.6' }
-
- "Plug 'tpope/vim-sleuth'
- "Plug 'nvim-tree/nvim-tree.lua'
 call plug#end()
 
 lua << END
@@ -53,13 +46,11 @@ lua << END
 vim.keymap.set("n", "<Space>", "<Nop>", { silent = true, remap = false })
 vim.g.mapleader = " "
 
-vim.g.kommentary_create_default_mappings = false
-
 -- require('kommentary.config').use_extended_mappings()
 
-vim.api.nvim_set_keymap("n", "<leader>cc", "<Plug>kommentary_line_default", {})
-vim.api.nvim_set_keymap("n", "<leader>c", "<Plug>kommentary_motion_default", {})
-vim.api.nvim_set_keymap("v", "<leader>c", "<Plug>kommentary_visual_default<C-c>", {})
+-- vim.api.nvim_set_keymap("n", "<leader>cc", "<Plug>kommentary_line_default", {})
+-- vim.api.nvim_set_keymap("n", "<leader>c", "<Plug>kommentary_motion_default", {})
+-- vim.api.nvim_set_keymap("v", "<leader>c", "<Plug>kommentary_visual_default<C-c>", {})
 
 -- vim.keymap.set("n", "<leader><space>", require('telescope.builtin').buffers, { desc = '{} find existing buffers'})
 vim.api.nvim_set_keymap('n', '<leader><space>', '<Plug>(leap-forward)', {})
@@ -135,9 +126,6 @@ require("telescope").setup {
     buffers = {
       sort_lastused = true,
       theme = "dropdown",
-    },
-    find_files = {
-      theme = "dropdown"
     }
   },
   extensions = {
@@ -168,8 +156,6 @@ require'shade'.setup({
     brightness_down  = '<C-Down>',
   }
 })
-
---require("virt-column").setup()
 
 local lastplace = vim.api.nvim_create_augroup("LastPlace", {})
 vim.api.nvim_clear_autocmds({ group = lastplace })
@@ -250,6 +236,13 @@ require('flit').setup {
   opts = {}
 }
 
+vim.keymap.set("n", "<leader>t", function()
+   vim.cmd("cd %:p:h")
+   vim.cmd("terminal")
+   vim.cmd("startinsert")
+end)
+
+
 END
 
 " color schemes
@@ -277,6 +270,9 @@ set ruler
 " 50 maximum number of lines for each register
 " 500 size of the saved command-line history
 set viminfo='500,<50,s500,h,%
+
+set shada=!,'1000,<50,s10,h
+
 set incsearch
 set hlsearch
 set nobackup
@@ -424,7 +420,7 @@ let perl_extended_vars=1
 "set tabpagemax=20
 
 " nable extended % matching
-runtime macros/matchit.vim
+" runtime macros/matchit.vim
 
 " shell like menu
 set wildmenu
@@ -578,8 +574,9 @@ set comments=sl:/*,mb:\ *,elx:\ */
 nnoremap n nzzzv
 nnoremap N Nzzzv
 
-" dont move on *
-nnoremap * *<c-o>
+" dont move on * (forward) / # backward, highlight first. often this fine
+nnoremap <silent> * :let @/='\<'.expand('<cword>').'\>'<CR>:set hls<CR>
+nnoremap <silent> # :let @/='\<'.expand('<cword>').'\>'<CR>:set hls<CR>
 
 
 "map <silent> <F8> :Lexplore<CR>
@@ -610,10 +607,15 @@ nnoremap <leader>P "+P
 vnoremap <leader>p "+p
 vnoremap <leader>P "+P
 
+"highlight CursorLine guibg=#2d2f3f
+"set cursorlineopt=number,screenline
+"hi CursorLine gui=underline cterm=underline guibg=#2d2f3f
 set cursorline
 highlight CursorLine guibg=#2d2f3f
+
 set cursorcolumn
 highlight CursorColumn guibg=#2d2f3f
+
 
 
 function! GPTGermanFix()

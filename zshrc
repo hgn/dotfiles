@@ -180,9 +180,10 @@ zstyle ':completion:*' file-sort modification
 source ~/.zsh-z.plugin.zsh
 zstyle ':completion:*' menu select
 
-zstyle ':completion:*:*:*:*:corrections' format '%F{yellow}!- %d (errors: %e) -!%f'
-zstyle ':completion:*:messages' format ' %F{purple} -- %d --%f'
-zstyle ':completion:*:warnings' format ' %F{red}-- no matches found --%f'
+
+#zstyle ':completion:*:*:*:*:corrections' format '%F{yellow}!- %d (errors: %e) -!%f'
+#zstyle ':completion:*:messages' format ' %F{purple} -- %d --%f'
+#zstyle ':completion:*:warnings' format ' %F{red}-- no matches found --%f'
 
 # Load the completion system
 autoload -U compinit
@@ -300,7 +301,7 @@ zstyle ':completion:*' group-name ''
 
 
 # of course
-export EDITOR='/usr/bin/vim'
+export EDITOR='/usr/bin/nvim'
 
 # favorite pager (give more information)
 export PAGER='/usr/bin/less -M'
@@ -510,6 +511,8 @@ function mail-classify () {
   # lkml stuff
 	notmuch tag +lkml +list folder:Lists.lkml
 	notmuch tag +keep-infty -- tag:lkml and to:hagen.pfeifer@jauu.net
+  # keep all messages which I tagged important for ever
+	notmuch tag +keep-infty -- tag:flagged
 	notmuch tag +keep-longer +linux-perf -- tag:lkml and subject:perf
 	notmuch tag +keep-longer +linux-trace -- tag:lkml and subject:trace
 	notmuch tag +keep-longer +linux-trace -- tag:lkml and subject:ftrace
@@ -540,6 +543,8 @@ function email-sync () {
 	echo "tips:"
 	echo "    notmuch search thread:{tag:linux-perf}"
 	echo "    notmuch search --sort oldest-first thread:{tag:linux-perf} date:1month..now"
+  echo "    notmuch search --format=json tag:flagged | jq -r '.[].subject'"
+  echo "    notmuch show --format=json tag:flagged | jq -r"
   echo "    Available notmuch tags are"
   notmuch search --output=tags '*' | python3 -c 'import sys; print(", ".join(sys.stdin.read().splitlines()))'
 	du -sh $HOME/.mail

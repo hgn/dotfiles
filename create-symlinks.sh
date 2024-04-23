@@ -38,6 +38,7 @@ mkdir -p ~/.config/alacritty
 create alacritty.yml ~/.config/alacritty/alacritty.yml
 mkdir -p ~/.config/kitty
 create kitty.conf ~/.config/kitty/kitty.conf
+create ranger ~/.config/ranger
 
 
 # blacklist things, no differentiation here

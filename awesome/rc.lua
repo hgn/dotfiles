@@ -63,7 +63,7 @@ beautiful.init(os.getenv("HOME") .. "/.config/awesome/themes/holo/theme.lua")
 -- common
 modkey     = "Mod4"
 altkey     = "Mod1"
-terminal   = "urxvtc"
+terminal   = "kitty"
 editor     = "vim"
 editor_cmd = terminal .. " -e " .. editor
 

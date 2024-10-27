@@ -1,0 +1,114 @@
+#!/usr/bin/env python3
+
+import os
+import mailbox
+from email import message_from_string
+from email.header import decode_header
+from datetime import datetime
+from collections import defaultdict, Counter
+from email.utils import parsedate_to_datetime
+
+# Define the paths
+maildir_path = os.path.expanduser("~/.mail")
+keep_cur_path = os.path.join(maildir_path, "keep/cur")
+
+# Function to decode email addresses
+def decode_email_address(header):
+    decoded_parts = decode_header(header)
+    decoded_string = ''
+    for part, encoding in decoded_parts:
+        if isinstance(part, bytes):
+            encoding = encoding or 'utf-8'
+            decoded_string += part.decode(encoding)
+        else:
+            decoded_string += part
+    return decoded_string
+
+# Initialize statistics dictionaries
+from_count = defaultdict(int)
+yearly_distribution = defaultdict(int)
+weekday_distribution = defaultdict(int)
+top_senders_by_year = defaultdict(lambda: defaultdict(int))
+response_count = defaultdict(int)
+reply_count = defaultdict(int)
+
+# Iterate over all files in keep/cur
+for email_filename in os.listdir(keep_cur_path):
+    email_file_path = os.path.join(keep_cur_path, email_filename)
+
+    try:
+        with open(email_file_path, 'r', encoding='latin-1') as email_file:
+            email_content = email_file.read()
+            email_msg = message_from_string(email_content)
+            
+            # Get and decode the 'From' address
+            from_address = email_msg['From']
+            if from_address:
+                decoded_from_address = decode_email_address(from_address)
+                from_count[decoded_from_address] += 1
+
+            # Get the email's date and extract date-based statistics
+            email_date = email_msg['Date']
+            if email_date:
+                try:
+                    date_obj = parsedate_to_datetime(email_date)
+                    year = date_obj.year
+                    weekday = date_obj.strftime('%A')
+
+                    yearly_distribution[year] += 1
+                    weekday_distribution[weekday] += 1
+
+                    # Top senders by year
+                    if from_address:
+                        top_senders_by_year[year][decoded_from_address] += 1
+                except Exception:
+                    pass
+
+            # Check if the email is a reply (has 'In-Reply-To' header)
+            if email_msg['In-Reply-To']:
+                reply_count[decoded_from_address] += 1
+            else:
+                response_count[decoded_from_address] += 1
+
+    except Exception as e:
+        print(f"Error processing {email_filename}: {e}")
+
+# Calculate statistics
+total_emails = sum(from_count.values())
+total_replied = sum(reply_count.values())
+
+# Print email statistics
+print("\n=== Email Statistics ===")
+print(f"Total emails processed: {total_emails}")
+print(f"Total replied emails: {total_replied}")
+print(f"Overall reply rate: {total_replied / total_emails * 100:.2f}%")
+
+# Print statistics per sender, limit to the first 20 addresses
+print("\n=== Statistics per Sender (Top 20) ===")
+for idx, (sender, count) in enumerate(sorted(from_count.items(), key=lambda x: x[1], reverse=True)):
+    if idx >= 20:
+        break
+    response_rate = (reply_count[sender] / count) * 100 if count > 0 else 0
+    print(f"Sender: {sender}")
+    print(f"  - Total emails: {count}")
+    print(f"  - Response rate: {response_rate:.2f}%")
+    print("")
+
+# Print yearly distribution
+print("\n=== Yearly Distribution ===")
+for year, count in sorted(yearly_distribution.items()):
+    print(f"{year}: {count} emails")
+
+# Print top senders by year
+print("\n=== Top Senders by Year ===")
+for year, senders in sorted(top_senders_by_year.items()):
+    print(f"{year}:")
+    for sender, count in sorted(senders.items(), key=lambda x: x[1], reverse=True)[:5]:
+        print(f"  {sender}: {count} emails")
+
+# Print weekday distribution with formatted columns
+print("\n=== Weekday Distribution ===")
+max_day_length = max(len(day) for day in weekday_distribution.keys())
+for day, count in sorted(weekday_distribution.items(), key=lambda x: x[1], reverse=True):
+    print(f"{day:<{max_day_length}} : {count:>3} emails")
+

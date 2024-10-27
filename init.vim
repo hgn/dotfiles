@@ -242,6 +242,14 @@ vim.keymap.set("n", "<leader>t", function()
    vim.cmd("startinsert")
 end)
 
+-- Allow arrow keys to wrap around lines
+vim.opt.whichwrap:append("<,>,[,],h,l")
+
+require('telescope').setup{
+  defaults = {
+    file_ignore_patterns = {"%.png", "%.svg", "%.webm", "%.pdf" , "%.bib"}
+  }
+}
 
 END
 
@@ -468,7 +476,7 @@ if has("autocmd")
          \ set spelllang=en ff=unix cc=50,72 textwidth=90 expandtab nocindent
 
   autocmd FileType tex
-         \ set ff=unix cc=90 textwidth=90 expandtab nocindent dictionary=/usr/share/dict/words
+         \ set ff=unix cc=90 textwidth=90 expandtab nocindent
 
 	autocmd FileType ruby set tabstop=4 shiftwidth=4 expandtab
 
@@ -476,6 +484,14 @@ if has("autocmd")
 
   autocmd FileType c,cpp set formatoptions+=ro dictionary=$HOME/.vim/c_dictionary
                        \ tw=78 tabstop=8 shiftwidth=8 noexpandtab cindent
+
+" Create an autocommand group for TeX files
+augroup tex_indent
+  autocmd!
+  autocmd FileType tex setlocal noautoindent nosmartindent nocindent ff=unix cc=90 textwidth=90
+  autocmd FileType tex setlocal formatoptions-=c formatoptions-=r formatoptions-=o
+  autocmd FileType tex setlocal tabstop=4 shiftwidth=4 expandtab
+augroup END
 
   "for Perl programming, have things in braces indenting themselves:
   autocmd FileType perl set smartindent tabstop=4 shiftwidth=4

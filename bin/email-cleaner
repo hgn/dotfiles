@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+
+import os
+import shutil
+from email import message_from_string
+
+# Define the paths
+maildir_path = os.path.expanduser("~/.mail")
+inbox_new_path = os.path.join(maildir_path, "INBOX/cur")
+keep_cur_path = os.path.join(maildir_path, "keep/cur")
+
+# Define the senders you are looking for as a list
+target_senders = [
+    "David Brown via Gcc <gcc@gcc.gnu.org>",
+    "Veena Parashuram <vparashuram@gmail.com>",
+    "Veena Hausen <veenahausen@gmail.com>"
+]
+
+# Initialize counters and lists
+total_processed = 0
+moved_count = 0
+untouched_count = 0
+non_processed_emails = []
+
+# Iterate over all files in INBOX/new
+for email_filename in os.listdir(inbox_new_path):
+    email_file_path = os.path.join(inbox_new_path, email_filename)
+
+    try:
+        with open(email_file_path, 'r', encoding='latin-1') as email_file:
+            total_processed += 1
+            email_content = email_file.read()
+            
+            email_msg = message_from_string(email_content)
+            from_address = email_msg['From']
+            
+            #print(f"From: {from_address}")
+            
+            # Check if the email is from any of the target senders
+            if any(sender in from_address for sender in target_senders):
+                # Move the file to keep/cur (commented out for testing)
+                dst_path = os.path.join(keep_cur_path, email_filename)
+                shutil.move(email_file_path, os.path.join(keep_cur_path, email_filename))
+                print(f"Moved: {email_filename} to {dst_path}")
+                moved_count += 1
+            else:
+                untouched_count += 1
+                non_processed_emails.append(from_address)
+                
+    except Exception as e:
+        print(f"Error processing {email_filename}: {e}")
+
+# Print the final statistics
+print(f"\nTotal processed emails: {total_processed}")
+print(f"Moved emails: {moved_count}")
+print(f"Untouched emails: {untouched_count}")
+
+# Print the non-processed emails in a list format
+#if non_processed_emails:
+#    print("\nNon-processed emails to add to target_senders:")
+#    for email in set(non_processed_emails):
+#        print(f'    "From: {email}",')
+
+print("Completed moving emails.")
+

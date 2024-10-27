@@ -25,12 +25,18 @@ export RSYNC_RSH=ssh
 
 # Language Stuff
 # english messages && time, utf8 support
-export LC_ALL=de_DE.utf8
-export LANGUAGE=C
-export LANG=C
-export LC_MESSAGES=C
-export LC_TIME=C
-export LC_CTYPE=de_DE.utf8
+# setting LC_ALL overwrite all other values and have prefedenvce
+unset LC_ALL
+export LANG=en_US.UTF-8            # Default language set to English (US)
+export LANGUAGE=en_US              # Preferred language for menus and manpages set to English
+export LC_CTYPE=de_DE.UTF-8        # Character encoding and keyboard layout set to German
+export LC_NUMERIC=C                # Numeric formatting: decimal point, no thousands separators
+export LC_TIME=de_DE.UTF-8         # Date and time format set to German
+export LC_MONETARY=de_DE.UTF-8     # Currency format set to German
+export LC_COLLATE=C                # Sorting order: standardized (important for programming)
+export LC_MESSAGES=en_US.UTF-8     # System messages set to English
+export LC_PAPER=de_DE.UTF-8        # Paper format set to German (A4)
+export LC_MEASUREMENT=de_DE.UTF-8  # Measurement units set to German (metric)
 
 
 ## ALIASES
@@ -39,7 +45,7 @@ alias vim='nvim'
 alias mutt-offline='mutt -F ~/.mutt/muttrc-offline'
 
 alias bat='batcat --color always -pp'
-alias l='exa -bl -s oldest --color always --time-style=long-iso'
+alias l='exa -bl -s newest --color always --time-style=long-iso'
 alias less="less -r"
 
 # some piping stuff
@@ -122,6 +128,7 @@ alias pyclean='find . -type f -name "*.py[co]" -exec rm -f \{\} \;'
 
 alias pbcopy='xsel --clipboard --input'
 alias pbpaste='xsel --clipboard --output'
+alias clip='xclip -selection clipboard'
 
 alias fd=fdfind
 
@@ -276,10 +283,21 @@ if [ -f /usr/share/autojump/autojump.zsh ]; then
 fi
 
 
+# red id indicator, if last 
+function set_prompt {
+  if [[ $? -eq 0 ]]; then
+    # Last command was successful
+    PROMPT=$'%{\e[01;33m%}\%1~ %{\e[01;32m%}$%{\e[0m%} '
+  else
+    # Last command failed
+    PROMPT=$'%{\e[01;33m%}\%1~ %{\e[01;31m%}$%{\e[0m%} '
+  fi
+}
+
 if [[ ${SSH_TTY} ]] ; then
-  PROMPT=$'%{\e[01;35m%}\%1 @%m %{\e[01;33m%}\%1~ %{\e[01;32m%}$%{\e[0m%} '
+   PROMPT=$'%{\e[01;35m%}\%1 @%m %{\e[01;33m%}\%1~ %{\e[01;32m%}$%{\e[0m%} '
 else
-  PROMPT=$'%{\e[01;33m%}\%1~ %{\e[01;32m%}$%{\e[0m%} '
+  precmd_functions+=(set_prompt)
 fi
 
 export WORDCHARS=''
@@ -296,7 +314,7 @@ zstyle ':completion:*' verbose yes
 zstyle ':completion:*:descriptions' format '%B%d%b'
 zstyle ':completion:*:messages' format '%d'
 zstyle ':completion:*:warnings' format 'No matches for: %d'
-zstyle ':completion:*:corrections' format '%B%d (errors: %e)%b'
+#zstyle ':completion:*:corrections' format '%B%d (errors: %e)%b'
 zstyle ':completion:*' group-name ''
 
 
@@ -559,7 +577,7 @@ zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'
 
 source /usr/share/doc/fzf/examples/key-bindings.zsh
 #source /usr/share/zsh/vendor-completions/_fzf
-export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border --exact'
+export FZF_DEFAULT_OPTS='--height 100% --layout=reverse --border --exact'
 
 
 alias mutt-offline-resync='email-sync 1>/dev/null 2>&1 &;mutt -F ~/.mutt/muttrc-offline; email-sync'

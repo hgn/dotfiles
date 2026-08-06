@@ -14,6 +14,7 @@ fi
 # executable directories
 export GOPATH=$HOME/src/code/go
 export PATH=/usr/local/bin:$HOME/.cargo/bin:$HOME/bin:/sbin:/usr/sbin/:${PATH}:$GOPATH/bin
+export PATH="$PATH:/home/pfeifer/src/code/foreign/flutter/bin"
 export DEBUGINFOD_URLS="https://debuginfod.debian.net"
 
 #export PAGER="col -b | view -c 'set nomod' -"
@@ -480,6 +481,22 @@ function gif2png()
   fi
 }
 
+wl-copy-file() {
+  if [[ -z "$1" ]]; then
+    echo "Usage: wl-copy-file <file>"
+    return 1
+  fi
+
+  if [[ -f "$1" ]]; then
+    cat "$1" | wl-copy
+    echo "Copied content of $1 to clipboard."
+  else
+    echo "File $1 not found."
+    return 1
+  fi
+}
+
+
 
 function radio()
 {
@@ -519,54 +536,18 @@ ulimitall() {
 #             awk "BEGIN { print $* ; }"
 #}
 
-function mail-classify () {
-  # linux-pm
-	notmuch tag +linux-pm +list folder:Lists.linux-pm
-	notmuch tag +keep-longer +linux-pm-intel -- tag:linux-pm and subject:\*intel\*
-	notmuch tag +keep-longer +linux-pm-intel -- tag:linux-pm and subject:\*rapl\*
-	notmuch tag +killed -- tag:linux-pm and not tag:keep-longer and date:..365days
-	notmuch tag +killed -- tag:linux-pm and date:..1024days
-  # lkml stuff
-	notmuch tag +lkml +list folder:Lists.lkml
-	notmuch tag +keep-infty -- tag:lkml and to:hagen.pfeifer@jauu.net
-  # keep all messages which I tagged important for ever
-	notmuch tag +keep-infty -- tag:flagged
-	notmuch tag +keep-longer +linux-perf -- tag:lkml and subject:perf
-	notmuch tag +keep-longer +linux-trace -- tag:lkml and subject:trace
-	notmuch tag +keep-longer +linux-trace -- tag:lkml and subject:ftrace
-	notmuch tag +keep-longer +linux-bpf  -- tag:lkml and subject:ebpf
-	notmuch tag +keep-longer +linux-bpf  -- tag:lkml and subject:bpf
-	# mark all messages older 1 month and not to me, not perf, trace as "killed"
-  # please not, month means "not that month", not 30 days.
-	notmuch tag +killed -- tag:lkml and not tag:keep-longer and not tag:keep-infty and date:..30days
-	notmuch tag +killed -- tag:lkml and not tag:keep-infty and date:..365days
+function email-classify () {
+  ~/bin/email-classify "$@"
 }
-function mail-cleanup () {
-  echo "did you call mail-classify first?"
-	echo "now will delete killed tagged email"
-	notmuch search tag:killed
-	notmuch search --output=files --format=text0 tag:killed | xargs --null --no-run-if-empty rm
-  notmuch new
+function email-cleanup () {
+  ~/bin/email-cleanup "$@"
 }
 function email-sync () {
-	echo "Email Two-Way Synchronization Initiated"
-	if ! ping -c 1 heise.de >/dev/null 2>&1; then
-    echo "heise.de not pingable - failed to sync emails"
-		return
-  fi
-	offlineimap -o -u basic
-	mail-classify
-	mail-cleanup
-	offlineimap -o -u basic
-	echo "tips:"
-	echo "    notmuch search thread:{tag:linux-perf}"
-	echo "    notmuch search --sort oldest-first thread:{tag:linux-perf} date:1month..now"
-  echo "    notmuch search --format=json tag:flagged | jq -r '.[].subject'"
-  echo "    notmuch show --format=json tag:flagged | jq -r"
-  echo "    Available notmuch tags are"
-  notmuch search --output=tags '*' | python3 -c 'import sys; print(", ".join(sys.stdin.read().splitlines()))'
-	du -sh $HOME/.mail
+  ~/bin/email-sync "$@"
 }
+# Rückwärtskompatibilität für alte Befehle
+alias mail-classify="email-classify"
+alias mail-cleanup="email-cleanup"
 
 eval "$(dircolors -b)"
 zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
@@ -577,7 +558,7 @@ zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'
 
 source /usr/share/doc/fzf/examples/key-bindings.zsh
 #source /usr/share/zsh/vendor-completions/_fzf
-export FZF_DEFAULT_OPTS='--height 100% --layout=reverse --border --exact'
+export FZF_DEFAULT_OPTS='--height 20% --info=right --highlight-line --layout=reverse --border --exact'
 
 
 alias mutt-offline-resync='email-sync 1>/dev/null 2>&1 &;mutt -F ~/.mutt/muttrc-offline; email-sync'
@@ -585,6 +566,9 @@ alias mutt-offline='mutt -F ~/.mutt/muttrc-offline'
 alias mutt="neomutt"
 
 alias mosh="mosh --no-init"
+alias vimdiff="nvim -d"
+
+alias mplayer="mpv"
 
 _feh_completion() {
     _files -g "*.png" -g "*.gif" -g "*.jpg"
@@ -598,3 +582,30 @@ compdef _xpdf_completion xpdf
 
 autoload -Uz compinit
 fpath+=~/.zfunc
+export PATH="$HOME/.local/bin:$PATH"
+
+# Added by Antigravity CLI installer
+export PATH="/home/pfeifer/.local/bin:$PATH"
+
+# second brain in the sandbox: repo as workspace, mail and documents writable,
+# ssh forced past the system config that bwrap's userns makes unreadable.
+second-brain() {
+      cd /home/pfeifer/src/own/misc/second-brain || return
+      GIT_SSH_COMMAND="ssh -F /dev/null -o IdentitiesOnly=yes -i $HOME/.ssh/id_rsa -o UserKnownHostsFile=$HOME/.ssh/known_hosts" \
+      claude-isolated \
+              -w "$HOME/.mail" \
+              -w "$HOME/documents" \
+              -r "$HOME/.notmuch-config" \
+              -w "$HOME/.offlineimap" \
+              -w "$HOME/.mutt" \
+              -r "$HOME/.offlineimaprc" \
+              -r "$HOME/.config" \
+              -r "$HOME/src/own/misc/mcp-server-notmuch" \
+              "$@"
+}
+
+# zoxide hooks into chpwd and overrides cd, so it has to stay the last thing
+# this file does. Anything initialized afterwards makes it complain.
+if (( $+commands[zoxide] )); then
+    eval "$(zoxide init zsh --cmd cd)"
+fi

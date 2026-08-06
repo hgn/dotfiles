@@ -1,2 +1,5 @@
 vimdata/.netrwhist
 vimdata/autoload/plug.vim
+__pycache__/
+*.pyc
+.claude/

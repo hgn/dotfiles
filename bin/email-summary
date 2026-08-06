@@ -1,0 +1,385 @@
+#!/usr/bin/env python3
+"""
+nm-recent-ids.py — modular, filter-basiert, robuste Thread-Expansion.
+
+Standard:
+  - Scope: folder:INBOX (konfigurierbar), not tag:deleted, not tag:spam
+  - Pflicht: --hours  → Zeitfenster [now-hours, now]
+  - Zeitquelle: primär Date-Header; Fallbacks optional (Dateinamen-Epoch, mtime)
+  - Seeds: älteste zuerst
+  - Ausgabe: standardmäßig eine ID pro Zeile (id:<msgid>)
+  - --with-debug-fields hängt an Seed-Zeilen Datum(20) | Subject | To an (Convenience)
+
+--threads:
+  - komplette Threads zu jedem Seed (älteste → neueste) über
+    `notmuch show --format=json --entire-thread=true` (id:<…> ODER file:<pfad>),
+    JSON geparst, IDs extrahiert & zeitlich sortiert. Dedupe global.
+"""
+
+import argparse, os, re, shutil, subprocess, sys, time, json
+from typing import List, Optional, Tuple, Iterable, Set, Any
+from email import policy
+from email.parser import BytesHeaderParser
+from email.header import decode_header, make_header
+from email.utils import parsedate_to_datetime
+from datetime import datetime, timezone
+
+# ----------------------------- Utils -----------------------------
+
+def die(msg: str, code: int = 1) -> None:
+    print(f"ERROR: {msg}", file=sys.stderr); sys.exit(code)
+
+def info(msg: str) -> None:
+    print(msg, file=sys.stderr)
+
+def have_notmuch() -> bool:
+    return shutil.which("notmuch") is not None
+
+def decode_hdr(val: Optional[str]) -> str:
+    if not val: return ""
+    try: return str(make_header(decode_header(val))).strip()
+    except Exception: return (val or "").strip()
+
+def strip_angle_brackets(s: str) -> str:
+    s = (s or "").strip()
+    return s[1:-1].strip() if s.startswith("<") and s.endswith(">") else s
+
+def date20(ts: int) -> str:
+    return datetime.fromtimestamp(ts).astimezone().strftime("%Y-%m-%d %H:%M:%S").ljust(20)
+
+# ----------------------------- Notmuch Client -----------------------------
+
+class NotmuchClient:
+    def __init__(self, folder: str = "INBOX", exclude: bool = True):
+        self.folder = folder
+        self.exclude = exclude  # True = Notmuch-Default (exclude aktiv)
+
+    def _run(self, args: List[str]) -> subprocess.CompletedProcess:
+        return subprocess.run(args, text=True, capture_output=True)
+
+    def _maybe_exclude(self, args: List[str]) -> List[str]:
+        # exclude=True ist default; nur wenn False, dann --exclude=false anhängen
+        return args if self.exclude else args + ["--exclude=false"]
+
+    def search_files(self) -> List[str]:
+        query = f'folder:{self.folder} and not tag:deleted and not tag:spam'
+        cmd = self._maybe_exclude(["notmuch", "search", "--output=files", query])
+        p = self._run(cmd)
+        if p.stderr: sys.stderr.write(p.stderr)
+        if p.returncode != 0: die(f"notmuch search --output=files RC={p.returncode}. Query: {query}")
+        return [ln for ln in p.stdout.splitlines() if ln.strip()]
+
+    def file_to_notmuch_id(self, path: str) -> Optional[str]:
+        cmd = self._maybe_exclude(["notmuch", "search", "--output=messages", "--", f"file:{path}"])
+        p = self._run(cmd)
+        if p.returncode != 0: return None
+        lines = [ln for ln in p.stdout.splitlines() if ln.strip()]
+        return lines[0] if lines else None  # "id:<...>"
+
+    # -------- Thread via JSON (robust) --------
+
+    def _show_entire_thread_json(self, query: str) -> Optional[Any]:
+        """
+        notmuch show --format=json --entire-thread=true -- <query>
+        Gibt geparstes JSON (Python-Objekt) zurück oder None.
+        """
+        cmd = ["notmuch", "show", "--format=json", "--entire-thread=true", "--", query]
+        cmd = self._maybe_exclude(cmd)
+        p = self._run(cmd)
+        if p.returncode != 0 or not p.stdout.strip():
+            return None
+        try:
+            return json.loads(p.stdout)
+        except json.JSONDecodeError:
+            return None
+
+    def thread_message_ids_via_show(self, seed_msgid_nobr: Optional[str], seed_file: str) -> List[Tuple[str, int]]:
+        """
+        Versucht zuerst id:<msgid>, dann file:<pfad>. Liefert Liste (msgid, epoch) für den ganzen Thread.
+        Robust gegen JSON-Felder, deren "id" kein String ist.
+        """
+        queries = []
+        if seed_msgid_nobr:
+            queries.append(f"id:{seed_msgid_nobr}")
+            queries.append(f"id:<{seed_msgid_nobr}>")
+        queries.append(f"file:{seed_file}")
+
+        def parse_ts_from_headers(h: dict) -> Optional[int]:
+            d = h.get("Date")
+            if not d: return None
+            try:
+                dt = parsedate_to_datetime(d)
+                if dt is None: return None
+                dt = (dt.replace(tzinfo=timezone.utc).astimezone()
+                      if dt.tzinfo is None else dt.astimezone())
+                return int(dt.timestamp())
+            except Exception:
+                return None
+
+        for q in queries:
+            data = self._show_entire_thread_json(q)
+            if data is None:
+                continue
+
+            mids: List[Tuple[str,int]] = []
+
+            def walk(node: Any):
+                if isinstance(node, dict):
+                    # Notmuch message-Objekte haben i. d. R. "headers" und "id" (string)
+                    node_id = node.get("id", None)
+                    headers = node.get("headers", None)
+                    date_js = node.get("date") or node.get("timestamp")
+
+                    # Sammle nur, wenn id ein String ist, der wie eine Message-ID aussieht
+                    if isinstance(node_id, str) and ("@" in node_id or node_id.startswith("<")):
+                        mid = strip_angle_brackets(node_id)
+                        ts: int = 0
+                        if isinstance(date_js, int):
+                            ts = int(date_js)
+                        else:
+                            # Fallback: headers.Date parsen
+                            if isinstance(headers, dict):
+                                tsh = parse_ts_from_headers(headers)
+                                ts = int(tsh) if tsh is not None else 0
+                        mids.append((mid, ts))
+
+                    # Rekursiv über alle verschachtelten Strukturen
+                    for v in node.values():
+                        if isinstance(v, (dict, list)):
+                            walk(v)
+
+                elif isinstance(node, list):
+                    for it in node:
+                        walk(it)
+
+            walk(data)
+
+            if mids:
+                # Dedupe & sort alt→neu (ts==0 nach vorne oder hinten? wir nehmen vorne)
+                seen: Set[str] = set()
+                uniq: List[Tuple[str,int]] = []
+                for mid, ts in mids:
+                    if mid in seen:
+                        continue
+                    seen.add(mid)
+                    uniq.append((mid, ts))
+                uniq.sort(key=lambda x: (x[1], x[0]))  # (ts, mid) stabil
+                return uniq
+
+        return []  # nichts gefunden
+
+# ----------------------------- Header & Time -----------------------------
+
+EPOCH_RE = re.compile(r'^(\d{9,})')
+
+class HeaderParser:
+    _parser = BytesHeaderParser(policy=policy.default)
+
+    @staticmethod
+    def read_headers_only(path: str):
+        with open(path, "rb") as fh:
+            data = fh.read(512 * 1024)
+        split = data.find(b"\n\n")
+        header_bytes = data if split == -1 else data[:split]
+        return HeaderParser._parser.parsebytes(header_bytes)
+
+    @staticmethod
+    def message_id(hdrs) -> Optional[str]:
+        for key in ("Message-Id", "Message-ID", "Message-id"):
+            v = hdrs.get(key)
+            if v:
+                return strip_angle_brackets(decode_hdr(v))
+        return None
+
+    @staticmethod
+    def subject(hdrs) -> str:
+        return decode_hdr(hdrs.get("Subject") or "")
+
+    @staticmethod
+    def to_header(hdrs) -> str:
+        return decode_hdr(hdrs.get("To") or "")
+
+class TimeResolver:
+    @staticmethod
+    def from_date_header(hdrs) -> Optional[int]:
+        d = hdrs.get("Date")
+        if not d: return None
+        try:
+            dt = parsedate_to_datetime(d)
+            if dt is None: return None
+            dt = (dt.replace(tzinfo=timezone.utc).astimezone()
+                  if dt.tzinfo is None else dt.astimezone())
+            return int(dt.timestamp())
+        except Exception:
+            return None
+
+    @staticmethod
+    def from_filename_epoch(path: str) -> Optional[int]:
+        m = EPOCH_RE.match(os.path.basename(path))
+        if not m: return None
+        try:
+            ts = int(m.group(1))
+            return ts if ts >= 1000000000 else None
+        except ValueError:
+            return None
+
+    @staticmethod
+    def from_mtime(path: str) -> Optional[int]:
+        try: return int(os.stat(path).st_mtime)
+        except FileNotFoundError: return None
+
+# ----------------------------- Filters/Model -----------------------------
+
+class TimeWindow:
+    def __init__(self, hours: int, now: Optional[int] = None):
+        self.now = int(now if now is not None else time.time())
+        self.cutoff = self.now - hours * 3600
+    def contains(self, ts: int) -> bool:
+        return self.cutoff <= ts <= self.now
+
+class EmailRecord:
+    __slots__ = ("path", "ts", "msgid", "hdrs")
+    def __init__(self, path: str, ts: int, msgid: str, hdrs):
+        self.path = path; self.ts = ts; self.msgid = msgid; self.hdrs = hdrs
+
+# ----------------------------- Core Pipeline -----------------------------
+
+def collect_seed_records(hours: int,
+                         folder: str,
+                         exclude: bool,
+                         allow_mtime_fallback: bool,
+                         strict_date_only: bool,
+                         debug: bool) -> List[EmailRecord]:
+    nm = NotmuchClient(folder=folder, exclude=exclude)
+    files = nm.search_files()
+    tw = TimeWindow(hours=hours)
+    recs: List[EmailRecord] = []
+    stats = {"no_date":0, "no_name_epoch":0, "mtime_fallback":0, "no_msgid_hdr":0, "resolved_by_nm":0}
+
+    for f in files:
+        try:
+            hdrs = HeaderParser.read_headers_only(f)
+        except FileNotFoundError:
+            continue
+
+        ts = TimeResolver.from_date_header(hdrs)
+        if ts is None:
+            stats["no_date"] += 1
+            ts = TimeResolver.from_filename_epoch(f)
+            if ts is None and allow_mtime_fallback and not strict_date_only:
+                ts = TimeResolver.from_mtime(f)
+                if ts is not None: stats["mtime_fallback"] += 1
+            elif ts is None:
+                stats["no_name_epoch"] += 1
+
+        if ts is None or not tw.contains(ts):
+            continue
+
+        msgid = HeaderParser.message_id(hdrs)
+        if msgid is None:
+            stats["no_msgid_hdr"] += 1
+            nm_id = nm.file_to_notmuch_id(f)  # "id:<...>"
+            if nm_id:
+                stats["resolved_by_nm"] += 1
+                msgid = strip_angle_brackets(nm_id.replace("id:", "", 1).strip())
+            else:
+                continue
+
+        recs.append(EmailRecord(path=f, ts=ts, msgid=msgid, hdrs=hdrs))
+
+    # Seeds: älteste zuerst
+    recs.sort(key=lambda r: r.ts)
+
+    if debug:
+        info(f"[DEBUG] folder={folder} hours={hours}")
+        info(f"[DEBUG] files={len(files)} kept={len(recs)} no_date={stats['no_date']} "
+             f"no_name_epoch={stats['no_name_epoch']} mtime_fallback={stats['mtime_fallback']} "
+             f"no_msgid_hdr={stats['no_msgid_hdr']} resolved_by_nm={stats['resolved_by_nm']}")
+        if recs:
+            lo, hi = recs[0].ts, recs[-1].ts
+            info(f"[DEBUG] window=[{datetime.fromtimestamp(tw.cutoff).astimezone()} .. "
+                 f"{datetime.fromtimestamp(tw.now).astimezone()}], "
+                 f"kept_ts=[{datetime.fromtimestamp(lo).astimezone()} .. "
+                 f"{datetime.fromtimestamp(hi).astimezone()}]")
+
+    return recs
+
+# ----------------------------- Formatting -----------------------------
+
+def format_id(mid: str, mode: str) -> str:
+    return f"id:{mid}" if mode == "notmuch" else mid
+
+def format_seed_debug(rec: EmailRecord) -> str:
+    subj = HeaderParser.subject(rec.hdrs).replace("\n"," ").replace("|","/")
+    to_h = HeaderParser.to_header(rec.hdrs).replace("\n"," ").replace("|","/")
+    return f"{date20(rec.ts)} | {subj} | {to_h}"
+
+# ----------------------------- CLI -----------------------------
+
+def main():
+    if not have_notmuch():
+        die("notmuch ist nicht installiert oder nicht im PATH.")
+
+    ap = argparse.ArgumentParser(description="Message-IDs aus INBOX der letzten N Stunden; optionale Thread-Expansion (älteste zuerst).")
+    ap.add_argument("--hours", type=int, required=True, help="Zeitfenster in Stunden (Pflicht) – [now-hours, now].")
+    ap.add_argument("--folder", default="INBOX", help="Maildir-Folder (Default: INBOX).")
+    ap.add_argument("--no-exclude", dest="exclude", action="store_false", help="Exclude-Filter deaktivieren.")
+    ap.add_argument("--exclude",   dest="exclude", action="store_true",  help="Exclude-Filter beibehalten (Default).")
+    ap.set_defaults(exclude=True)
+
+    ap.add_argument("--allow-mtime-fallback", action="store_true",
+                    help="Nutze mtime, falls weder Date-Header noch Dateinamen-Epoch vorhanden.")
+    ap.add_argument("--strict-date-only", action="store_true",
+                    help="Nur Date-Header akzeptieren (keine Fallbacks).")
+
+    ap.add_argument("--id-format", choices=["notmuch","raw"], default="notmuch",
+                    help='ID-Format: "notmuch" → id:<msgid> (Default) | "raw" → <msgid> ohne Prefix.')
+    ap.add_argument("--with-debug-fields", action="store_true",
+                    help="Nur für Seeds: Datum(20) | Subject | To anhängen (Convenience).")
+
+    ap.add_argument("--threads", action="store_true",
+                    help="Komplette Threads zu den Seeds ausgeben (älteste → neueste).")
+
+    ap.add_argument("--limit", type=int, default=0, help="Seed-Limit (0 = alle Seeds im Fenster).")
+    ap.add_argument("--debug", action="store_true", help="Diagnoseausgaben auf STDERR.")
+    args = ap.parse_args()
+
+    seeds = collect_seed_records(
+        hours=args.hours,
+        folder=args.folder,
+        exclude=args.exclude,
+        allow_mtime_fallback=(args.allow_mtime_fallback and not args.strict_date_only),
+        strict_date_only=args.strict_date_only,
+        debug=args.debug
+    )
+    if args.limit and args.limit > 0:
+        seeds = seeds[:args.limit]
+
+    nm = NotmuchClient(folder=args.folder, exclude=args.exclude)
+    printed: Set[str] = set()
+
+    # (a) Seeds (älteste zuerst)
+    for rec in seeds:
+        mid = strip_angle_brackets(rec.msgid)
+        if mid in printed:
+            continue
+        printed.add(mid)
+        line = format_id(mid, args.id_format)
+        if args.with_debug_fields:
+            line = f"{line} | {format_seed_debug(rec)}"
+        print(line)
+
+    # (b) Optional: Threads expandieren (pro Seed, alt→neu, global dedupe)
+    if args.threads:
+        for rec in seeds:
+            seed_mid = strip_angle_brackets(rec.msgid)
+            thread_ids = nm.thread_message_ids_via_show(seed_mid, rec.path)  # List[(mid, ts)]
+            for mid, _ts in thread_ids:
+                if mid in printed:
+                    continue
+                printed.add(mid)
+                print(format_id(mid, args.id_format))
+
+if __name__ == "__main__":
+    main()
+

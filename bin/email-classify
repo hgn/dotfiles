@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+echo "[+] Starting email-classify: Categorizing emails..."
+
+# linux-pm
+notmuch tag +linux-pm +list folder:Lists.linux-pm
+notmuch tag +keep-longer +linux-pm-intel -- tag:linux-pm and subject:\*intel\*
+notmuch tag +keep-longer +linux-pm-intel -- tag:linux-pm and subject:\*rapl\*
+notmuch tag +killed -- tag:linux-pm and not tag:keep-longer and date:..365days
+notmuch tag +killed -- tag:linux-pm and date:..1024days
+# lkml stuff
+notmuch tag +lkml +list folder:Lists.lkml
+notmuch tag +keep-infty -- tag:lkml and to:hagen.pfeifer@jauu.net
+# keep all messages which I tagged important for ever
+notmuch tag +keep-infty -- tag:flagged
+notmuch tag +keep-longer +linux-perf -- tag:lkml and subject:perf
+notmuch tag +keep-longer +linux-trace -- tag:lkml and subject:trace
+notmuch tag +keep-longer +linux-trace -- tag:lkml and subject:ftrace
+notmuch tag +keep-longer +linux-bpf  -- tag:lkml and subject:ebpf
+notmuch tag +keep-longer +linux-bpf  -- tag:lkml and subject:bpf
+# mark all messages older 1 month and not to me, not perf, trace as "killed"
+# please not, month means "not that month", not 30 days.
+notmuch tag +killed -- tag:lkml and not tag:keep-longer and not tag:keep-infty and date:..30days
+notmuch tag +killed -- tag:lkml and not tag:keep-infty and date:..365days
+
+echo "[✔] email-classify completed successfully."

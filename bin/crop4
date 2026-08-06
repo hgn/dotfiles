@@ -1,0 +1,96 @@
+#!/usr/bin/env python3
+import argparse
+import subprocess
+import sys
+
+def get_image_size(path: str) -> tuple[int, int]:
+    """Return (width, height) of image using ImageMagick."""
+    try:
+        result = subprocess.run(
+            ["magick", "identify", "-format", "%w %h", path],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except subprocess.CalledProcessError as e:
+        print(f"Error: failed to get image size for {path}: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    parts = result.stdout.strip().split()
+    if len(parts) != 2:
+        print(f"Error: unexpected identify output: {result.stdout!r}", file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        width = int(parts[0])
+        height = int(parts[1])
+    except ValueError:
+        print(f"Error: could not parse width/height from: {parts}", file=sys.stderr)
+        sys.exit(1)
+
+    return width, height
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Crop all four sides independently using ImageMagick and write WebP (or other) output."
+    )
+    parser.add_argument("--left", type=int, default=0, help="pixels to crop from left")
+    parser.add_argument("--right", type=int, default=0, help="pixels to crop from right")
+    parser.add_argument("--top", type=int, default=0, help="pixels to crop from top")
+    parser.add_argument("--bottom", type=int, default=0, help="pixels to crop from bottom")
+    parser.add_argument(
+        "--quality",
+        type=int,
+        default=80,
+        help="output quality (default: 80, used e.g. for WebP/JPEG)",
+    )
+    parser.add_argument("input", help="input image file")
+    parser.add_argument("output", help="output image file (e.g. .webp)")
+
+    args = parser.parse_args()
+
+    in_path = args.input
+    out_path = args.output
+
+    left = max(args.left, 0)
+    right = max(args.right, 0)
+    top = max(args.top, 0)
+    bottom = max(args.bottom, 0)
+
+    width, height = get_image_size(in_path)
+
+    new_width = width - left - right
+    new_height = height - top - bottom
+
+    if new_width <= 0 or new_height <= 0:
+        print(
+            f"Error: resulting size <= 0 (orig {width}x{height}, "
+            f"crop L{left} R{right} T{top} B{bottom} → {new_width}x{new_height})",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    crop_geometry = f"{new_width}x{new_height}+{left}+{top}"
+
+    cmd = [
+        "magick",
+        in_path,
+        "-crop",
+        crop_geometry,
+        "+repage",
+        "-quality",
+        str(args.quality),
+        out_path,
+    ]
+
+    try:
+        subprocess.run(cmd, check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error: magick command failed: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
+

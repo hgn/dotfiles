@@ -1,0 +1,493 @@
+#!/usr/bin/env python3
+import os
+import platform
+import shutil
+import struct
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+# ===========================================================================
+# USER CONFIGURATION -- adjust these for your host; the rest is generic.
+# ===========================================================================
+#
+# Network firewall: the sandbox reaches the internet freely but is restricted
+# on the local network(s) this host is directly attached to. Only the hosts
+# listed below are reachable, everything else on the home LAN is dropped. ICMP
+# to the allowed hosts and to the internet stays open (it is only dropped for
+# the blocked home hosts). The home networks themselves are auto-detected at
+# launch (on-link IPv4 subnets and IPv6 RA/kernel prefixes), so a rotating
+# ISP-delegated IPv6 prefix is handled without editing this file.
+FW_ALLOW_V4 = ["10.10.10.1", "10.10.10.10"]  # gateway, nas
+FW_ALLOW_V6 = [
+    "fd43:8dc9:a524:0:6f52:456c:c709:12f3",  # nas ULA (stable-privacy)
+    "fd43:8dc9:a524:0:2e91:abff:fe57:b3a",   # gateway ULA (stable)
+]
+
+# Extra networks to always treat as home and block (in addition to the
+# auto-detected on-link nets), e.g. a guest VLAN reachable via a route.
+FW_EXTRA_HOME_V4: list[str] = []
+FW_EXTRA_HOME_V6: list[str] = []
+
+# Optional network share to expose inside the sandbox (e.g. an autofs NAS
+# mount). Bound read-write, but only when it currently carries a real
+# filesystem. Set to None to disable entirely.
+NAS_MOUNT: str | None = "/mnt/nas"
+
+# Apply a seccomp syscall filter to the sandboxed program (Docker-default-style
+# denylist: allow by default, EPERM for dangerous syscalls). Defence-in-depth on
+# top of the dropped capabilities; x86_64 only. Set to False to disable.
+SECCOMP_FILTER = True
+
+# ===========================================================================
+
+_INNER_FLAG = "--__apply-firewall"
+
+
+def check_requirements(full_net: bool) -> dict[str, str]:
+    """Verify all required tools up front and report every missing one at once.
+    Returns a mapping of tool name to its resolved path."""
+    # (name, apt package, resolver)
+    required = [
+        ("bwrap", "bubblewrap", lambda: shutil.which("bwrap")),
+        ("claude", "npm install -g @anthropic-ai/claude-code", lambda: shutil.which("claude")),
+    ]
+    if not full_net:
+        # Needed only for the firewalled default path (skipped with -F).
+        required += [
+            ("pasta", "passt", lambda: shutil.which("pasta")),
+            ("nft", "nftables", find_nft),
+            ("ip", "iproute2", lambda: shutil.which("ip")),
+        ]
+
+    found: dict[str, str] = {}
+    missing: list[tuple[str, str]] = []
+    for name, hint, resolve in required:
+        path = resolve()
+        if path:
+            found[name] = path
+        else:
+            missing.append((name, hint))
+
+    if missing:
+        lines = ["Error: required tool(s) not found:"]
+        lines += [f"  - {name} (install: {hint})" for name, hint in missing]
+        if any(name in ("pasta", "nft", "ip") for name, _ in missing):
+            lines += ["", "Or run with -F/--full-net to skip the network firewall."]
+        sys.exit("\n".join(lines))
+
+    return found
+
+
+def find_nft() -> str | None:
+    return shutil.which("nft") or next(
+        (p for p in ("/sbin/nft", "/usr/sbin/nft") if Path(p).is_file()), None
+    )
+
+
+# Dangerous x86_64 syscalls to reject with EPERM (namespace/mount/module/kernel
+# tampering, ptrace, keyring, cross-process memory, ...). This mirrors the intent
+# of Docker's default seccomp profile as a small default-allow denylist, so it
+# hardens without breaking the huge syscall surface of node/claude.
+_SECCOMP_DENY_X86_64 = (
+    101, 165, 166, 155, 308, 272, 175, 313, 176, 246, 320, 321, 298, 248, 249,
+    250, 169, 167, 168, 164, 227, 305, 310, 311, 304, 303, 323, 173, 172, 163,
+    179, 134,
+)  # ptrace, mount, umount2, pivot_root, setns, unshare, init_module,
+   # finit_module, delete_module, kexec_load, kexec_file_load, bpf,
+   # perf_event_open, add_key, request_key, keyctl, reboot, swapon, swapoff,
+   # settimeofday, clock_settime, clock_adjtime, process_vm_readv/writev,
+   # open_by_handle_at, name_to_handle_at, userfaultfd, ioperm, iopl, acct,
+   # quotactl, uselib
+
+
+def seccomp_memfd() -> int | None:
+    """Compile a tiny cBPF seccomp program (allow by default, EPERM the denied
+    syscalls, kill on a non-native arch) and hand it back as an inheritable
+    memfd for bwrap's --seccomp. Returns None when disabled or not x86_64."""
+    if not SECCOMP_FILTER:
+        return None
+    if platform.machine() != "x86_64":
+        print("claude-isolated: seccomp filter skipped (not x86_64)", file=sys.stderr)
+        return None
+
+    LD_W_ABS, JEQ_K, RET_K = 0x20, 0x15, 0x06
+    ARCH_X86_64, ALLOW, ERRNO_EPERM, KILL = 0xC000003E, 0x7FFF0000, 0x00050001, 0x80000000
+
+    nums = sorted(set(_SECCOMP_DENY_X86_64))
+    n = len(nums)
+    prog = [
+        (LD_W_ABS, 0, 0, 4),                 # 0: load arch
+        (JEQ_K, 0, n + 3, ARCH_X86_64),      # 1: arch != x86_64 -> KILL
+        (LD_W_ABS, 0, 0, 0),                 # 2: load syscall nr
+    ]
+    for i, nr in enumerate(nums):            # 3..: nr == denied -> ERRNO
+        prog.append((JEQ_K, n - i, 0, nr))
+    prog += [
+        (RET_K, 0, 0, ALLOW),                # n+3
+        (RET_K, 0, 0, ERRNO_EPERM),          # n+4
+        (RET_K, 0, 0, KILL),                 # n+5
+    ]
+
+    blob = b"".join(struct.pack("<HBBI", *insn) for insn in prog)
+    fd = os.memfd_create("claudejail-seccomp")
+    os.write(fd, blob)
+    os.lseek(fd, 0, os.SEEK_SET)
+    os.set_inheritable(fd, True)
+    return fd
+
+
+def with_seccomp(bwrap_cmd: list[str]) -> list[str]:
+    """Insert --seccomp <fd> into a bwrap command line, if a filter is built."""
+    fd = seccomp_memfd()
+    if fd is None:
+        return bwrap_cmd
+    return [bwrap_cmd[0], "--seccomp", str(fd), *bwrap_cmd[1:]]
+
+
+def _live_mount_fstype(path: str) -> str | None:
+    """Filesystem type currently mounted exactly at path, or None if it is not
+    a mount point. Returns the topmost mount (last matching line wins)."""
+    try:
+        with open("/proc/self/mountinfo") as f:
+            result = None
+            for line in f:
+                left, _, right = line.partition(" - ")
+                fields = left.split()
+                if len(fields) > 4 and fields[4] == path and right.split():
+                    result = right.split()[0]
+            return result
+    except OSError:
+        return None
+
+
+def nas_bind_args() -> list[str] | None:
+    """Bind args for the optional NAS_MOUNT share, or None when it is not
+    configured or not currently usable. A systemd autofs direct mount that has
+    not been triggered cannot be bind-mounted (bwrap aborts with ENODEV), so it
+    is only bound when a real backing filesystem is present. Touching it via
+    is_dir() triggers the automount first."""
+    if not NAS_MOUNT:
+        return None
+    p = Path(NAS_MOUNT)
+    if p.is_dir() and _live_mount_fstype(NAS_MOUNT) not in (None, "autofs"):
+        return ["--bind", NAS_MOUNT, NAS_MOUNT]
+    return None
+
+
+def get_workspace() -> Path:
+    try:
+        out = subprocess.check_output(
+            ["git", "rev-parse", "--show-toplevel"],
+            stderr=subprocess.DEVNULL,
+            text=True,
+        ).strip()
+        return Path(out)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return Path.cwd()
+
+
+def get_base_args(workspace: Path) -> list[str]:
+    home = Path.home()
+    args = []
+    mounted = set()
+
+    def add_bind(bind_type: str, src: str, dest: str):
+        if dest not in mounted:
+            args.extend([bind_type, src, dest])
+            mounted.add(dest)
+
+    for sys_path in [
+        "/usr", "/bin", "/lib", "/lib64", "/etc", "/run", "/var",
+        "/usr/share/ca-certificates", "/usr/local/share/ca-certificates"
+    ]:
+        p = Path(sys_path)
+        if p.exists():
+            add_bind("--ro-bind", str(p), str(p))
+
+    sys_path = Path("/sys")
+    if sys_path.exists():
+        add_bind("--bind", str(sys_path), str(sys_path))
+
+    args.extend([
+        "--dev", "/dev",
+        "--proc", "/proc",
+        "--tmpfs", "/tmp",
+        "--tmpfs", "/var/tmp",
+    ])
+    usb_dir = Path("/dev/bus/usb")
+    if usb_dir.is_dir():
+        add_bind("--dev-bind", str(usb_dir), str(usb_dir))
+
+    resolv_path = Path("/etc/resolv.conf")
+    if resolv_path.exists():
+        real_resolv = resolv_path.resolve()
+        if not any(str(real_resolv).startswith(d) for d in ["/usr", "/bin", "/lib", "/lib64", "/etc", "/run", "/var"]):
+            if real_resolv.is_file():
+                add_bind("--ro-bind", str(real_resolv), str(real_resolv))
+
+    # Bind the workspace read-write, unless it is $HOME (or an ancestor of it):
+    # binding all of home would expose everything read-write and defeat the
+    # curated, mostly read-only binds below (and collide with the ~/bin symlink).
+    if workspace == home or workspace in home.parents:
+        print(
+            f"claude-isolated: not binding all of {workspace} (would expose your "
+            "whole home); only the curated paths are available. Run from a "
+            "subdirectory, or use -w PATH to expose a specific location.",
+            file=sys.stderr,
+        )
+    else:
+        add_bind("--bind", str(workspace), str(workspace))
+
+    bin_path = home / "bin"
+    if bin_path.is_dir():
+        add_bind("--bind", str(bin_path), str(bin_path))
+
+    for cmd in ["node", "claude"]:
+        cmd_path = shutil.which(cmd)
+        if cmd_path:
+            real_path = Path(cmd_path).resolve()
+
+            cmd_dir = real_path.parent
+            if cmd_dir.is_dir() and str(cmd_dir).startswith(str(home)):
+                add_bind("--ro-bind", str(cmd_dir), str(cmd_dir))
+
+            parent_dir = cmd_dir.parent
+            if parent_dir.is_dir() and str(parent_dir).startswith(str(home)):
+                add_bind("--ro-bind", str(parent_dir), str(parent_dir))
+
+    local_bin_path = home / ".local" / "bin"
+    if local_bin_path.is_dir():
+        add_bind("--ro-bind", str(local_bin_path), str(local_bin_path))
+
+    claude_dir = home / ".claude"
+    if claude_dir.is_dir():
+        add_bind("--bind", str(claude_dir), str(claude_dir))
+
+    claude_json = home / ".claude.json"
+    if claude_json.is_file():
+        add_bind("--bind", str(claude_json), str(claude_json))
+
+    nas = nas_bind_args()
+    if nas:
+        add_bind(*nas)
+
+    gitconfig = home / ".gitconfig"
+    if gitconfig.is_file():
+        add_bind("--ro-bind", str(gitconfig), str(gitconfig))
+
+    ssh_dir = home / ".ssh"
+    if ssh_dir.is_dir():
+        add_bind("--ro-bind", str(ssh_dir), str(ssh_dir))
+
+    # GitHub CLI config (account/host info). The token itself lives in the
+    # keyring and is fetched over the D-Bus session bus (reachable via /run),
+    # so this directory alone is enough for `gh` to authenticate.
+    gh_config = home / ".config" / "gh"
+    if gh_config.is_dir():
+        add_bind("--ro-bind", str(gh_config), str(gh_config))
+
+    # ssh-agent socket (gnome-keyring): the path is inherited via $SSH_AUTH_SOCK
+    # and usually lives under /run (already bound). Bind its directory read-only
+    # as well in case it sits elsewhere, so connect() finds it inside the jail.
+    auth_sock = os.environ.get("SSH_AUTH_SOCK")
+    if auth_sock:
+        sock = Path(auth_sock)
+        if sock.exists():
+            add_bind("--ro-bind", str(sock.parent), str(sock.parent))
+
+    for cred in [
+        home / ".pypirc",
+        home / ".config" / "pip" / "pip.conf",
+    ]:
+        if cred.is_file():
+            # cred may be a symlink (e.g. ~/.pypirc -> dotfiles-private);
+            # bind the resolved target at the canonical location so the
+            # link's destination need not be mounted separately.
+            add_bind("--ro-bind", str(cred.resolve()), str(cred))
+
+    return args
+
+
+def detect_home_nets() -> tuple[list[str], list[str]]:
+    """Networks this host is directly attached to (the home LAN(s))."""
+    env = {**os.environ, "LC_ALL": "C"}
+
+    def ip_lines(*args: str) -> list[str]:
+        try:
+            out = subprocess.check_output(
+                ["ip", *args], text=True, env=env, stderr=subprocess.DEVNULL
+            )
+            return out.splitlines()
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            return []
+
+    v4 = []
+    for line in ip_lines("-4", "route", "show", "scope", "link"):
+        parts = line.split()
+        if parts and "/" in parts[0]:
+            v4.append(parts[0])
+
+    v6 = []
+    for line in ip_lines("-6", "route", "show"):
+        parts = line.split()
+        if not parts or "/" not in parts[0]:
+            continue
+        net = parts[0]
+        if net.startswith("fe80:") or net.startswith("ff") or "via" in parts:
+            continue  # skip link-local, multicast and gateway (non on-link) routes
+        v6.append(net)
+
+    v4 = list(dict.fromkeys(v4 + FW_EXTRA_HOME_V4))
+    v6 = list(dict.fromkeys(v6 + FW_EXTRA_HOME_V6))
+    return v4, v6
+
+
+def build_nft_ruleset(home_v4: list[str], home_v6: list[str]) -> str:
+    lines = [
+        "table inet claudejail {",
+        "    chain output {",
+        "        type filter hook output priority 0; policy accept;",
+        '        oifname "lo" accept',
+    ]
+    if FW_ALLOW_V4:
+        lines.append(f"        ip daddr {{ {', '.join(FW_ALLOW_V4)} }} accept")
+    if FW_ALLOW_V6:
+        lines.append(f"        ip6 daddr {{ {', '.join(FW_ALLOW_V6)} }} accept")
+    if home_v4:
+        lines.append(f"        ip daddr {{ {', '.join(home_v4)} }} drop")
+    if home_v6:
+        lines.append(f"        ip6 daddr {{ {', '.join(home_v6)} }} drop")
+    lines += ["    }", "}", ""]
+    return "\n".join(lines)
+
+
+def parse_args(argv: list[str]) -> tuple[list[str], list[str], bool, bool]:
+    custom_mounts = []
+    claude_args = []
+    debug_shell = False
+    full_net = False
+    i = 0
+
+    while i < len(argv):
+        arg = argv[i]
+        if arg in ("-w", "--write") and i + 1 < len(argv):
+            path = str(Path(argv[i + 1]).resolve())
+            custom_mounts.extend(["--bind", path, path])
+            i += 2
+        elif arg in ("-r", "--read") and i + 1 < len(argv):
+            path = str(Path(argv[i + 1]).resolve())
+            custom_mounts.extend(["--ro-bind", path, path])
+            i += 2
+        elif arg in ("-F", "--full-net"):
+            full_net = True
+            i += 1
+        elif arg in ("-s", "--shell", "--debug"):
+            debug_shell = True
+            i += 1
+        elif arg == "--":
+            claude_args.extend(argv[i + 1 :])
+            break
+        else:
+            claude_args.append(arg)
+            i += 1
+
+    return custom_mounts, claude_args, debug_shell, full_net
+
+
+def run_inner(argv: list[str]) -> None:
+    """Executed inside the pasta network namespace (as root in the userns):
+    load the firewall into the namespace, then hand off to bwrap."""
+    rules_path = argv[0]
+    sep = argv.index("--")
+    sandbox_cmd = argv[sep + 1 :]
+
+    nft = find_nft()
+    if not nft:
+        sys.exit("claude-isolated: nft not found inside firewall setup")
+    subprocess.run([nft, "-f", rules_path], check=True)
+    try:
+        os.unlink(rules_path)
+    except OSError:
+        pass
+
+    os.execvp(sandbox_cmd[0], with_seccomp(sandbox_cmd))
+
+
+def main() -> None:
+    if sys.argv[1:2] == [_INNER_FLAG]:
+        run_inner(sys.argv[2:])
+        return
+
+    custom_mounts, claude_args, debug_shell, full_net = parse_args(sys.argv[1:])
+    tools = check_requirements(full_net)
+    workspace = get_workspace()
+    base_args = get_base_args(workspace)
+
+    if debug_shell:
+        print("[DEBUG] Starting isolated bash shell...", file=sys.stderr)
+        target_cmd = [
+            "/bin/bash",
+            "-c",
+            r'export PS1="[claude-jail] \w \$ "; exec /bin/bash'
+        ]
+    else:
+        target_cmd = [tools["claude"], "--dangerously-skip-permissions", *claude_args]
+
+    sandbox_cmd = [
+        tools["bwrap"],
+        *base_args,
+        *custom_mounts,
+        "--share-net",
+        "--chdir",
+        str(Path.cwd()),
+    ]
+
+    if full_net:
+        sandbox_cmd += ["--", *target_cmd]
+        os.execvp(tools["bwrap"], with_seccomp(sandbox_cmd))
+        return
+
+    # Firewalled path: wrap the sandbox in a pasta network namespace and load
+    # the nftables ruleset into that namespace before claude starts. Dropping
+    # all capabilities keeps claude (which runs as root inside the userns) from
+    # touching the firewall.
+    home_v4, home_v6 = detect_home_nets()
+    ruleset = build_nft_ruleset(home_v4, home_v6)
+
+    fd, rules_path = tempfile.mkstemp(prefix="claudejail-", suffix=".nft")
+    with os.fdopen(fd, "w") as f:
+        f.write(ruleset)
+
+    # pasta maps our uid to 0 inside its user namespace (needed so nft keeps
+    # its capabilities across execve). Map claude back to the real uid/gid in a
+    # nested user namespace so it does not run as root (claude refuses
+    # --dangerously-skip-permissions as root), and drop all capabilities so it
+    # cannot touch the firewall.
+    sandbox_cmd += [
+        "--unshare-user",
+        "--uid", str(os.getuid()),
+        "--gid", str(os.getgid()),
+        "--cap-drop", "ALL",
+        "--", *target_cmd,
+    ]
+
+    pasta_cmd = [
+        tools["pasta"],
+        "--quiet",
+        "--config-net",
+        "--no-map-gw",
+        "--",
+        sys.executable,
+        os.path.abspath(__file__),
+        _INNER_FLAG,
+        rules_path,
+        "--",
+        *sandbox_cmd,
+    ]
+    os.execvp(tools["pasta"], pasta_cmd)
+
+
+if __name__ == "__main__":
+    main()

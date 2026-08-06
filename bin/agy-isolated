@@ -1,0 +1,181 @@
+#!/usr/bin/env python3
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+
+def check_dependencies() -> tuple[str, str]:
+    bwrap_path = shutil.which("bwrap")
+    if not bwrap_path:
+        sys.exit(
+            "Error: 'bwrap' (Bubblewrap) not found.\n"
+            "Please install:\n"
+            "  Debian/Ubuntu: sudo apt install bubblewrap\n"
+            "  Fedora/RHEL:   sudo dnf install bubblewrap\n"
+            "  Arch Linux:    sudo pacman -S bubblewrap"
+        )
+
+    agy_path = shutil.which("agy")
+    if not agy_path:
+        sys.exit(
+            "Error: 'agy' not found in PATH.\n"
+        )
+
+    return bwrap_path, agy_path
+
+
+def get_workspace() -> Path:
+    try:
+        out = subprocess.check_output(
+            ["git", "rev-parse", "--show-toplevel"],
+            stderr=subprocess.DEVNULL,
+            text=True,
+        ).strip()
+        return Path(out)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return Path.cwd()
+
+
+def get_base_args(workspace: Path) -> list[str]:
+    home = Path.home()
+    args = []
+    mounted = set()
+
+    def add_bind(bind_type: str, src: str, dest: str):
+        if dest not in mounted:
+            args.extend([bind_type, src, dest])
+            mounted.add(dest)
+
+    for sys_path in [
+        "/usr", "/bin", "/lib", "/lib64", "/etc", "/run", "/var",
+        "/usr/share/ca-certificates", "/usr/local/share/ca-certificates"
+    ]:
+        p = Path(sys_path)
+        if p.exists():
+            add_bind("--ro-bind", str(p), str(p))
+
+    args.extend([
+        "--dev", "/dev",
+        "--proc", "/proc",
+        "--tmpfs", "/tmp",
+        "--tmpfs", "/var/tmp",
+    ])
+
+    resolv_path = Path("/etc/resolv.conf")
+    if resolv_path.exists():
+        real_resolv = resolv_path.resolve()
+        if not any(str(real_resolv).startswith(d) for d in ["/usr", "/bin", "/lib", "/lib64", "/etc", "/run", "/var"]):
+            if real_resolv.is_file():
+                add_bind("--ro-bind", str(real_resolv), str(real_resolv))
+
+    add_bind("--bind", str(workspace), str(workspace))
+
+    bin_path = home / "bin"
+    if bin_path.is_dir():
+        add_bind("--bind", str(bin_path), str(bin_path))
+
+    for cmd in ["node", "python", "python3", "agy"]:
+        cmd_path = shutil.which(cmd)
+        if cmd_path:
+            real_path = Path(cmd_path).resolve()
+
+            cmd_dir = real_path.parent
+            if cmd_dir.is_dir() and str(cmd_dir).startswith(str(home)):
+                add_bind("--ro-bind", str(cmd_dir), str(cmd_dir))
+
+            parent_dir = cmd_dir.parent
+            if parent_dir.is_dir() and str(parent_dir).startswith(str(home)):
+                add_bind("--ro-bind", str(parent_dir), str(parent_dir))
+
+    local_bin_path = home / ".local" / "bin"
+    if local_bin_path.is_dir():
+        add_bind("--ro-bind", str(local_bin_path), str(local_bin_path))
+
+    gemini_dir = home / ".gemini"
+    if gemini_dir.is_dir():
+        add_bind("--bind", str(gemini_dir), str(gemini_dir))
+
+    claude_dir = home / ".claude"
+    if claude_dir.is_dir():
+        add_bind("--bind", str(claude_dir), str(claude_dir))
+
+    claude_json = home / ".claude.json"
+    if claude_json.is_file():
+        add_bind("--bind", str(claude_json), str(claude_json))
+
+    nas_dir = Path("/mnt/nas")
+    if nas_dir.is_dir():
+        add_bind("--bind", str(nas_dir), str(nas_dir))
+
+    gitconfig = home / ".gitconfig"
+    if gitconfig.is_file():
+        add_bind("--ro-bind", str(gitconfig), str(gitconfig))
+
+    return args
+
+
+def parse_args(argv: list[str]) -> tuple[list[str], list[str], bool]:
+    custom_mounts = []
+    agy_args = []
+    debug_shell = False
+    i = 0
+
+    while i < len(argv):
+        arg = argv[i]
+        if arg in ("-w", "--write") and i + 1 < len(argv):
+            path = str(Path(argv[i + 1]).resolve())
+            custom_mounts.extend(["--bind", path, path])
+            i += 2
+        elif arg in ("-r", "--read") and i + 1 < len(argv):
+            path = str(Path(argv[i + 1]).resolve())
+            custom_mounts.extend(["--ro-bind", path, path])
+            i += 2
+        elif arg in ("-F", "--full-net"):
+            i += 1
+        elif arg in ("-s", "--shell", "--debug"):
+            debug_shell = True
+            i += 1
+        elif arg == "--":
+            agy_args.extend(argv[i + 1 :])
+            break
+        else:
+            agy_args.append(arg)
+            i += 1
+
+    return custom_mounts, agy_args, debug_shell
+
+
+def main() -> None:
+    bwrap_bin_str, agy_bin_str = check_dependencies()
+    workspace = get_workspace()
+    base_args = get_base_args(workspace)
+    custom_mounts, agy_args, debug_shell = parse_args(sys.argv[1:])
+
+    if debug_shell:
+        print("[DEBUG] Starting isolated ZSH shell...")
+        target_cmd = [
+            "/bin/zsh",
+            "-c",
+            r'export PROMPT="[agy-jail] %~ $ "; exec /bin/zsh'
+        ]
+    else:
+        target_cmd = [agy_bin_str, "--dangerously-skip-permissions", *agy_args]
+
+    sandbox_cmd = [
+        bwrap_bin_str,
+        *base_args,
+        *custom_mounts,
+        "--share-net",
+        "--chdir",
+        str(Path.cwd()),
+        "--",
+        *target_cmd,
+    ]
+
+    os.execvp(bwrap_bin_str, sandbox_cmd)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,154 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import argparse
+import sys
+import os
+import unicodedata
+from typing import List, Tuple
+
+DEFAULT_TABWIDTH = 4
+
+EXTRA_IGNORE = {
+    "\u2212",  # MINUS SIGN
+}
+
+QUOTES = {
+    "\u0022", "\u0027", "\u00AB", "\u00BB",
+    "\u2018", "\u2019", "\u201A", "\u201B",
+    "\u201C", "\u201D", "\u201E", "\u201F",
+    "\u2039", "\u203A",
+}
+
+def is_quote(ch: str) -> bool:
+    cat = unicodedata.category(ch)
+    return cat in ("Pi", "Pf") or ch in QUOTES
+
+def is_dash(ch: str) -> bool:
+    return unicodedata.category(ch) == "Pd"
+
+def is_allowed(ch: str) -> bool:
+    # Steuerzeichen (außer Tab/CR/LF) verbieten
+    if ch not in ("\t", "\n", "\r") and unicodedata.category(ch).startswith("C"):
+        return False
+    # Quotes, Dashes, extra erlaubte Zeichen ignorieren
+    if is_quote(ch) or is_dash(ch) or ch in EXTRA_IGNORE:
+        return True
+    # Latin-1 ist okay
+    try:
+        ch.encode("latin-1")
+        return True
+    except UnicodeEncodeError:
+        return False
+
+def offending_positions(s: str) -> List[int]:
+    return [i for i, ch in enumerate(s) if not is_allowed(ch)]
+
+def expand_tabs_positions(s: str, tabwidth: int) -> Tuple[str, List[int]]:
+    """Gibt expandierte Zeile und Mapping von Zeichenindex -> Displayspalte (0-basiert) zurück."""
+    cols: List[int] = []
+    col = 0
+    for ch in s:
+        cols.append(col)
+        if ch == "\t":
+            col += tabwidth - (col % tabwidth)
+        else:
+            col += 1
+    return s.expandtabs(tabwidth), cols
+
+def marker_line_for(s: str, bad_idx: List[int], cols_map: List[int]) -> str:
+    expanded, _ = s.expandtabs(DEFAULT_TABWIDTH), None  # Länge via expandtabs
+    marker = [" "] * len(expanded)
+    for i in bad_idx:
+        if i < len(cols_map):
+            pos = cols_map[i]
+            if 0 <= pos < len(marker):
+                marker[pos] = "^"
+    return "".join(marker)
+
+def bad_char_desc(ch: str) -> str:
+    try:
+        name = unicodedata.name(ch)
+    except ValueError:
+        name = "<UNNAMED>"
+    return f"{repr(ch)} U+{ord(ch):04X} {name}"
+
+def process_file(path: str, encoding: str, show_context: bool, tabwidth: int) -> int:
+    status = 0
+    with open(path, "r", encoding=encoding, newline="") as f:
+        for lineno, raw in enumerate(f, start=1):
+            line = raw.rstrip("\n")
+            bad_idx = offending_positions(line)
+            if not bad_idx:
+                continue
+            status = 2
+            # Für Quickfix: pro Fund eine gcc-ähnliche Zeile: file:line:col: msg
+            # Spalte: 1-basiert, ohne Tab-Expansion (vim kommt damit klar)
+            for i in bad_idx:
+                ch = line[i]
+                colnum = i + 1
+                msg = bad_char_desc(ch)
+                print(f"{path}:{lineno}:{colnum}: {msg}")
+            if show_context:
+                expanded, cols_map = expand_tabs_positions(line, tabwidth)
+                marker = marker_line_for(line, bad_idx, cols_map)
+                print(expanded)
+                print(marker)
+                print()
+    return status
+
+def main():
+    ap = argparse.ArgumentParser(
+        description="Scannt Dateien nach unerlaubten Unicode-Zeichen (Latin-1 erlaubt; Unicode-Quotes und -Dashes ignoriert) und gibt Vim-Quickfix-kompatible Zeilen aus."
+    )
+    ap.add_argument("files", nargs="+", help="Dateien (oder '-' für stdin; wird dann als <stdin> geführt)")
+    ap.add_argument("--encoding", default="utf-8", help="Eingabe-Encoding (Default: utf-8)")
+    ap.add_argument("--show-context", action="store_true", help="Zeigt die betroffene Zeile + '^'-Marker zusätzlich an")
+    ap.add_argument("--tabwidth", type=int, default=DEFAULT_TABWIDTH, help=f"Tabweite für Kontextmarker (Default: {DEFAULT_TABWIDTH})")
+    args = ap.parse_args()
+
+    overall = 0
+    for p in args.files:
+        if p == "-":
+            path = "<stdin>"
+            try:
+                status = 0
+                data = sys.stdin.read().splitlines()
+                for lineno, line in enumerate(data, start=1):
+                    bad_idx = offending_positions(line)
+                    if not bad_idx:
+                        continue
+                    status = 2
+                    for i in bad_idx:
+                        ch = line[i]; colnum = i + 1
+                        print(f"{path}:{lineno}:{colnum}: {bad_char_desc(ch)}")
+                    if args.show_context:
+                        expanded, cols_map = expand_tabs_positions(line, args.tabwidth)
+                        marker = marker_line_for(line, bad_idx, cols_map)
+                        print(expanded); print(marker); print()
+                overall = max(overall, status)
+            except Exception as e:
+                print(f"{path}:1:1: <ERROR> {e}", file=sys.stderr)
+                overall = max(overall, 1)
+            continue
+
+        if not os.path.isfile(p):
+            print(f"{p}:1:1: <ERROR> Datei nicht gefunden", file=sys.stderr)
+            overall = max(overall, 1)
+            continue
+
+        try:
+            status = process_file(p, args.encoding, args.show_context, args.tabwidth)
+            overall = max(overall, status)
+        except UnicodeDecodeError as e:
+            print(f"{p}:1:1: <ERROR> UnicodeDecodeError {e}", file=sys.stderr)
+            overall = max(overall, 1)
+        except Exception as e:
+            print(f"{p}:1:1: <ERROR> {e}", file=sys.stderr)
+            overall = max(overall, 1)
+
+    sys.exit(overall)
+
+if __name__ == "__main__":
+    main()
+

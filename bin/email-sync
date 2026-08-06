@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+echo "[+] Starting email-sync: Synchronizing emails..."
+if ! ping -c 1 heise.de >/dev/null 2>&1; then
+    echo "heise.de not pingable - failed to sync emails"
+    exit 1
+fi
+BEFORE=$(notmuch count)
+offlineimap -o -u quiet
+AFTER=$(notmuch count)
+DIFF=$((AFTER - BEFORE))
+if [ "$DIFF" -gt 0 ]; then
+    echo "    -> Downloaded $DIFF new email(s)."
+else
+    echo "    -> No new emails."
+fi
+~/bin/email-classify
+~/bin/email-cleanup
+offlineimap -o -u quiet
+~/bin/email-import-contact-from-maildir.py
+
+echo "[✔] email-sync completed successfully."

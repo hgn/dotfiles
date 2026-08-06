@@ -1,10 +1,10 @@
 set nocompatible            " disable compatibility to old-time vi
-set showmatch               " show matching 
-set ignorecase              " case insensitive 
-set mouse=v                 " middle-click paste with 
-set hlsearch                " highlight search 
+set showmatch               " show matching
+set ignorecase              " case insensitive
+set mouse=v                 " middle-click paste with
+set hlsearch                " highlight search
 set incsearch               " incremental search
-set tabstop=4               " number of columns occupied by a tab 
+set tabstop=4               " number of columns occupied by a tab
 set softtabstop=4           " see multiple spaces as tabstops so <BS> does the right thing
 set expandtab               " converts tabs to white space
 set shiftwidth=4            " width for autoindents
@@ -39,6 +39,7 @@ call plug#begin("~/.config/nvim/plugged")
  Plug 'majutsushi/tagbar'
  Plug 'sunjon/shade.nvim'
  Plug 'lewis6991/gitsigns.nvim', { 'tag': 'v0.6' }
+ Plug 'nvim-telescope/telescope-frecency.nvim'
 call plug#end()
 
 lua << END
@@ -64,10 +65,10 @@ vim.api.nvim_set_keymap('o', '<leader><esc>', '<Plug>(leap-backward)', {})
 -- disable netrw at the very start of your init.lua (strongly advised)
 -- vim.g.loaded_netrw = 1
 -- vim.g.loaded_netrwPlugin = 1
--- 
+--
 -- -- set termguicolors to enable highlight groups
 -- vim.opt.termguicolors = true
--- 
+--
 -- -- OR setup with some options
 -- require("nvim-tree").setup({
 --   sort_by = "case_sensitive",
@@ -140,11 +141,17 @@ require("telescope").setup {
         },
       },
     },
+    frecency = {
+      sort_by = "frecency",
+    },
   },
 }
 
 
 require("telescope").load_extension "file_browser"
+require("telescope").load_extension("frecency")
+
+vim.api.nvim_set_keymap("n", "<F1>", ":Telescope frecency<CR>", { noremap = true, silent = true })
 
 --require("nvim-autopairs").setup {}
 
@@ -247,9 +254,30 @@ vim.opt.whichwrap:append("<,>,[,],h,l")
 
 require('telescope').setup{
   defaults = {
-    file_ignore_patterns = {"%.png", "%.svg", "%.webm", "%.pdf" , "%.bib"}
+    file_ignore_patterns = {"%.png", "%.svg", "%.webm", "%.pdf"}
   }
 }
+
+
+-- kept around: centered popup for the command history, with the plain
+-- cmdline moved to ';'
+--     local tb = require('telescope.builtin')
+--     vim.keymap.set('n', ':', function()
+--       tb.command_history({
+--         layout_strategy = 'center',
+--         layout_config = { width = 0.6, height = 0.6 },
+--         prompt_title = ': history',
+--       })
+--     end, { noremap = true, silent = true })
+--
+--     vim.keymap.set('n', ';', ':', { noremap = true })
+--
+--     vim.keymap.set('n', 'q:', function()
+--       tb.command_history({
+--         layout_strategy = 'center',
+--         layout_config = { width = 0.6, height = 0.6 },
+--       })
+--     end, { noremap = true, silent = true })
 
 END
 
@@ -279,7 +307,7 @@ set ruler
 " 500 size of the saved command-line history
 set viminfo='500,<50,s500,h,%
 
-set shada=!,'1000,<50,s10,h
+set shada=!,'1000,<100,s100,h,:10000,/10000
 
 set incsearch
 set hlsearch
@@ -334,6 +362,10 @@ cnoremap <C-K> <C-U>
 cnoremap <C-P> <Up>
 cnoremap <C-N> <Down>
 
+" quickfix navigation
+nnoremap <Leader>cn :cnext<CR>
+nnoremap <Leader>cp :cprev<CR>
+
 " Format the statusline
 "set statusline=\ %F%m%r%h\ %w\ \ CWD:\ %r%{CurDir()}%h\ \ \ Line:\ %l/%L:%c
 " Remove the Windows ^M - when the encodings gets messed up
@@ -344,7 +376,7 @@ function! CurDir()
     return curdir
 endfunction
 
-set history=700
+set history=1000
 set t_Co=256
 
 filetype plugin on
@@ -354,21 +386,28 @@ ab _if fprintf(stderr, "DEBUG [%s:%4d] - \n", __FILE__, __LINE__);<Esc>F\i
 
 "set t_Co=256
 
-"switch spellcheck languages (http://www.vim.org/tips/tip.php?tip_id=1224)
 let g:myLang = 0
-let g:myLangList = [ "nospell", "de_de", "en_us" ]
+let g:myLangList = ['nospell', 'de_de', 'en_us']
+
 function! MySpellLang()
-let g:myLang = g:myLang + 1
-if g:myLang >= len(g:myLangList) | let g:myLang = 0 | endif
-if g:myLang == 0 | set nospell | endif
-if g:myLang == 1 | setlocal spell spelllang=de_de | endif
-if g:myLang == 2 | setlocal spell spelllang=en_us | endif
-echo "language:" g:myLangList[g:myLang]
-endf
+  let g:myLang = (g:myLang + 1) % len(g:myLangList)
+  let l:cur = g:myLangList[g:myLang]
+
+  if l:cur ==# 'nospell'
+    setlocal nospell
+    " spell OFF -> syntax ON
+    syntax on | filetype detect
+  else
+    execute 'setlocal spell spelllang=' . l:cur
+    " spell ON  -> syntax OFF (dumb full-buffer spell)
+    syntax off
+  endif
+  echo 'Spell language:' l:cur
+endfunction
 
 " what a stupid feature - mouse support for the terminal!
 " If I want X I use X, or Emacs, ...
-set mouse=c 
+set mouse=c
 set mousehide
 
 
@@ -509,7 +548,7 @@ endif " has("autocmd")
 
 
 
-" COLORIZATION 
+" COLORIZATION
 
 "common bg fg color
 "highlight Normal        ctermfg=black ctermbg=white
@@ -522,7 +561,7 @@ endif " has("autocmd")
 "visual mode
 "highlight visual		cterm=bold ctermfg=yellow ctermbg=red
 "cursor colors
-highlight cursor        cterm=bold 
+highlight cursor        cterm=bold
 "vertical line on split screen
 highlight VertSplit     cterm=bold ctermfg=black ctermbg=black
 "searchpattern
@@ -544,8 +583,8 @@ endif
 "search the current word under cursor in all files in working directory
 "map <F3> :Sexplore<CR>
 
-nmap <F1> :Telescope oldfiles<CR>
-imap <F1> <C-o>:Telescope oldfiles<CR>
+"nmap <F1> :Telescope oldfiles<CR>
+"imap <F1> <C-o>:Telescope oldfiles<CR>
 
 nmap <F2> :Telescope find_files<CR>
 imap <F2> <C-o>:Telescope find_files<CR>
@@ -563,7 +602,7 @@ nmap <F6> :Telescope file_browser<CR>
 imap <F6> <C-o>:Telescope file_browser<CR>
 
 map <F7> :call MySpellLang()<CR>
-imap <F7> <C-o>:call MySpellLang()<CR> 
+imap <F7> <C-o>:call MySpellLang()<CR>
 
 nmap <F9> :Telescope marks<CR>
 imap <F9> <C-o>:Telescope marks<CR>

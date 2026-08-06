@@ -140,7 +140,7 @@ alias gitb='git branch --sort=-committerdate | fzf --height=20% | xargs git chec
 
 ## get keys working
 # found at http://maxime.ritter.eu.org/stuff/zshrc
-case $TERM in 
+case $TERM in
   linux)
   bindkey "^[[2~" yank
   bindkey "^[[3~" delete-char
@@ -284,7 +284,7 @@ if [ -f /usr/share/autojump/autojump.zsh ]; then
 fi
 
 
-# red id indicator, if last 
+# red id indicator, if last
 function set_prompt {
   if [[ $? -eq 0 ]]; then
     # Last command was successful
@@ -468,7 +468,7 @@ function filedec()
   fi
 }
 
-function gif2png() 
+function gif2png()
 {
   if [[ $# = 0 ]]
   then

@@ -256,6 +256,18 @@ HISTSIZE=$SAVEHIST
 HISTFILE=~/.zhistory
 # dont save clutter
 HISTORY_IGNORE="(ls|ll|rm|fg|cd|pwd|exit|cd ..)"
+
+# Keep the encrypted volume out of the history file: ~/.zhistory lives on the
+# unencrypted root disk, so both commands run from inside /mnt/crypt and
+# commands that merely name a path below it are dropped before they are saved.
+# Returning non-zero from a zshaddhistory hook discards the line.
+crypt_history_filter() {
+  [[ $PWD == /mnt/crypt(|/*) ]] && return 1
+  [[ $1 == *"/mnt/crypt"* ]] && return 1
+  return 0
+}
+autoload -Uz add-zsh-hook
+add-zsh-hook zshaddhistory crypt_history_filter
 # Whenever the user enters a line with history expansion, don’t execute the line directly
 setopt HIST_VERIFY
 # records the timestamp of each command in HISTFILE

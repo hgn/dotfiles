@@ -1,0 +1,359 @@
+#!/usr/bin/env python3
+"""Open, close and set up the LUKS2-encrypted video partition.
+
+Manual counterpart to fstab/crypttab: this partition intentionally has no
+entries there, so opening, mounting, unmounting and closing all go through
+this script.
+"""
+
+import argparse
+import grp
+import os
+import pwd
+import shutil
+import subprocess
+import sys
+
+BY_ID_PATH = "/dev/disk/by-id/nvme-Samsung_SSD_960_EVO_250GB_S3ESNX0J119505Y-part2"
+RAW_DEVICE = "/dev/nvme0n1p2"
+MAPPER_NAME = "crypt"
+MAPPER_PATH = f"/dev/mapper/{MAPPER_NAME}"
+MOUNTPOINT = "/mnt/crypt"
+FS_LABEL = "crypt"
+OWNER_USER = "pfeifer"
+OWNER_GROUP = "pfeifer"
+CONFIRM_WORD = "LOESCHEN"
+
+USE_COLOR = sys.stdout.isatty() and "NO_COLOR" not in os.environ
+
+RED = "\033[31m" if USE_COLOR else ""
+GREEN = "\033[32m" if USE_COLOR else ""
+YELLOW = "\033[33m" if USE_COLOR else ""
+RESET = "\033[0m" if USE_COLOR else ""
+
+
+def info(msg):
+    print(msg, file=sys.stderr)
+
+
+def ok(msg):
+    print(f"{GREEN}{msg}{RESET}", file=sys.stderr)
+
+
+def warn(msg):
+    print(f"{YELLOW}{msg}{RESET}", file=sys.stderr)
+
+
+def error(msg):
+    print(f"{RED}error:{RESET} {msg}", file=sys.stderr)
+
+
+def die(msg, code=1):
+    error(msg)
+    raise SystemExit(code)
+
+
+def require_root():
+    if os.geteuid() == 0:
+        return
+    info(f"root privileges required, re-executing via sudo: {' '.join(sys.argv)}")
+    os.execvp("sudo", ["sudo", sys.executable, os.path.abspath(sys.argv[0]), *sys.argv[1:]])
+
+
+def resolve_target_device():
+    """Resolve the by-id symlink and confirm it still points at the expected device.
+
+    Guards against a swapped or renumbered drive silently taking the place of
+    the intended one before any destructive or mounting operation runs.
+    """
+    if not os.path.exists(BY_ID_PATH):
+        die(f"target partition not found: {BY_ID_PATH}")
+    resolved = os.path.realpath(BY_ID_PATH)
+    expected = os.path.realpath(RAW_DEVICE)
+    if resolved != expected:
+        die(
+            f"device mismatch: {BY_ID_PATH} resolves to {resolved}, "
+            f"expected {expected} -- refusing to touch the wrong disk"
+        )
+    return resolved
+
+
+def run(cmd, trace=True, **kwargs):
+    if trace:
+        info(f"+ {' '.join(cmd)}")
+    # Flush our own buffered stdout first so it cannot land after output the
+    # child writes directly to the inherited stdout fd.
+    sys.stdout.flush()
+    return subprocess.run(cmd, **kwargs)
+
+
+def run_checked(cmd, **kwargs):
+    result = run(cmd, **kwargs)
+    if result.returncode != 0:
+        die(f"command failed ({result.returncode}): {' '.join(cmd)}")
+    return result
+
+
+def mapper_is_open():
+    return os.path.exists(MAPPER_PATH)
+
+
+def is_mounted(path):
+    result = subprocess.run(
+        ["findmnt", "--noheadings", "--mountpoint", path],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    return result.returncode == 0
+
+
+def device_is_mounted_anywhere(device):
+    result = subprocess.run(
+        ["findmnt", "--noheadings", "--source", device],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    return result.returncode == 0
+
+
+def cmd_setup(args):
+    warn(
+        "setup is disabled: the partition was already set up on 2026-08-22. "
+        "The code below is kept as documentation of how it was done. To "
+        "really redo it, remove the early return below by hand."
+    )
+    # Setup is a one-shot, destructive operation against a partition that is
+    # now in use; keep the code below intact as a record, but never run it.
+    return 0
+
+    require_root()
+    device = resolve_target_device()
+
+    if mapper_is_open():
+        die(f"mapper {MAPPER_PATH} is already open -- close it first")
+    if is_mounted(MOUNTPOINT) or device_is_mounted_anywhere(device):
+        die(f"{device} or {MOUNTPOINT} is already mounted -- unmount first")
+
+    print(f"target device: {device} (via {BY_ID_PATH})")
+    print()
+    run(["lsblk", "-o", "NAME,SIZE,FSTYPE,MOUNTPOINT,LABEL", device])
+    print()
+    print("planned steps:")
+    print(f"  1. wipefs -a {device}")
+    print(f"  2. cryptsetup luksFormat --type luks2 ... {device}")
+    print(f"  3. cryptsetup open {device} {MAPPER_NAME}")
+    print(f"  4. mkfs.ext4 -m 0 -L {FS_LABEL} {MAPPER_PATH}")
+    print(f"  5. mount {MAPPER_PATH} {MOUNTPOINT}")
+    print(f"  6. chown {OWNER_USER}:{OWNER_GROUP} {MOUNTPOINT}")
+    print()
+    warn(f"this destroys all data currently on {device}.")
+
+    typed = input(f"type {CONFIRM_WORD} to proceed: ")
+    if typed != CONFIRM_WORD:
+        die("confirmation not given, aborting", code=1)
+
+    run_checked(["wipefs", "-a", device])
+    run_checked(
+        [
+            "cryptsetup",
+            "luksFormat",
+            "--type",
+            "luks2",
+            "--cipher",
+            "aes-xts-plain64",
+            "--key-size",
+            "512",
+            "--hash",
+            "sha512",
+            "--pbkdf",
+            "argon2id",
+            device,
+        ]
+    )
+    run_checked(["cryptsetup", "open", device, MAPPER_NAME])
+    run_checked(["mkfs.ext4", "-m", "0", "-L", FS_LABEL, MAPPER_PATH])
+    os.makedirs(MOUNTPOINT, exist_ok=True)
+    run_checked(["mount", MAPPER_PATH, MOUNTPOINT])
+
+    uid = pwd.getpwnam(OWNER_USER).pw_uid
+    gid = grp.getgrnam(OWNER_GROUP).gr_gid
+    os.chown(MOUNTPOINT, uid, gid)
+
+    ok(f"setup complete, {MAPPER_PATH} mounted at {MOUNTPOINT}")
+    return 0
+
+
+def cmd_open(args):
+    require_root()
+    device = resolve_target_device()
+
+    if mapper_is_open():
+        info(f"{MAPPER_PATH} is already open")
+    else:
+        result = run(["cryptsetup", "open", device, MAPPER_NAME])
+        if result.returncode != 0:
+            die(f"cryptsetup open failed ({result.returncode})")
+        ok(f"opened {device} as {MAPPER_PATH}")
+
+    os.makedirs(MOUNTPOINT, exist_ok=True)
+
+    if is_mounted(MOUNTPOINT):
+        info(f"{MOUNTPOINT} is already mounted")
+    else:
+        run_checked(["mount", "-o", "noatime", MAPPER_PATH, MOUNTPOINT])
+        ok(f"mounted {MAPPER_PATH} at {MOUNTPOINT}")
+
+    return 0
+
+
+def busy_processes(mountpoint):
+    procs = []
+    if shutil.which("fuser"):
+        result = subprocess.run(
+            ["fuser", "-vm", mountpoint], capture_output=True, text=True
+        )
+        output = (result.stdout + result.stderr).strip()
+        if output:
+            procs.append(("fuser", output))
+    if shutil.which("lsof"):
+        result = subprocess.run(
+            ["lsof", "+f", "--", mountpoint], capture_output=True, text=True
+        )
+        output = result.stdout.strip()
+        if output:
+            procs.append(("lsof", output))
+    return procs
+
+
+def cmd_close(args):
+    require_root()
+
+    if is_mounted(MOUNTPOINT):
+        result = run(["umount", MOUNTPOINT])
+        if result.returncode != 0:
+            error(f"failed to unmount {MOUNTPOINT}, it may be busy")
+            for tool, output in busy_processes(MOUNTPOINT):
+                info(f"--- {tool} ---")
+                info(output)
+            die("unmount failed, see blocking processes above")
+        ok(f"unmounted {MOUNTPOINT}")
+    else:
+        info(f"{MOUNTPOINT} is not mounted")
+
+    if mapper_is_open():
+        result = run(["cryptsetup", "close", MAPPER_NAME])
+        if result.returncode != 0:
+            die(f"cryptsetup close failed ({result.returncode})")
+        ok(f"closed {MAPPER_PATH}")
+    else:
+        info(f"{MAPPER_PATH} is not open")
+
+    return 0
+
+
+def cmd_status(args):
+    try:
+        device = resolve_target_device()
+        print(f"target device:  {device} (via {BY_ID_PATH})")
+    except SystemExit:
+        print(f"target device:  {BY_ID_PATH} -- NOT FOUND OR MISMATCHED")
+        device = None
+
+    if device is not None:
+        # lsblk reads udev, not the blkid cache, so it sees a just-formatted
+        # device correctly even as a non-root user; `blkid` without root can
+        # fall back to /run/blkid/blkid.tab and report a stale filesystem.
+        # --nodeps restricts this to the partition itself, not the mapper
+        # child stacked on top of it once it's open.
+        result = subprocess.run(
+            ["lsblk", "-n", "--nodeps", "-o", "FSTYPE", device],
+            capture_output=True,
+            text=True,
+        )
+        fs_type = result.stdout.strip() or "unknown"
+        is_luks = fs_type == "crypto_LUKS"
+        print(f"LUKS present:   {'yes' if is_luks else 'no'} (lsblk FSTYPE={fs_type!r})")
+
+    mapper_open = mapper_is_open()
+    print(f"mapper open:    {'yes' if mapper_open else 'no'} ({MAPPER_PATH})")
+
+    mounted = is_mounted(MOUNTPOINT)
+    print(f"mounted:        {'yes' if mounted else 'no'} ({MOUNTPOINT})")
+
+    if mounted:
+        print()
+        run(["df", "-h", MOUNTPOINT], trace=False)
+
+    if mapper_open:
+        print()
+        if os.geteuid() == 0:
+            run(["cryptsetup", "status", MAPPER_NAME], trace=False)
+        else:
+            print("cipher details: run 'sudo crypt-disk status' for cryptsetup status")
+
+    return 0
+
+
+def build_parser():
+    parser = argparse.ArgumentParser(
+        prog="crypt-disk",
+        description="Open, close and set up the LUKS2-encrypted video partition.",
+    )
+    sub = parser.add_subparsers(dest="command")
+
+    p_setup = sub.add_parser(
+        "setup",
+        help="one-time destructive setup: wipe, luksFormat, mkfs.ext4, mount",
+        description=(
+            "One-time setup of the target partition. Wipes it, formats it as "
+            "LUKS2, creates an ext4 filesystem and mounts it. Destructive: "
+            f"asks for typed confirmation ('{CONFIRM_WORD}') before touching anything."
+        ),
+    )
+    p_setup.set_defaults(func=cmd_setup)
+
+    p_open = sub.add_parser(
+        "open",
+        help="open the LUKS mapper and mount it (idempotent)",
+        description="Prompts for the passphrase, opens the mapper and mounts it. "
+        "Safe to run when already open or mounted.",
+    )
+    p_open.set_defaults(func=cmd_open)
+
+    p_close = sub.add_parser(
+        "close",
+        help="unmount and close the LUKS mapper (idempotent)",
+        description="Unmounts and closes the mapper. Safe to run when already "
+        "closed. On a busy unmount, lists the processes holding it open.",
+    )
+    p_close.set_defaults(func=cmd_close)
+
+    p_status = sub.add_parser(
+        "status",
+        help="show current state: LUKS present, mapper open, mounted, usage",
+        description="Reports whether the LUKS partition exists, whether the "
+        "mapper is open, whether it is mounted, disk usage and active cipher "
+        "parameters.",
+    )
+    p_status.set_defaults(func=cmd_status)
+
+    return parser
+
+
+def main() -> int:
+    parser = build_parser()
+    args = parser.parse_args()
+
+    if not getattr(args, "command", None):
+        parser.print_help(sys.stderr)
+        return 2
+
+    try:
+        return args.func(args)
+    except KeyboardInterrupt:
+        error("interrupted")
+        return 130
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

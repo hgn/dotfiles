@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 
-echo "[+] Starting email-cleanup: Deleting marked emails..."
+echo -e "Starting email-cleanup: \e[32mdeleting\e[0m marked emails via notmuch..."
+START_TIME=$(date +%s.%N)
 
-notmuch search tag:killed
+#notmuch search tag:killed
 notmuch search --output=files --format=text0 tag:killed | xargs --null --no-run-if-empty rm
 notmuch new | grep -v "^No new mail\."
 
-echo "[✔] email-cleanup completed successfully."
+END_TIME=$(date +%s.%N)
+ELAPSED=$(awk -v t1="$START_TIME" -v t2="$END_TIME" 'BEGIN{printf "%.2f", t2-t1}')
+echo -e "    completed in \e[36m$ELAPSED\e[0m seconds"

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-echo "[+] Starting email-classify: Categorizing emails..."
+echo -e "Starting email-classify: \e[32mcategorizing\e[0m emails via notmuch..."
+START_TIME=$(date +%s.%N)
 
 # linux-pm
 notmuch tag +linux-pm +list folder:Lists.linux-pm
@@ -23,4 +24,6 @@ notmuch tag +keep-longer +linux-bpf  -- tag:lkml and subject:bpf
 notmuch tag +killed -- tag:lkml and not tag:keep-longer and not tag:keep-infty and date:..30days
 notmuch tag +killed -- tag:lkml and not tag:keep-infty and date:..365days
 
-echo "[✔] email-classify completed successfully."
+END_TIME=$(date +%s.%N)
+ELAPSED=$(awk -v t1="$START_TIME" -v t2="$END_TIME" 'BEGIN{printf "%.2f", t2-t1}')
+echo -e "    completed in \e[36m$ELAPSED\e[0m seconds"

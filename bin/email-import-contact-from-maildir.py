@@ -115,6 +115,7 @@ def main() -> int:
                       help="own mail domain to exclude (repeatable, default: jauu.net)")
     args = argp.parse_args()
 
+    print("Starting email-import: generating mutt \033[32maliases\033[0m via notmuch...", file=sys.stderr)
     start = time.monotonic()
     self_domains = frozenset(args.self_domain)
     self_query = " or ".join(f"from:{d}" for d in self_domains)
@@ -136,7 +137,7 @@ def main() -> int:
         tmp.rename(target)
 
     elapsed = time.monotonic() - start
-    print(f"{len(contacts)} aliases in {elapsed:.2f}s", file=sys.stderr)
+    print(f"    completed in \033[36m{elapsed:.2f}\033[0m seconds (\033[36m{len(contacts)}\033[0m aliases)", file=sys.stderr)
     return 0
 
 

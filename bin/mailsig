@@ -1,0 +1,20 @@
+#!/bin/sh
+# Signature for private mail: name plus a quote drawn from ~/.mutt/quotes.
+# Wired up in muttrc-shared as `set signature="~/bin/mailsig|"`; the trailing
+# pipe tells mutt to run this and take its stdout. The `-- ` delimiter is
+# added by mutt itself (sig_dashes), so it must not be printed here.
+#
+# After editing ~/.mutt/quotes, rebuild the index: strfile ~/.mutt/quotes
+# Entries are separated by a line holding a single %.
+
+QUOTES="$HOME/.mutt/quotes"
+FORTUNE=/usr/games/fortune
+
+echo "Hagen Paul Pfeifer"
+
+# Fall back to the bare name rather than a broken signature if the quote file
+# or fortune is missing (e.g. on a host where fortune-mod is not installed).
+[ -x "$FORTUNE" ] && [ -r "$QUOTES.dat" ] || exit 0
+
+echo
+"$FORTUNE" "$QUOTES"

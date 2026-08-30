@@ -10,11 +10,8 @@
 QUOTES="$HOME/.mutt/quotes"
 FORTUNE=/usr/games/fortune
 
-echo "Hagen Paul Pfeifer"
-
-# Fall back to the bare name rather than a broken signature if the quote file
+# Fall back to empty signature if the quote file
 # or fortune is missing (e.g. on a host where fortune-mod is not installed).
 [ -x "$FORTUNE" ] && [ -r "$QUOTES.dat" ] || exit 0
 
-echo
 "$FORTUNE" "$QUOTES"

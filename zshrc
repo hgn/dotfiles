@@ -602,9 +602,33 @@ export PATH="/home/pfeifer/.local/bin:$PATH"
 # second brain in the sandbox: repo as workspace, mail and documents writable,
 # ssh forced past the system config that bwrap's userns makes unreadable.
 second-brain() {
+      local agent="code"
+      local runner="claude-isolated"
+      local -a agent_args=(--name "second-brain")
+
+      case "$1" in
+            code|codex|agy)
+                  agent="$1"
+                  shift
+                  ;;
+      esac
+
+      case "$agent" in
+            code)
+                  ;;
+            codex)
+                  runner="codex-isolated"
+                  agent_args=(-c "mcp_servers.notmuch.enabled=true")
+                  ;;
+            agy)
+                  runner="agy-isolated"
+                  agent_args=()
+                  ;;
+      esac
+
       cd /home/pfeifer/src/own/misc/second-brain || return
       GIT_SSH_COMMAND="ssh -F /dev/null -o IdentitiesOnly=yes -i $HOME/.ssh/id_rsa -o UserKnownHostsFile=$HOME/.ssh/known_hosts" \
-      claude-isolated \
+      "$runner" \
               -w "$HOME/.mail" \
               -w "$HOME/documents" \
               -r "$HOME/.notmuch-config" \
@@ -613,7 +637,7 @@ second-brain() {
               -r "$HOME/.offlineimaprc" \
               -r "$HOME/.config" \
               -r "$HOME/src/own/misc/mcp-server-notmuch" \
-              "$@"
+              "${agent_args[@]}" "$@"
 }
 
 # zoxide hooks into chpwd and overrides cd, so it has to stay the last thing

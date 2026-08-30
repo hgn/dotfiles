@@ -43,6 +43,34 @@ SECCOMP_FILTER = True
 # ===========================================================================
 
 _INNER_FLAG = "--__apply-firewall"
+_CODEX_FLAG = "--__codex"
+
+PROGRAM_NAME = "claude-isolated"
+AGENT_COMMAND = "claude"
+AGENT_INSTALL_HINT = "npm install -g @anthropic-ai/claude-code"
+AGENT_STATE_PATHS = [".claude", ".claude.json"]
+AGENT_BYPASS_ARGS = ["--dangerously-skip-permissions"]
+JAIL_NAME = "claudejail"
+
+
+def use_codex():
+    global PROGRAM_NAME
+    global AGENT_COMMAND
+    global AGENT_INSTALL_HINT
+    global AGENT_STATE_PATHS
+    global AGENT_BYPASS_ARGS
+    global JAIL_NAME
+
+    PROGRAM_NAME = "codex-isolated"
+    AGENT_COMMAND = "codex"
+    AGENT_INSTALL_HINT = "npm install -g @openai/codex"
+    AGENT_STATE_PATHS = [".codex"]
+    AGENT_BYPASS_ARGS = [
+        "--dangerously-bypass-approvals-and-sandbox",
+        "-c",
+        "mcp_servers.notmuch.enabled=false",
+    ]
+    JAIL_NAME = "codexjail"
 
 
 def check_requirements(full_net: bool) -> dict[str, str]:
@@ -51,7 +79,7 @@ def check_requirements(full_net: bool) -> dict[str, str]:
     # (name, apt package, resolver)
     required = [
         ("bwrap", "bubblewrap", lambda: shutil.which("bwrap")),
-        ("claude", "npm install -g @anthropic-ai/claude-code", lambda: shutil.which("claude")),
+        (AGENT_COMMAND, AGENT_INSTALL_HINT, lambda: shutil.which(AGENT_COMMAND)),
     ]
     if not full_net:
         # Needed only for the firewalled default path (skipped with -F).
@@ -109,7 +137,7 @@ def seccomp_memfd() -> int | None:
     if not SECCOMP_FILTER:
         return None
     if platform.machine() != "x86_64":
-        print("claude-isolated: seccomp filter skipped (not x86_64)", file=sys.stderr)
+        print(f"{PROGRAM_NAME}: seccomp filter skipped (not x86_64)", file=sys.stderr)
         return None
 
     LD_W_ABS, JEQ_K, RET_K = 0x20, 0x15, 0x06
@@ -131,7 +159,7 @@ def seccomp_memfd() -> int | None:
     ]
 
     blob = b"".join(struct.pack("<HBBI", *insn) for insn in prog)
-    fd = os.memfd_create("claudejail-seccomp")
+    fd = os.memfd_create(f"{JAIL_NAME}-seccomp")
     os.write(fd, blob)
     os.lseek(fd, 0, os.SEEK_SET)
     os.set_inheritable(fd, True)
@@ -232,7 +260,7 @@ def get_base_args(workspace: Path) -> list[str]:
     # curated, mostly read-only binds below (and collide with the ~/bin symlink).
     if workspace == home or workspace in home.parents:
         print(
-            f"claude-isolated: not binding all of {workspace} (would expose your "
+            f"{PROGRAM_NAME}: not binding all of {workspace} (would expose your "
             "whole home); only the curated paths are available. Run from a "
             "subdirectory, or use -w PATH to expose a specific location.",
             file=sys.stderr,
@@ -244,7 +272,7 @@ def get_base_args(workspace: Path) -> list[str]:
     if bin_path.is_dir():
         add_bind("--bind", str(bin_path), str(bin_path))
 
-    for cmd in ["node", "claude"]:
+    for cmd in ["node", AGENT_COMMAND]:
         cmd_path = shutil.which(cmd)
         if cmd_path:
             real_path = Path(cmd_path).resolve()
@@ -261,13 +289,10 @@ def get_base_args(workspace: Path) -> list[str]:
     if local_bin_path.is_dir():
         add_bind("--ro-bind", str(local_bin_path), str(local_bin_path))
 
-    claude_dir = home / ".claude"
-    if claude_dir.is_dir():
-        add_bind("--bind", str(claude_dir), str(claude_dir))
-
-    claude_json = home / ".claude.json"
-    if claude_json.is_file():
-        add_bind("--bind", str(claude_json), str(claude_json))
+    for state_path in AGENT_STATE_PATHS:
+        path = home / state_path
+        if path.is_dir() or path.is_file():
+            add_bind("--bind", str(path), str(path))
 
     nas = nas_bind_args()
     if nas:
@@ -346,7 +371,7 @@ def detect_home_nets() -> tuple[list[str], list[str]]:
 
 def build_nft_ruleset(home_v4: list[str], home_v6: list[str]) -> str:
     lines = [
-        "table inet claudejail {",
+        f"table inet {JAIL_NAME} {{",
         "    chain output {",
         "        type filter hook output priority 0; policy accept;",
         '        oifname "lo" accept',
@@ -373,12 +398,14 @@ def parse_args(argv: list[str]) -> tuple[list[str], list[str], bool, bool]:
     while i < len(argv):
         arg = argv[i]
         if arg in ("-w", "--write") and i + 1 < len(argv):
-            path = str(Path(argv[i + 1]).resolve())
-            custom_mounts.extend(["--bind", path, path])
+            given = os.path.abspath(argv[i + 1])
+            real = str(Path(given).resolve())
+            custom_mounts.extend(["--bind", real, given])
             i += 2
         elif arg in ("-r", "--read") and i + 1 < len(argv):
-            path = str(Path(argv[i + 1]).resolve())
-            custom_mounts.extend(["--ro-bind", path, path])
+            given = os.path.abspath(argv[i + 1])
+            real = str(Path(given).resolve())
+            custom_mounts.extend(["--ro-bind", real, given])
             i += 2
         elif arg in ("-F", "--full-net"):
             full_net = True
@@ -405,7 +432,7 @@ def run_inner(argv: list[str]) -> None:
 
     nft = find_nft()
     if not nft:
-        sys.exit("claude-isolated: nft not found inside firewall setup")
+        sys.exit(f"{PROGRAM_NAME}: nft not found inside firewall setup")
     subprocess.run([nft, "-f", rules_path], check=True)
     try:
         os.unlink(rules_path)
@@ -420,20 +447,24 @@ def main() -> None:
         run_inner(sys.argv[2:])
         return
 
+    if sys.argv[1:2] == [_CODEX_FLAG]:
+        use_codex()
+        del sys.argv[1]
+
     custom_mounts, claude_args, debug_shell, full_net = parse_args(sys.argv[1:])
     tools = check_requirements(full_net)
     workspace = get_workspace()
     base_args = get_base_args(workspace)
 
     if debug_shell:
-        print("[DEBUG] Starting isolated bash shell...", file=sys.stderr)
+        print(f"{PROGRAM_NAME}: starting isolated bash shell", file=sys.stderr)
         target_cmd = [
             "/bin/bash",
             "-c",
-            r'export PS1="[claude-jail] \w \$ "; exec /bin/bash'
+            f'export PS1="[{JAIL_NAME}] \\w \\$ "; exec /bin/bash'
         ]
     else:
-        target_cmd = [tools["claude"], "--dangerously-skip-permissions", *claude_args]
+        target_cmd = [tools[AGENT_COMMAND], *AGENT_BYPASS_ARGS, *claude_args]
 
     sandbox_cmd = [
         tools["bwrap"],
@@ -456,7 +487,7 @@ def main() -> None:
     home_v4, home_v6 = detect_home_nets()
     ruleset = build_nft_ruleset(home_v4, home_v6)
 
-    fd, rules_path = tempfile.mkstemp(prefix="claudejail-", suffix=".nft")
+    fd, rules_path = tempfile.mkstemp(prefix=f"{JAIL_NAME}-", suffix=".nft")
     with os.fdopen(fd, "w") as f:
         f.write(ruleset)
 

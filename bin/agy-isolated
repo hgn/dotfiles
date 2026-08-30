@@ -125,12 +125,14 @@ def parse_args(argv: list[str]) -> tuple[list[str], list[str], bool]:
     while i < len(argv):
         arg = argv[i]
         if arg in ("-w", "--write") and i + 1 < len(argv):
-            path = str(Path(argv[i + 1]).resolve())
-            custom_mounts.extend(["--bind", path, path])
+            given = os.path.abspath(argv[i + 1])
+            real = str(Path(given).resolve())
+            custom_mounts.extend(["--bind", real, given])
             i += 2
         elif arg in ("-r", "--read") and i + 1 < len(argv):
-            path = str(Path(argv[i + 1]).resolve())
-            custom_mounts.extend(["--ro-bind", path, path])
+            given = os.path.abspath(argv[i + 1])
+            real = str(Path(given).resolve())
+            custom_mounts.extend(["--ro-bind", real, given])
             i += 2
         elif arg in ("-F", "--full-net"):
             i += 1

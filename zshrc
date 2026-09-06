@@ -255,7 +255,7 @@ HISTSIZE=$SAVEHIST
 # path/location of the history file
 HISTFILE=~/.zhistory
 # dont save clutter
-HISTORY_IGNORE="(ls|ll|rm|fg|cd|pwd|exit|cd ..)"
+HISTORY_IGNORE="(ls *|ll *|rm|fg|cd|pwd|exit|calc *|fend *|qalc *|cd ..)"
 
 # Keep the encrypted volume out of the history file: ~/.zhistory lives on the
 # unencrypted root disk, so both commands run from inside /mnt/crypt and
@@ -278,6 +278,8 @@ setopt HIST_IGNORE_ALL_DUPS
 setopt HIST_NO_FUNCTIONS
 # Remove superfluous blanks from each command line being added to the history list
 setopt HIST_REDUCE_BLANKS
+# no hist, when pre-spaced
+setopt HIST_IGNORE_SPACE
 
 
 # some testings (found on http://zsh.sunsite.dk/Intro/intro_6.html)
@@ -544,6 +546,8 @@ ulimitall() {
 
 # aptitude install apcalc
 #alias calc="noglob _calc"
+alias calc='noglob qalc'
+alias qalc='noglob qalc'
 #function _calc () {
 #             awk "BEGIN { print $* ; }"
 #}
@@ -645,3 +649,9 @@ second-brain() {
 if (( $+commands[zoxide] )); then
     eval "$(zoxide init zsh --cmd cd)"
 fi
+
+# CTRL-W removes wordwise, backwards.
+autoload -Uz backward-kill-word-match
+zle -N backward-kill-space-word backward-kill-word-match
+zstyle ':zle:backward-kill-space-word' word-style space
+bindkey '^W' backward-kill-space-word

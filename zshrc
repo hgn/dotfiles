@@ -604,11 +604,24 @@ export PATH="$HOME/.local/bin:$PATH"
 export PATH="/home/pfeifer/.local/bin:$PATH"
 
 # second brain in the sandbox: repo as workspace, mail and documents writable,
-# ssh forced past the system config that bwrap's userns makes unreadable.
+# signal-cli binary and its account store bound in, ssh forced past the system
+# config that bwrap's userns makes unreadable.
 second-brain() {
       local agent="code"
       local runner="claude-isolated"
       local -a agent_args=(--name "second-brain")
+
+      # signal-cli sits outside the launcher's curated binds: the ~/.local/bin
+      # symlink is visible but its target dir and the account store are not.
+      # Bind the resolved install dir read-only and the store read-write
+      # (receive mutates the SQLite db, identity keys and session ratchet).
+      local -a signal_binds=()
+      if [[ -e "$HOME/.local/bin/signal-cli" ]]; then
+            signal_binds=(
+                  -r "${$(readlink -f "$HOME/.local/bin/signal-cli"):h}"
+                  -w "$HOME/.local/share/signal-cli"
+            )
+      fi
 
       case "$1" in
             code|codex|agy)
@@ -641,6 +654,7 @@ second-brain() {
               -r "$HOME/.offlineimaprc" \
               -r "$HOME/.config" \
               -r "$HOME/src/own/misc/mcp-server-notmuch" \
+              "${signal_binds[@]}" \
               "${agent_args[@]}" "$@"
 }
 

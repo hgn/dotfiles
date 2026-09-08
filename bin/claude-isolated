@@ -64,7 +64,11 @@ def use_codex():
     PROGRAM_NAME = "codex-isolated"
     AGENT_COMMAND = "codex"
     AGENT_INSTALL_HINT = "npm install -g @openai/codex"
-    AGENT_STATE_PATHS = [".codex"]
+    # Codex keeps its own state in ~/.codex, but it still reads the shared
+    # Claude setup (~/.claude/CLAUDE.md, agents, commands, skills,
+    # settings.json). Bind ~/.claude alongside so the config and its
+    # dotfiles-private symlink targets are reachable.
+    AGENT_STATE_PATHS = [".codex", ".claude", ".claude.json"]
     AGENT_BYPASS_ARGS = [
         "--dangerously-bypass-approvals-and-sandbox",
         "-c",
@@ -293,6 +297,17 @@ def get_base_args(workspace: Path) -> list[str]:
         path = home / state_path
         if path.is_dir() or path.is_file():
             add_bind("--bind", str(path), str(path))
+
+    # Several agent-state entries (~/.claude/CLAUDE.md, settings.json, agents,
+    # commands, skills) and other rc files (~/.mutt, ~/.notmuch-config, ...)
+    # are symlinks into ~/.dotfiles-private. Binding ~/.claude alone brings the
+    # link entries but not their targets, so from inside the jail they dangle
+    # and the agent silently loses its global config. Bind the dotfiles repo
+    # read-only so every such link resolves. Same idea as the ~/.pypirc
+    # resolve-and-bind below, done once at the source.
+    dotfiles_private = home / ".dotfiles-private"
+    if dotfiles_private.is_dir():
+        add_bind("--ro-bind", str(dotfiles_private), str(dotfiles_private))
 
     nas = nas_bind_args()
     if nas:

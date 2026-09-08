@@ -105,6 +105,14 @@ def get_base_args(workspace: Path) -> list[str]:
     if claude_json.is_file():
         add_bind("--bind", str(claude_json), str(claude_json))
 
+    # ~/.claude/{CLAUDE.md,settings.json,agents,commands,skills} and other rc
+    # files are symlinks into ~/.dotfiles-private; binding ~/.claude alone
+    # leaves them dangling inside the jail. Bind the dotfiles repo read-only
+    # so every such link resolves. Kept in sync with claude-isolated.
+    dotfiles_private = home / ".dotfiles-private"
+    if dotfiles_private.is_dir():
+        add_bind("--ro-bind", str(dotfiles_private), str(dotfiles_private))
+
     nas_dir = Path("/mnt/nas")
     if nas_dir.is_dir():
         add_bind("--bind", str(nas_dir), str(nas_dir))

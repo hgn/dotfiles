@@ -184,8 +184,7 @@ zstyle ':completion:*:*:kill:*:processes' list-colors "=(#b) #([0-9]#)*=36=31"
 zstyle ':completion:*:cd:*' ignore-parents parent pwd
 zstyle ':completion:*' file-sort modification
 
-# use z, with menu
-source ~/.zsh-z.plugin.zsh
+# completion: with menu
 zstyle ':completion:*' menu select
 
 

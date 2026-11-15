@@ -1,0 +1,12 @@
+#!/bin/sh
+# waybar custom module: weather from wttr.in (location by IP), JSON output.
+# Empty when offline, so the bar just hides it.
+url="https://wttr.in"
+short=$(curl -sf --max-time 8 "$url/?format=%c%t&lang=de" | sed 's/+//; s/  */ /g')
+if [ -z "$short" ] || printf '%s' "$short" | grep -qiE 'unknown|error|sorry'; then
+    echo '{"text": "", "class": "offline"}'
+    exit 0
+fi
+long=$(curl -sf --max-time 8 "$url/?format=%l:+%C\n%t+(gefühlt+%f)\nWind+%w+·+Feuchte+%h\nSonne+%S+–+%s&lang=de" \
+    | sed 's/"/\\"/g' | awk 'BEGIN{ORS="\\n"} {print}' | sed 's/\\n$//')
+printf '{"text": "%s", "tooltip": "%s"}\n' "$short" "$long"

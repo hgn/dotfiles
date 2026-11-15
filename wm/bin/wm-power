@@ -1,0 +1,33 @@
+#!/bin/sh
+# Power menu. Works under Hyprland and niri.
+#   wm-power            -> wlogout (fullscreen), or the fuzzel menu if
+#                          ~/.config/wlogout/disabled exists (revert switch)
+#   wm-power logout     -> end the session (used by wlogout)
+
+quit_session() {
+    if [ -n "${NIRI_SOCKET:-}" ]; then
+        niri msg action quit --skip-confirmation
+    elif [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
+        hyprctl dispatch 'hl.dsp.exit()'
+    else
+        loginctl terminate-session "${XDG_SESSION_ID:-self}"
+    fi
+}
+
+if [ "${1:-}" = logout ]; then quit_session; exit 0; fi
+
+if command -v wlogout >/dev/null && [ ! -e "$HOME/.config/wlogout/disabled" ]; then
+    pkill -x wlogout && exit 0          # second press closes it
+    exec wlogout -b 5 -T 430 -B 430 -L 70 -R 70 -c 24
+fi
+
+choice=$(printf '  Sperren\n󰒲  Bereitschaft\n󰍃  Abmelden\n  Neustart\n  Ausschalten\n' \
+    | fuzzel --dmenu --lines 5 --width 22 --prompt "  ")
+
+case "$choice" in
+    *Sperren)      loginctl lock-session ;;
+    *Bereitschaft) systemctl suspend ;;
+    *Abmelden)     quit_session ;;
+    *Neustart)     systemctl reboot ;;
+    *Ausschalten)  systemctl poweroff ;;
+esac

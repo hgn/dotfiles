@@ -1,0 +1,40 @@
+#!/bin/sh
+# On-screen display for volume / brightness via mako (progress bar).
+# usage: wm-osd vol-up|vol-down|vol-mute|mic-mute|bri-up|bri-down
+SINK=@DEFAULT_AUDIO_SINK@
+SRC=@DEFAULT_AUDIO_SOURCE@
+TAG="string:x-canonical-private-synchronous:wm-osd"
+
+case "$1" in
+    vol-up)   wpctl set-mute "$SINK" 0; wpctl set-volume -l 1.0 "$SINK" 5%+ ;;
+    vol-down) wpctl set-volume "$SINK" 5%- ;;
+    vol-mute) wpctl set-mute "$SINK" toggle ;;
+    mic-mute) wpctl set-mute "$SRC" toggle ;;
+    bri-up)   brightnessctl -q -e4 -n2 set 5%+ ;;
+    bri-down) brightnessctl -q -e4 -n2 set 5%- ;;
+    *) echo "usage: $0 vol-up|vol-down|vol-mute|mic-mute|bri-up|bri-down" >&2; exit 1 ;;
+esac
+
+case "$1" in
+    vol-*)
+        out=$(wpctl get-volume "$SINK")
+        v=$(echo "$out" | awk '{printf "%d", $2 * 100 + 0.5}')
+        if echo "$out" | grep -q MUTED; then
+            icon=audio-volume-muted; title="Stumm"
+        elif [ "$v" -lt 34 ]; then icon=audio-volume-low; title="Lautstärke"
+        elif [ "$v" -lt 67 ]; then icon=audio-volume-medium; title="Lautstärke"
+        else icon=audio-volume-high; title="Lautstärke"; fi
+        notify-send -a wm-osd -t 1200 -h "$TAG" -h "int:value:$v" -i "$icon" "$title" "$v %"
+        ;;
+    mic-mute)
+        if wpctl get-volume "$SRC" | grep -q MUTED; then
+            notify-send -a wm-osd -t 1200 -h "$TAG" -i microphone-sensitivity-muted "Mikrofon" "stumm"
+        else
+            notify-send -a wm-osd -t 1200 -h "$TAG" -i audio-input-microphone "Mikrofon" "aktiv"
+        fi
+        ;;
+    bri-*)
+        v=$(brightnessctl -m | awk -F, '{gsub("%","",$4); print $4}')
+        notify-send -a wm-osd -t 1200 -h "$TAG" -h "int:value:$v" -i display-brightness "Helligkeit" "$v %"
+        ;;
+esac

@@ -1,0 +1,9 @@
+#!/bin/sh
+# Turn monitors on/off under Hyprland or niri. usage: wm-dpms on|off
+case "$1" in on|off) ;; *) echo "usage: $0 on|off" >&2; exit 1 ;; esac
+if [ -n "${NIRI_SOCKET:-}" ]; then
+    [ "$1" = on ] && exec niri msg action power-on-monitors
+    exec niri msg action power-off-monitors
+elif [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
+    exec hyprctl dispatch "hl.dsp.dpms({ action = \"$1\" })"
+fi

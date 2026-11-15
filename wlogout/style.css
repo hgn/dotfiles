@@ -1,0 +1,43 @@
+/* wlogout - Tokyo Night glass tiles */
+* {
+    font-family: "JetBrainsMono Nerd Font", sans-serif;
+    background-image: none;
+    box-shadow: none;
+    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+window {
+    background-color: rgba(16, 16, 24, 0.55);
+}
+
+button {
+    color: #a9b1d6;
+    font-size: 22px;
+    font-weight: 700;
+    background-color: rgba(26, 27, 38, 0.72);
+    border: 2px solid rgba(65, 72, 104, 0.55);
+    border-radius: 22px;
+    background-repeat: no-repeat;
+    background-position: center 42%;
+    background-size: 26%;
+    padding-top: 150px;
+    min-width: 360px;
+}
+
+button:focus, button:hover {
+    background-color: rgba(41, 46, 66, 0.88);
+    background-size: 31%;
+    color: #c0caf5;
+}
+
+#lock     { background-image: image(url("/home/pfeifer/.local/share/wm/wlogout/lock.svg")); }
+#suspend  { background-image: image(url("/home/pfeifer/.local/share/wm/wlogout/suspend.svg")); }
+#logout   { background-image: image(url("/home/pfeifer/.local/share/wm/wlogout/logout.svg")); }
+#reboot   { background-image: image(url("/home/pfeifer/.local/share/wm/wlogout/reboot.svg")); }
+#shutdown { background-image: image(url("/home/pfeifer/.local/share/wm/wlogout/shutdown.svg")); }
+
+#lock:hover,     #lock:focus     { border-color: #7aa2f7; box-shadow: 0 0 28px rgba(122, 162, 247, 0.45); color: #7aa2f7; }
+#suspend:hover,  #suspend:focus  { border-color: #bb9af7; box-shadow: 0 0 28px rgba(187, 154, 247, 0.45); color: #bb9af7; }
+#logout:hover,   #logout:focus   { border-color: #7dcfff; box-shadow: 0 0 28px rgba(125, 207, 255, 0.45); color: #7dcfff; }
+#reboot:hover,   #reboot:focus   { border-color: #e0af68; box-shadow: 0 0 28px rgba(224, 175, 104, 0.45); color: #e0af68; }
+#shutdown:hover, #shutdown:focus { border-color: #f7768e; box-shadow: 0 0 28px rgba(247, 118, 142, 0.45); color: #f7768e; }

@@ -1,0 +1,317 @@
+// niri 26.04 - Tokyo Night
+// ALT+Return terminal · ALT+1..9 workspaces · SUPER+Space launcher · SUPER+O overview
+// Docs: ~/src/code/niri/docs/wiki/
+
+input {
+    keyboard {
+        xkb {
+            layout "de,us"
+            variant ",altgr-intl"
+            options "lv3:ralt_switch,grp:shifts_toggle"
+        }
+        repeat-delay 500
+        repeat-rate 33
+    }
+    touchpad {
+        tap
+        dwt
+        natural-scroll
+        click-method "clickfinger"
+        accel-speed 0.06
+    }
+    focus-follows-mouse max-scroll-amount="0%"
+    warp-mouse-to-focus
+}
+
+output "eDP-1" {
+    scale 1.0
+    position x=0 y=0
+}
+
+environment {
+    QT_QPA_PLATFORM "wayland"
+    QT_WAYLAND_DISABLE_WINDOWDECORATION "1"
+    ELECTRON_OZONE_PLATFORM_HINT "auto"
+    MOZ_ENABLE_WAYLAND "1"
+}
+
+prefer-no-csd
+
+cursor {
+    xcursor-theme "Adwaita"
+    xcursor-size 24
+    hide-when-typing
+}
+
+layout {
+    gaps 5
+    center-focused-column "on-overflow"
+    always-center-single-column
+    background-color "transparent"
+
+    preset-column-widths {
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
+        proportion 1.0
+    }
+    default-column-width { proportion 0.5; }
+
+    focus-ring {
+        width 3
+        active-gradient from="#7aa2f7" to="#bb9af7" angle=45 relative-to="workspace-view" in="oklch shorter hue"
+        inactive-color "#41486866"
+        urgent-color "#f7768e"
+    }
+
+    border { off; }
+
+    shadow {
+        on
+        softness 30
+        spread 4
+        offset x=0 y=6
+        color "#0b0b12bb"
+        inactive-color "#0b0b1266"
+    }
+
+    tab-indicator {
+        width 5
+        gap 6
+        length total-proportion=0.6
+        position "top"
+        gaps-between-tabs 4
+        corner-radius 4
+        active-gradient from="#7aa2f7" to="#bb9af7" angle=90
+        inactive-color "#414868"
+    }
+
+    insert-hint {
+        gradient from="#7aa2f755" to="#bb9af755" angle=45
+    }
+
+    struts {
+        top 0
+    }
+}
+
+overview {
+    zoom 0.5
+    backdrop-color "#16161e"
+    workspace-shadow {
+        softness 40
+        spread 10
+        offset x=0 y=10
+        color "#00000080"
+    }
+}
+
+blur {
+    passes 3
+    offset 3
+    noise 0.02
+    saturation 1.4
+}
+
+hotkey-overlay {
+    skip-at-startup
+}
+
+screenshot-path "~/Screenshots/%Y-%m-%d_%H-%M-%S.png"
+
+animations {
+    workspace-switch {
+        spring damping-ratio=0.85 stiffness=900 epsilon=0.0001
+    }
+    window-open {
+        duration-ms 220
+        curve "ease-out-expo"
+    }
+    window-close {
+        duration-ms 180
+        curve "ease-out-quad"
+    }
+    horizontal-view-movement {
+        spring damping-ratio=0.9 stiffness=800 epsilon=0.0001
+    }
+    window-movement {
+        spring damping-ratio=0.8 stiffness=800 epsilon=0.0001
+    }
+}
+
+spawn-at-startup "swaybg" "-m" "fill" "-i" "/home/pfeifer/.local/share/wm/wallpaper"
+spawn-at-startup "waybar" "-c" "/home/pfeifer/.config/waybar/config-niri.jsonc"
+spawn-at-startup "mako"
+spawn-at-startup "hypridle"
+spawn-at-startup "/usr/libexec/polkit-mate-authentication-agent-1"
+
+// ---------- window rules ----------
+// rounded, clipped windows everywhere
+window-rule {
+    geometry-corner-radius 14
+    clip-to-geometry true
+    draw-border-with-background false
+}
+
+// slightly translucent when not focused
+window-rule {
+    match is-active=false
+    opacity 0.89
+}
+
+// frosted glass behind the terminal
+window-rule {
+    match app-id="^Alacritty$"
+    background-effect {
+        blur true
+    }
+}
+
+// drop-down style terminal (SUPER+Return)
+window-rule {
+    match app-id="^dropterm$"
+    open-floating true
+    default-column-width { proportion 0.7; }
+    default-window-height { proportion 0.55; }
+    default-floating-position x=0 y=60 relative-to="top"
+}
+
+window-rule {
+    match app-id=r#"^(pavucontrol|org\.pulseaudio\.pavucontrol|blueman-manager|nm-connection-editor|org\.gnome\.Calculator)$"#
+    open-floating true
+    default-column-width { fixed 900; }
+    default-window-height { fixed 620; }
+}
+
+window-rule {
+    match app-id=r#"firefox$"# title="^(Picture-in-Picture|Bild-im-Bild)$"
+    open-floating true
+    default-floating-position x=20 y=20 relative-to="bottom-right"
+}
+
+// wl-mirror (beamer) fullscreen on the external output
+window-rule {
+    match app-id="^at.yrlf.wl_mirror$"
+    open-fullscreen true
+}
+
+// ---------- layer rules ----------
+layer-rule {
+    match namespace="^waybar$"
+    background-effect { blur true; }
+}
+layer-rule {
+    match namespace="^launcher$"
+    background-effect { blur true; }
+    geometry-corner-radius 18
+}
+layer-rule {
+    match namespace="^notifications$"
+    background-effect { blur true; }
+    geometry-corner-radius 14
+}
+// wallpaper stays visible behind the overview
+layer-rule {
+    match namespace="^wallpaper$"
+    place-within-backdrop true
+}
+
+// ---------- key bindings ----------
+binds {
+    Mod+Shift+Slash { show-hotkey-overlay; }
+
+    // your habits: terminal + workspaces on ALT
+    Alt+Return hotkey-overlay-title="Terminal" { spawn "alacritty" "--config-file" "/home/pfeifer/.config/alacritty/wm.toml"; }
+    Alt+1 { focus-workspace 1; }
+    Alt+2 { focus-workspace 2; }
+    Alt+3 { focus-workspace 3; }
+    Alt+4 { focus-workspace 4; }
+    Alt+5 { focus-workspace 5; }
+    Alt+6 { focus-workspace 6; }
+    Alt+7 { focus-workspace 7; }
+    Alt+8 { focus-workspace 8; }
+    Alt+9 { focus-workspace 9; }
+    Alt+Shift+1 { move-column-to-workspace 1; }
+    Alt+Shift+2 { move-column-to-workspace 2; }
+    Alt+Shift+3 { move-column-to-workspace 3; }
+    Alt+Shift+4 { move-column-to-workspace 4; }
+    Alt+Shift+5 { move-column-to-workspace 5; }
+    Alt+Shift+6 { move-column-to-workspace 6; }
+    Alt+Shift+7 { move-column-to-workspace 7; }
+    Alt+Shift+8 { move-column-to-workspace 8; }
+    Alt+Shift+9 { move-column-to-workspace 9; }
+
+    // launcher (niri can't bind a lone modifier, so Super+Space / Super+D)
+    Mod+Space hotkey-overlay-title="Programme" { spawn-sh "pkill -x fuzzel || fuzzel"; }
+    Mod+D { spawn-sh "pkill -x fuzzel || fuzzel"; }
+    Mod+Return hotkey-overlay-title="Drop-down Terminal" { spawn "alacritty" "--config-file" "/home/pfeifer/.config/alacritty/wm.toml" "--class" "dropterm" "-o" "font.size=15" "-o" "window.opacity=0.7"; }
+
+    Mod+O repeat=false { toggle-overview; }
+    Mod+Q repeat=false { close-window; }
+
+    Mod+Left  { focus-column-left; }
+    Mod+Right { focus-column-right; }
+    Mod+Up    { focus-window-or-workspace-up; }
+    Mod+Down  { focus-window-or-workspace-down; }
+    Mod+Shift+Left  { move-column-left; }
+    Mod+Shift+Right { move-column-right; }
+    Mod+Shift+Up    { move-window-up-or-to-workspace-up; }
+    Mod+Shift+Down  { move-window-down-or-to-workspace-down; }
+    Mod+Home { focus-column-first; }
+    Mod+End  { focus-column-last; }
+
+    Mod+WheelScrollDown cooldown-ms=150 { focus-workspace-down; }
+    Mod+WheelScrollUp   cooldown-ms=150 { focus-workspace-up; }
+    Mod+WheelScrollRight { focus-column-right; }
+    Mod+WheelScrollLeft  { focus-column-left; }
+    Mod+Shift+WheelScrollDown { focus-column-right; }
+    Mod+Shift+WheelScrollUp   { focus-column-left; }
+
+    Mod+Comma  { consume-or-expel-window-left; }
+    Mod+Period { consume-or-expel-window-right; }
+    Mod+T { toggle-column-tabbed-display; }
+    Mod+R { switch-preset-column-width; }
+    Mod+F { maximize-column; }
+    Mod+Shift+F { fullscreen-window; }
+    Mod+C { center-column; }
+    Mod+V { toggle-window-floating; }
+    Mod+Shift+V { switch-focus-between-floating-and-tiling; }
+    Mod+Minus { set-column-width "-10%"; }
+    Mod+Equal { set-column-width "+10%"; }
+    Mod+Shift+Minus { set-window-height "-10%"; }
+    Mod+Shift+Equal { set-window-height "+10%"; }
+
+    // session / tools
+    Mod+L hotkey-overlay-title="Sperren" { spawn "loginctl" "lock-session"; }
+    Mod+Escape hotkey-overlay-title="Power-Menü" { spawn "/home/pfeifer/.local/share/wm/bin/wm-power"; }
+    Mod+W hotkey-overlay-title="WLAN" { spawn "/home/pfeifer/.local/share/wm/bin/wm-wifi"; }
+    Mod+E { spawn "nautilus"; }
+    Mod+N { spawn "makoctl" "dismiss" "-a"; }
+    Mod+Shift+N { spawn "makoctl" "restore"; }
+    Mod+P hotkey-overlay-title="Bildschirm spiegeln (Beamer)" { spawn "/home/pfeifer/.local/share/wm/bin/wm-mirror"; }
+    XF86Display { spawn "/home/pfeifer/.local/share/wm/bin/wm-mirror"; }
+    Mod+Shift+E { quit; }
+    Mod+Shift+P { power-off-monitors; }
+    Mod+Shift+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
+
+    Print { screenshot; }
+    Ctrl+Print { screenshot-screen; }
+    Alt+Print { screenshot-window; }
+
+    // function keys with OSD
+    XF86AudioRaiseVolume  allow-when-locked=true { spawn "/home/pfeifer/.local/share/wm/bin/wm-osd" "vol-up"; }
+    XF86AudioLowerVolume  allow-when-locked=true { spawn "/home/pfeifer/.local/share/wm/bin/wm-osd" "vol-down"; }
+    XF86AudioMute         allow-when-locked=true { spawn "/home/pfeifer/.local/share/wm/bin/wm-osd" "vol-mute"; }
+    XF86AudioMicMute      allow-when-locked=true { spawn "/home/pfeifer/.local/share/wm/bin/wm-osd" "mic-mute"; }
+    XF86MonBrightnessUp   allow-when-locked=true { spawn "/home/pfeifer/.local/share/wm/bin/wm-osd" "bri-up"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn "/home/pfeifer/.local/share/wm/bin/wm-osd" "bri-down"; }
+    XF86AudioPlay allow-when-locked=true { spawn "playerctl" "play-pause"; }
+    XF86AudioNext allow-when-locked=true { spawn "playerctl" "next"; }
+    XF86AudioPrev allow-when-locked=true { spawn "playerctl" "previous"; }
+}
+
+// wlogout: frosted fullscreen power menu
+layer-rule {
+    match namespace="^logout_dialog$"
+    background-effect { blur true; }
+}

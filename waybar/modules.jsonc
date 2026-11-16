@@ -65,6 +65,15 @@
         "actions": { "on-scroll-up": "shift_up", "on-scroll-down": "shift_down" }
     },
 
+    // WireGuard to the Fritzbox: click toggles
+    "custom/vpn": {
+        "exec": "/home/pfeifer/.local/share/wm/bin/wm-vpn",
+        "return-type": "json",
+        "interval": 10,
+        "signal": 9,
+        "on-click": "/home/pfeifer/.local/share/wm/bin/wm-vpn toggle"
+    },
+
     "custom/weather": {
         "exec": "/home/pfeifer/.local/share/wm/bin/wm-weather",
         "return-type": "json",

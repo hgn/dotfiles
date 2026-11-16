@@ -51,7 +51,7 @@ create imv ~/.config/imv
 mkdir -p ~/.local/share/wm
 create wm/bin ~/.local/share/wm/bin
 create wm/wlogout ~/.local/share/wm/wlogout
-create wm/wallpapers/synthwave_4k.jpg ~/.local/share/wm/wallpaper
+create wm/wallpapers/synthwave_4k_purple.jpg ~/.local/share/wm/wallpaper
 
 
 # blacklist things, no differentiation here

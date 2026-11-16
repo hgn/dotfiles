@@ -12,6 +12,6 @@
 
     "modules-left": ["custom/launcher", "niri/workspaces", "niri/window"],
     "modules-center": ["clock", "custom/weather", "memory", "temperature"],
-    "modules-right": ["tray", "idle_inhibitor", "network", "bluetooth", "wireplumber",
+    "modules-right": ["tray", "idle_inhibitor", "custom/vpn", "network", "bluetooth", "wireplumber",
                       "backlight", "power-profiles-daemon", "battery", "custom/power"]
 }

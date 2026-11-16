@@ -104,6 +104,10 @@ window#waybar.empty #window { color: @dim; }
 #idle_inhibitor { color: @dim; }
 #idle_inhibitor.activated { color: @yellow; }
 
+#custom-vpn { padding: 0 10px; }
+#custom-vpn.off { color: alpha(@dim, 0.7); }
+#custom-vpn.on  { color: @green; text-shadow: 0 0 6px alpha(@green, 0.6); }
+#custom-vpn:hover { background: @hl; }
 #network { color: @cyan; }
 #network.disconnected, #network.disabled { color: @red; }
 

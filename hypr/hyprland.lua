@@ -56,6 +56,38 @@ hl.config({
         layout = "dwindle",
     },
 
+    -- tab groups (used for Firefox): Tokyo Night tab bar
+    group = {
+        auto_group = false,          -- only Firefox joins groups (see below)
+        col = {
+            border_active   = { colors = { "rgba(7aa2f7ff)", "rgba(bb9af7ff)", "rgba(7dcfffff)" }, angle = 45 },
+            border_inactive = "rgba(41486866)",
+        },
+        groupbar = {
+            enabled          = true,
+            font_family      = "JetBrainsMono Nerd Font",
+            font_size        = 14,
+            font_weight_active   = "semibold",
+            font_weight_inactive = "medium",
+            height           = 24,
+            indicator_height = 0,
+            gradients        = true,
+            rounding         = 6,
+            gradient_rounding = 6,
+            gaps_in          = 4,
+            gaps_out         = 4,
+            keep_upper_gap   = false,
+            text_color          = "rgba(1a1b26ff)",
+            text_color_inactive = "rgba(a9b1d6ff)",
+            col = {
+                active   = "rgba(7aa2f7dd)",
+                inactive = "rgba(1a1b26cc)",
+            },
+            blur             = true,
+            middle_click_close = true,
+        },
+    },
+
     decoration = {
         rounding       = 14,
         rounding_power = 2.6,
@@ -176,7 +208,17 @@ for i = 1, 10 do
     hl.bind("ALT + " .. key,         hl.dsp.focus({ workspace = i }))
     hl.bind("ALT + SHIFT + " .. key, hl.dsp.window.move({ workspace = i }))
 end
-hl.bind("ALT + Tab", hl.dsp.window.cycle_next())
+-- Alt+Tab: inside a tab group (Firefox) go through its tabs first, after the
+-- last tab continue with the next window
+hl.bind("ALT + Tab", function()
+    local w = hl.get_active_window()
+    if w ~= nil and w.group ~= nil and w.group.size > 1 then
+        local last = w.group.current_index >= w.group.size   -- 1-based
+        hl.dispatch(hl.dsp.group.next())
+        if not last then return end
+    end
+    hl.dispatch(hl.dsp.window.cycle_next())
+end)
 
 -- Launcher: tap the Windows key
 hl.bind("SUPER + Super_L", hl.dsp.exec_cmd(menu), { release = true })
@@ -185,6 +227,7 @@ hl.bind("SUPER + D",       hl.dsp.exec_cmd(menu))
 -- Window management on SUPER
 hl.bind("SUPER + Q",      hl.dsp.window.close())
 hl.bind("SUPER + F",      hl.dsp.window.fullscreen())
+hl.bind("SUPER + M",      hl.dsp.window.fullscreen({ mode = "maximized", action = "toggle" }))
 hl.bind("SUPER + V",      hl.dsp.window.float({ action = "toggle" }))
 hl.bind("SUPER + P",      hl.dsp.window.pin())
 hl.bind("SUPER + J",      hl.dsp.layout("togglesplit"))
@@ -287,6 +330,29 @@ hl.window_rule({
     size  = "monitor_w*0.7 monitor_h*0.55",
     move  = "monitor_w*0.15 60",
 })
+
+-- feh (XWayland) asks for fullscreen in a way Hyprland ignores: always fullscreen it
+hl.window_rule({
+    name       = "feh-fullscreen",
+    match      = { class = "^feh$" },
+    fullscreen = true,
+})
+
+-- Firefox: all (tiled) Firefox windows of a workspace live in one tab group
+local function is_firefox(w) return w ~= nil and w.class ~= nil and w.class:match("^firefox") ~= nil end
+local function tab_firefox(w)
+    if not is_firefox(w) or w.floating or w.group ~= nil or w.workspace == nil then return end
+    if w.title:match("^Picture%-in%-Picture") or w.title:match("^Bild%-im%-Bild") then return end
+    for _, o in ipairs(hl.get_windows({ workspace = w.workspace.name })) do
+        if o.address ~= w.address and is_firefox(o) and o.group ~= nil and not o.floating then
+            o.group:add(w)
+            return
+        end
+    end
+    hl.dispatch(hl.dsp.group.toggle({ window = "address:" .. w.address }))
+end
+hl.on("window.open", function(w) hl.timer(function() tab_firefox(hl.get_window("address:" .. w.address)) end,
+    { timeout = 150, type = "oneshot" }) end)
 
 hl.window_rule({
     name  = "float-tools",

@@ -14,8 +14,8 @@
 
 * {
     font-family: "JetBrainsMono Nerd Font", "Symbols Nerd Font", sans-serif;
-    font-size: 15px;
-    font-weight: 600;
+    font-size: 16px;
+    font-weight: 500;
     min-height: 0;
     border: none;
     border-radius: 0;
@@ -53,7 +53,7 @@ tooltip label { color: @fg; padding: 4px; }
 
 #custom-launcher {
     color: @blue;
-    font-size: 20px;
+    font-size: 16px;
     padding: 0 14px 0 10px;
 }
 #custom-launcher:hover { color: @cyan; background: @hl; }
@@ -93,7 +93,7 @@ window#waybar.empty #window { color: @dim; }
 #clock {
     color: @fg;
     font-size: 16px;
-    font-weight: 800;
+    font-weight: 500;
     padding: 0 16px;
 }
 #clock:hover { background: @hl; color: @cyan; }
@@ -115,7 +115,7 @@ window#waybar.empty #window { color: @dim; }
 
 #backlight { color: @yellow; }
 
-#power-profiles-daemon { font-size: 17px; }
+#power-profiles-daemon { font-size: 16px; }
 #power-profiles-daemon.performance { color: @red; }
 #power-profiles-daemon.balanced { color: @blue; }
 #power-profiles-daemon.power-saver { color: @green; }
@@ -134,7 +134,7 @@ window#waybar.empty #window { color: @dim; }
 
 #custom-power {
     color: @red;
-    font-size: 17px;
+    font-size: 16px;
     padding: 0 14px 0 10px;
 }
 #custom-power:hover {
@@ -151,7 +151,7 @@ window#waybar.empty #window { color: @dim; }
 /* ---- center info island: clock · weather · cpu · ram · temp · net ---- */
 #clock { padding: 0 14px 0 16px; }
 
-#custom-weather { color: @cyan; font-weight: 600; }
+#custom-weather { color: @cyan; font-weight: 500; }
 #custom-weather.offline { padding: 0; margin: 0; }
 
 /* thin separators between the info modules */

@@ -13,7 +13,7 @@
             "6": "六", "7": "七", "8": "八", "9": "九", "10": "十",
             "default": "·"
         },
-        "persistent-workspaces": { "*": 5 },
+        "persistent-workspaces": { "*": 6 },
         "on-scroll-up": "hyprctl dispatch 'hl.dsp.focus({ workspace = \"e+1\" })'",
         "on-scroll-down": "hyprctl dispatch 'hl.dsp.focus({ workspace = \"e-1\" })'"
     },

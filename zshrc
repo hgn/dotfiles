@@ -46,6 +46,8 @@ alias vim='nvim'
 alias mutt-offline='mutt -F ~/.mutt/muttrc-offline'
 
 alias bat='batcat --color always -pp'
+# imv: Debian only ships imv-wayland / imv-x11
+if [[ -n $WAYLAND_DISPLAY ]]; then alias imv='imv-wayland'; else alias imv='imv-x11'; fi
 alias l='exa -bl -s newest --color always --time-style=long-iso'
 alias less="less -r"
 

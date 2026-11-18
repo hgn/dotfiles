@@ -56,38 +56,6 @@ hl.config({
         layout = "dwindle",
     },
 
-    -- tab groups (used for Firefox): Tokyo Night tab bar
-    group = {
-        auto_group = false,          -- only Firefox joins groups (see below)
-        col = {
-            border_active   = { colors = { "rgba(7aa2f7ff)", "rgba(bb9af7ff)", "rgba(7dcfffff)" }, angle = 45 },
-            border_inactive = "rgba(41486866)",
-        },
-        groupbar = {
-            enabled          = true,
-            font_family      = "JetBrainsMono Nerd Font",
-            font_size        = 14,
-            font_weight_active   = "semibold",
-            font_weight_inactive = "medium",
-            height           = 24,
-            indicator_height = 0,
-            gradients        = true,
-            rounding         = 6,
-            gradient_rounding = 6,
-            gaps_in          = 4,
-            gaps_out         = 4,
-            keep_upper_gap   = false,
-            text_color          = "rgba(1a1b26ff)",
-            text_color_inactive = "rgba(a9b1d6ff)",
-            col = {
-                active   = "rgba(7aa2f7dd)",
-                inactive = "rgba(1a1b26cc)",
-            },
-            blur             = true,
-            middle_click_close = true,
-        },
-    },
-
     decoration = {
         rounding       = 14,
         rounding_power = 2.6,
@@ -208,17 +176,19 @@ for i = 1, 10 do
     hl.bind("ALT + " .. key,         hl.dsp.focus({ workspace = i }))
     hl.bind("ALT + SHIFT + " .. key, hl.dsp.window.move({ workspace = i }))
 end
--- Alt+Tab: inside a tab group (Firefox) go through its tabs first, after the
--- last tab continue with the next window
-hl.bind("ALT + Tab", function()
-    local w = hl.get_active_window()
-    if w ~= nil and w.group ~= nil and w.group.size > 1 then
-        local last = w.group.current_index >= w.group.size   -- 1-based
-        hl.dispatch(hl.dsp.group.next())
-        if not last then return end
+-- Alt+Tab: monocle workspaces need the layout's own cycling (cycle_next
+-- only sees the visible window there)
+MONOCLE = { ["1"] = true, ["2"] = true, ["4"] = true }
+local function alt_tab(dir)
+    local ws = hl.get_active_workspace()
+    if ws ~= nil and MONOCLE[ws.name] then
+        hl.dispatch(hl.dsp.layout(dir == "prev" and "cycleprev" or "cyclenext"))
+    else
+        hl.dispatch(dir == "prev" and hl.dsp.window.cycle_next({ prev = true }) or hl.dsp.window.cycle_next())
     end
-    hl.dispatch(hl.dsp.window.cycle_next())
-end)
+end
+hl.bind("ALT + Tab",         function() alt_tab("next") end)
+hl.bind("ALT + SHIFT + Tab", function() alt_tab("prev") end)
 
 -- Launcher: tap the Windows key
 hl.bind("SUPER + Super_L", hl.dsp.exec_cmd(menu), { release = true })
@@ -318,9 +288,20 @@ hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl play-pause"), { locked = tr
 hl.bind("XF86AudioNext",  hl.dsp.exec_cmd("playerctl next"),       { locked = true })
 hl.bind("XF86AudioPrev",  hl.dsp.exec_cmd("playerctl previous"),   { locked = true })
 
+-- monocle on workspaces 1, 2, 4: every window full size, stacked;
+-- Alt+Tab flips through them. The other workspaces stay dwindle.
+for ws in pairs(MONOCLE) do
+    hl.workspace_rule({ workspace = ws, layout = "monocle" })
+end
+
 --------------------------------
 ---- WINDOWS AND LAYERS --------
 --------------------------------
+-- clean look everywhere (no gradient outline, no purple glow) except on
+-- workspace 3, which keeps the full eye candy
+hl.window_rule({ name = "clean-look", match = { class = ".*" }, border_size = 0, no_glow = true })
+hl.window_rule({ name = "eyecandy-ws3", match = { workspace = "3" }, border_size = 3, no_glow = false })
+
 hl.window_rule({ name = "suppress-maximize", match = { class = ".*" }, suppress_event = "maximize" })
 
 hl.window_rule({
@@ -337,22 +318,6 @@ hl.window_rule({
     match      = { class = "^feh$" },
     fullscreen = true,
 })
-
--- Firefox: all (tiled) Firefox windows of a workspace live in one tab group
-local function is_firefox(w) return w ~= nil and w.class ~= nil and w.class:match("^firefox") ~= nil end
-local function tab_firefox(w)
-    if not is_firefox(w) or w.floating or w.group ~= nil or w.workspace == nil then return end
-    if w.title:match("^Picture%-in%-Picture") or w.title:match("^Bild%-im%-Bild") then return end
-    for _, o in ipairs(hl.get_windows({ workspace = w.workspace.name })) do
-        if o.address ~= w.address and is_firefox(o) and o.group ~= nil and not o.floating then
-            o.group:add(w)
-            return
-        end
-    end
-    hl.dispatch(hl.dsp.group.toggle({ window = "address:" .. w.address }))
-end
-hl.on("window.open", function(w) hl.timer(function() tab_firefox(hl.get_window("address:" .. w.address)) end,
-    { timeout = 150, type = "oneshot" }) end)
 
 hl.window_rule({
     name  = "float-tools",

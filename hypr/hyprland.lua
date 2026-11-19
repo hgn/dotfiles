@@ -53,7 +53,20 @@ hl.config({
             inactive_border = "rgba(41486866)",
         },
         resize_on_border = true,
-        layout = "dwindle",
+        layout = "scrolling",   -- niri-like columns everywhere, workspace 4 = monocle
+    },
+
+    -- master layout: one big window left (60%), the rest stacked right
+    master = {
+        mfact      = 0.6,
+        new_status = "slave",
+        orientation = "left",
+    },
+
+    -- scrolling layout (default): new columns 90% of the screen wide
+    scrolling = {
+        column_width = 0.9,
+        explicit_column_widths = "0.5, 0.9, 1.0",
     },
 
     decoration = {
@@ -166,11 +179,147 @@ hl.config({
 
 hl.gesture({ fingers = 3, direction = "horizontal", action = "workspace" })
 
+-----------------------------------
+---- PER-WORKSPACE THEMES ---------
+-----------------------------------
+-- Every workspace is its own "room". Only one workspace is visible at a time
+-- (beamer mirrors), so the global look is switched on workspace change.
+-- term = alacritty colors for ALT+Return: ~/.config/alacritty/ws-<term>.toml
+local GRAD_NEON  = { colors = { "rgba(ff7edbff)", "rgba(bb9af7ff)", "rgba(36f9f6ff)" }, angle = 45 }
+
+local BASE = {
+    general = { gaps_in = 3, gaps_out = 5, border_size = 0,
+                col = { active_border = "rgba(00000000)", inactive_border = "rgba(00000000)" } },
+    decoration = {
+        rounding = 12, active_opacity = 1.0, inactive_opacity = 0.95,
+        dim_inactive = false, dim_strength = 0.2,
+        shadow = { enabled = true, range = 18, render_power = 3, offset = { 0, 4 }, sharp = false,
+                   color = "rgba(000000aa)", color_inactive = "rgba(00000055)" },
+        glow   = { enabled = false, range = 14, color = "rgba(00000000)", color_inactive = "rgba(00000000)" },
+        blur   = { enabled = true, variant = 0, size = 8, passes = 3, vibrancy = 0.25 },
+        wobble = { enabled = true },
+    },
+}
+
+local THEMES = {
+    -- 1 ink: minimal and dark, nothing but the content
+    ink = { term = "ink", calm = true, cfg = { decoration = { wobble = { enabled = false } } } },
+    -- 2 rose: Rosé Pine Moon, muted and warm, soft rose -> iris frame, round
+    rose = { term = "rose", cfg = {
+        general = { border_size = 2, col = { active_border = { colors = { "rgba(ea9a97ff)", "rgba(c4a7e7ff)" }, angle = 135 },
+                                             inactive_border = "rgba(393552aa)" } },
+        decoration = { rounding = 16, inactive_opacity = 0.92,
+                       shadow = { range = 26, offset = { 0, 6 }, color = "rgba(1a1826aa)", color_inactive = "rgba(1a182655)" },
+                       glow = { enabled = true, range = 10, color = "rgba(ea9a9733)" } },
+    } },
+    -- 3 synthwave: neon gradient, glow, glass
+    synth = { term = "synth", cfg = {
+        general = { border_size = 3, col = { active_border = GRAD_NEON, inactive_border = "rgba(41486866)" } },
+        decoration = { rounding = 14, inactive_opacity = 0.85,
+                       shadow = { range = 28, offset = { 0, 6 }, color = "rgba(0b0b12bb)", color_inactive = "rgba(0b0b1266)" },
+                       glow = { enabled = true, range = 16, color = "rgba(ff7edb55)" } },
+    } },
+    -- 4 zen (monocle): edge to edge, no chrome at all
+    zen = { term = "ink", cfg = {
+        general = { gaps_in = 0, gaps_out = 0 },
+        decoration = { rounding = 0, inactive_opacity = 1.0, shadow = { enabled = false } },
+    } },
+    -- 6 phosphor: green VT terminal, square, green frame and glow
+    -- (no CRT screen_shader: switching it from a keybind froze the keyboard
+    --  and crashed Hyprland 0.57 on 2026-11-19)
+    phosphor = { term = "phosphor", hide_bar = true, calm = true, cfg = {
+        general = { border_size = 2, col = { active_border = "rgba(33ff66ff)", inactive_border = "rgba(1a5c2aff)" } },
+        decoration = { rounding = 0, inactive_opacity = 1.0,
+                       shadow = { enabled = false },
+                       glow = { enabled = true, range = 12, color = "rgba(33ff6650)" } },
+    } },
+    -- 5 glass: scrolling, no bar, edge to edge, no borders, fully opaque,
+    -- standard alacritty colors (wm.toml) without transparency
+    glass = { term = nil, term_opts = "-o window.opacity=1.0", calm = true, hide_bar = true, cfg = {
+        general = { gaps_in = 0, gaps_out = 0, border_size = 0 },
+        decoration = { rounding = 0, active_opacity = 1.0, inactive_opacity = 1.0,
+                       shadow = { enabled = false },
+                       -- plain kawase blur; "acrylic" is a lens with a 48px bulged edge
+                       -- that visibly pulls the content inwards
+                       blur = { variant = 0, size = 10, passes = 4, vibrancy = 0.45 } },
+    } },
+    -- 7 brutalist: gruvbox, thick ochre frame, hard offset shadow, no curves
+    brutal = { term = "gruvbox", cfg = {
+        general = { gaps_in = 6, gaps_out = 12, border_size = 4,
+                    col = { active_border = "rgba(d79921ff)", inactive_border = "rgba(504945ff)" } },
+        decoration = { rounding = 0, inactive_opacity = 1.0,
+                       shadow = { range = 1, render_power = 1, sharp = true, offset = { 10, 10 },
+                                  color = "rgba(000000ff)", color_inactive = "rgba(000000aa)" } },
+    } },
+}
+
+WS_THEME = { ["1"] = "ink", ["2"] = "rose", ["3"] = "synth", ["4"] = "zen",
+             ["5"] = "glass", ["6"] = "phosphor", ["7"] = "brutal" }
+local DEFAULT_THEME = "ink"
+
+local function merge(a, b)
+    local r = {}
+    for k, v in pairs(a) do r[k] = v end
+    for k, v in pairs(b) do
+        if type(v) == "table" and type(r[k]) == "table" and v.colors == nil and #v == 0 then
+            r[k] = merge(r[k], v)
+        else
+            r[k] = v
+        end
+    end
+    return r
+end
+
+CURRENT_THEME = nil
+local function theme_for(ws)
+    return THEMES[(ws ~= nil and WS_THEME[ws.name]) or DEFAULT_THEME] or THEMES[DEFAULT_THEME]
+end
+local function apply_theme(manage_bar)
+    local t = theme_for(hl.get_active_workspace())
+    if t == CURRENT_THEME then return end
+    CURRENT_THEME = t
+    hl.config(merge(BASE, t.cfg))
+    -- calm themes: windows glide without the springy overshoot
+    if t.calm then
+        hl.animation({ leaf = "windows",     enabled = true, speed = 4, bezier = "fluent" })
+        hl.animation({ leaf = "windowsMove", enabled = true, speed = 4, bezier = "fluent" })
+    else
+        hl.animation({ leaf = "windows",     enabled = true, speed = 5, spring = "bouncy" })
+        hl.animation({ leaf = "windowsMove", enabled = true, speed = 5, spring = "bouncy" })
+    end
+    -- themes with hide_bar run without waybar (stopped/started, so the
+    -- state can never get out of sync like a SIGUSR1 toggle could)
+    if not manage_bar then return end   -- config load: autostart owns waybar
+    if t.hide_bar then
+        hl.exec_cmd("pkill -x waybar")
+    else
+        hl.exec_cmd("pgrep -x waybar >/dev/null || waybar -c " .. home .. "/.config/waybar/config-hyprland.jsonc")
+    end
+end
+hl.on("workspace.active", function() apply_theme(true) end)
+apply_theme(false)
+
+-- blur of the current theme (used to restore after the drop-down effect)
+function theme_blur()
+    local t = CURRENT_THEME or THEMES[DEFAULT_THEME]
+    return merge(BASE.decoration.blur, (t.cfg.decoration or {}).blur or {})
+end
+
+-- ALT+Return: terminal in the colors of the current workspace
+local function spawn_terminal()
+    local t = theme_for(hl.get_active_workspace())
+    if t.term == nil then
+        hl.exec_cmd(terminal .. " " .. (t.term_opts or ""))   -- standard look (wm.toml)
+    else
+        hl.exec_cmd("alacritty --config-file " .. home .. "/.config/alacritty/ws-" .. t.term .. ".toml")
+    end
+end
+
 ---------------------
 ---- KEYBINDINGS ----
 ---------------------
 -- Terminal + workspaces on ALT (your habit)
-hl.bind("ALT + Return", hl.dsp.exec_cmd(terminal))
+hl.bind("ALT + Return", spawn_terminal)
 for i = 1, 10 do
     local key = i % 10
     hl.bind("ALT + " .. key,         hl.dsp.focus({ workspace = i }))
@@ -178,7 +327,7 @@ for i = 1, 10 do
 end
 -- Alt+Tab: monocle workspaces need the layout's own cycling (cycle_next
 -- only sees the visible window there)
-MONOCLE = { ["1"] = true, ["2"] = true, ["4"] = true }
+MONOCLE = { ["4"] = true }
 local function alt_tab(dir)
     local ws = hl.get_active_workspace()
     if ws ~= nil and MONOCLE[ws.name] then
@@ -200,7 +349,23 @@ hl.bind("SUPER + F",      hl.dsp.window.fullscreen())
 hl.bind("SUPER + M",      hl.dsp.window.fullscreen({ mode = "maximized", action = "toggle" }))
 hl.bind("SUPER + V",      hl.dsp.window.float({ action = "toggle" }))
 hl.bind("SUPER + P",      hl.dsp.window.pin())
-hl.bind("SUPER + J",      hl.dsp.layout("togglesplit"))
+hl.bind("SUPER + J",      hl.dsp.layout("swapwithmaster"))     -- active window <-> master
+hl.bind("SUPER + O",      hl.dsp.layout("orientationnext"))    -- master left/top/right/bottom/center
+hl.bind("SUPER + R",      hl.dsp.layout("colresize +conf"))    -- scrolling: column width 0.9 (start) → full → 1/2
+
+-- Alt+arrows navigate on the scrolling workspaces; on the monocle ones the
+-- binds are disabled so apps keep them (Firefox back/forward)
+local alt_nav = {}
+for _, d in ipairs({ "left", "right", "up", "down" }) do
+    alt_nav[#alt_nav + 1] = hl.bind("ALT + " .. d, hl.dsp.focus({ direction = d }))
+end
+local function update_alt_nav()
+    local ws = hl.get_active_workspace()
+    local on = ws ~= nil and not MONOCLE[ws.name]
+    for _, b in ipairs(alt_nav) do b:set_enabled(on) end
+end
+hl.on("workspace.active", update_alt_nav)
+update_alt_nav()
 for _, d in ipairs({ "left", "right", "up", "down" }) do
     hl.bind("SUPER + " .. d,         hl.dsp.focus({ direction = d }))
     hl.bind("SUPER + SHIFT + " .. d, hl.dsp.window.move({ direction = d }))
@@ -232,12 +397,12 @@ end)
 -- numbering is not the stub order)
 local SHIMMER = 3
 -- while shown: drops effect + light blur so the desktop behind stays recognizable;
--- hidden: back to the normal strong glass blur (size 8, 3 passes)
+-- hidden: back to the blur of the current workspace theme
 local function set_shimmer(on)
     if on then
         hl.config({ decoration = { blur = { variant = SHIMMER, size = 3, passes = 1 } } })
     else
-        hl.config({ decoration = { blur = { variant = 0, size = 8, passes = 3 } } })
+        hl.config({ decoration = { blur = theme_blur() } })
     end
 end
 local function term_shown()
@@ -288,8 +453,8 @@ hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl play-pause"), { locked = tr
 hl.bind("XF86AudioNext",  hl.dsp.exec_cmd("playerctl next"),       { locked = true })
 hl.bind("XF86AudioPrev",  hl.dsp.exec_cmd("playerctl previous"),   { locked = true })
 
--- monocle on workspaces 1, 2, 4: every window full size, stacked;
--- Alt+Tab flips through them. The other workspaces stay dwindle.
+-- monocle on workspace 4: every window full size, stacked;
+-- Alt+Tab flips through them. All other workspaces use scrolling.
 for ws in pairs(MONOCLE) do
     hl.workspace_rule({ workspace = ws, layout = "monocle" })
 end
@@ -297,11 +462,6 @@ end
 --------------------------------
 ---- WINDOWS AND LAYERS --------
 --------------------------------
--- clean look everywhere (no gradient outline, no purple glow) except on
--- workspace 3, which keeps the full eye candy
-hl.window_rule({ name = "clean-look", match = { class = ".*" }, border_size = 0, no_glow = true })
-hl.window_rule({ name = "eyecandy-ws3", match = { workspace = "3" }, border_size = 3, no_glow = false })
-
 hl.window_rule({ name = "suppress-maximize", match = { class = ".*" }, suppress_event = "maximize" })
 
 hl.window_rule({

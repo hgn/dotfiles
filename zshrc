@@ -49,6 +49,8 @@ alias bat='batcat --color always -pp'
 alias l='exa -bl -s newest --color always --time-style=long-iso'
 alias less="less -r"
 
+alias mpv-audio='mpv --vo=tct --lavfi-complex="[aid1]asplit[ao][a1];[a1]showcqt=s=1280x480[vo]"'
+
 # some piping stuff
 alias -g V='|vim -'
 alias -g L='|less'
@@ -609,7 +611,8 @@ export PATH="/home/pfeifer/.local/bin:$PATH"
 second-brain() {
       local agent="code"
       local runner="claude-isolated"
-      local -a agent_args=(--name "second-brain")
+      local timestamp=$(date +%s)
+      local -a agent_args=(--name "second-brain-${timestamp[-7,-1]}")
 
       # signal-cli sits outside the launcher's curated binds: the ~/.local/bin
       # symlink is visible but its target dir and the account store are not.

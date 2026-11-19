@@ -1,0 +1,10 @@
+# imv - Tokyo Night, fullscreen by default (f toggles)
+[options]
+fullscreen = true
+background = 101018
+scaling_mode = shrink
+overlay_font = JetBrainsMono Nerd Font:14
+overlay_text_color = c0caf5
+overlay_background_color = 1a1b26
+overlay_background_alpha = cc
+title_text = imv · $imv_current_file

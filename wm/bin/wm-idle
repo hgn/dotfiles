@@ -1,0 +1,25 @@
+#!/bin/sh
+# Idle actions for hypridle. "--locked" variants only act while hyprlock runs.
+# usage: wm-idle dim|undim|off|on|suspend [--locked]
+flag="${XDG_RUNTIME_DIR:-/tmp}/wm-idle-dimmed"
+bin="$(dirname "$0")"
+
+if [ "${2:-}" = "--locked" ] && ! pidof hyprlock >/dev/null; then
+    exit 0
+fi
+
+case "$1" in
+    dim)
+        # save the user's brightness only once, so a second dim can't overwrite it
+        [ -e "$flag" ] && exit 0
+        brightnessctl -q -s set 10% && touch "$flag"
+        ;;
+    undim)
+        [ -e "$flag" ] || exit 0
+        brightnessctl -q -r; rm -f "$flag"
+        ;;
+    off)     "$bin/wm-dpms" off ;;
+    on)      "$bin/wm-dpms" on; "$0" undim ;;
+    suspend) systemctl suspend ;;
+    *) echo "usage: $0 dim|undim|off|on|suspend [--locked]" >&2; exit 1 ;;
+esac

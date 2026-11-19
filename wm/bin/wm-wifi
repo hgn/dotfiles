@@ -1,0 +1,65 @@
+#!/bin/bash
+# WLAN menu: nmcli + fuzzel. Lists networks, connects (asks for password if
+# needed), toggles the radio, opens the connection editor.
+set -u
+menu() { fuzzel --dmenu --width 46 --lines "${2:-12}" --prompt "$1"; }
+notify() { notify-send -a wm-wifi -i network-wireless "$1" "${2:-}"; }
+
+if [ "$(nmcli -t radio wifi)" != "enabled" ]; then
+    choice=$(printf '󰖩  WLAN einschalten\n  Verbindungen bearbeiten\n' | menu "WLAN aus › " 2)
+    case "$choice" in
+        *einschalten*) nmcli radio wifi on && notify "WLAN eingeschaltet" ;;
+        *bearbeiten*)  nm-connection-editor & ;;
+    esac
+    exit 0
+fi
+
+notify "Suche Netzwerke …" &
+mapfile -t nets < <(nmcli -t -e no -f IN-USE,SIGNAL,SECURITY,SSID dev wifi list --rescan auto \
+    | awk -F: '$4 != "" && !seen[$4]++')
+
+bars() {
+    if   [ "$1" -ge 75 ]; then echo "▂▄▆█"
+    elif [ "$1" -ge 50 ]; then echo "▂▄▆_"
+    elif [ "$1" -ge 25 ]; then echo "▂▄__"
+    else echo "▂___"; fi
+}
+
+entries=""
+for n in "${nets[@]}"; do
+    IFS=: read -r inuse signal sec ssid <<<"$n"
+    mark="  "; [ "$inuse" = "*" ] && mark=" "
+    lock=" "; [ -n "$sec" ] && [ "$sec" != "--" ] && lock=""
+    entries+=$(printf '%s%s  %s  %s' "$mark" "$(bars "$signal")" "$lock" "$ssid")$'\n'
+done
+entries+="󰖪  WLAN ausschalten"$'\n'"  Verbindungen bearbeiten"
+
+choice=$(printf '%s' "$entries" | menu "WLAN › ")
+[ -z "$choice" ] && exit 0
+
+case "$choice" in
+    *"WLAN ausschalten") nmcli radio wifi off && notify "WLAN ausgeschaltet"; exit 0 ;;
+    *"Verbindungen bearbeiten") nm-connection-editor & exit 0 ;;
+esac
+
+ssid=$(printf '%s' "$choice" | sed -E 's/^.{2}[▂▄▆█_]{4}  .  //')
+if nmcli -t -f NAME connection show | grep -Fxq "$ssid"; then
+    if nmcli connection up id "$ssid" >/dev/null 2>&1; then
+        notify "Verbunden" "$ssid"
+    else
+        notify "Verbindung fehlgeschlagen" "$ssid"
+    fi
+    exit 0
+fi
+
+pw=""
+if printf '%s' "$choice" | grep -q ""; then
+    pw=$(fuzzel --dmenu --password --lines 0 --width 40 --prompt "Passwort für $ssid › " </dev/null)
+    [ -z "$pw" ] && exit 0
+fi
+if [ -n "$pw" ]; then
+    out=$(nmcli dev wifi connect "$ssid" password "$pw" 2>&1)
+else
+    out=$(nmcli dev wifi connect "$ssid" 2>&1)
+fi
+if [ $? -eq 0 ]; then notify "Verbunden" "$ssid"; else notify "Fehlgeschlagen" "$out"; fi

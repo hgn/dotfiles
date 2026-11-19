@@ -610,7 +610,10 @@ imap <F9> <C-o>:Telescope marks<CR>
 "set pastetoggle=<F10>
 nnoremap <F10> :se invpaste paste?<Enter>
 imap <F10> <C-O><F10>
-set pastetoggle=<F10>
+" pastetoggle was removed in Neovim 0.10 (bracketed paste makes it unneeded)
+if !has('nvim-0.10')
+  set pastetoggle=<F10>
+endif
 
 "F11 -> F12 == resize window
 map <F11>   <ESC>:resize -5 <CR>

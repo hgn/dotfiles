@@ -1,0 +1,14 @@
+#!/bin/sh
+# niri has no native output mirroring: show eDP-1 fullscreen on the external
+# output (beamer/HDMI/USB-C) via wl-mirror. Toggle: run again to stop.
+if pkill -x wl-mirror; then
+    notify-send -a wm-mirror -i video-display "Spiegeln beendet"
+    exit 0
+fi
+ext=$(niri msg --json outputs | jq -r 'keys[] | select(. != "eDP-1")' | head -n1)
+if [ -z "$ext" ]; then
+    notify-send -a wm-mirror -i video-display "Kein externer Bildschirm gefunden"
+    exit 1
+fi
+notify-send -a wm-mirror -i video-display "Spiegeln aktiv" "eDP-1 → $ext"
+exec wl-mirror --fullscreen-output "$ext" eDP-1

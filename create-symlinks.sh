@@ -40,6 +40,19 @@ mkdir -p ~/.config/kitty
 create kitty.conf ~/.config/kitty/kitty.conf
 create ranger ~/.config/ranger
 
+# Wayland: Hyprland + niri (Tokyo Night), shared bar/launcher/notifications/logout
+create hypr ~/.config/hypr
+create niri ~/.config/niri
+create waybar ~/.config/waybar
+create fuzzel ~/.config/fuzzel
+create mako ~/.config/mako
+create wlogout ~/.config/wlogout
+create imv ~/.config/imv
+mkdir -p ~/.local/share/wm
+create wm/bin ~/.local/share/wm/bin
+create wm/wlogout ~/.local/share/wm/wlogout
+create wm/wallpapers/synthwave_4k_purple.jpg ~/.local/share/wm/wallpaper
+
 
 # blacklist things, no differentiation here
 sudo cp module-blacklist.conf /etc/modprobe.d/

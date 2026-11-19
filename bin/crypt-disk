@@ -11,11 +11,11 @@ import grp
 import os
 import pwd
 import shutil
+import stat
 import subprocess
 import sys
 
 BY_ID_PATH = "/dev/disk/by-id/nvme-Samsung_SSD_960_EVO_250GB_S3ESNX0J119505Y-part2"
-RAW_DEVICE = "/dev/nvme0n1p2"
 MAPPER_NAME = "crypt"
 MAPPER_PATH = f"/dev/mapper/{MAPPER_NAME}"
 MOUNTPOINT = "/mnt/crypt"
@@ -61,20 +61,12 @@ def require_root():
 
 
 def resolve_target_device():
-    """Resolve the by-id symlink and confirm it still points at the expected device.
-
-    Guards against a swapped or renumbered drive silently taking the place of
-    the intended one before any destructive or mounting operation runs.
-    """
+    """Select the partition by disk identity, independent of NVMe numbering."""
     if not os.path.exists(BY_ID_PATH):
         die(f"target partition not found: {BY_ID_PATH}")
     resolved = os.path.realpath(BY_ID_PATH)
-    expected = os.path.realpath(RAW_DEVICE)
-    if resolved != expected:
-        die(
-            f"device mismatch: {BY_ID_PATH} resolves to {resolved}, "
-            f"expected {expected} -- refusing to touch the wrong disk"
-        )
+    if not stat.S_ISBLK(os.stat(resolved).st_mode):
+        die(f"target partition is not a block device: {BY_ID_PATH} resolves to {resolved}")
     return resolved
 
 
@@ -256,7 +248,7 @@ def cmd_status(args):
         device = resolve_target_device()
         print(f"target device:  {device} (via {BY_ID_PATH})")
     except SystemExit:
-        print(f"target device:  {BY_ID_PATH} -- NOT FOUND OR MISMATCHED")
+        print(f"target device:  {BY_ID_PATH} -- NOT FOUND OR INVALID")
         device = None
 
     if device is not None:

@@ -6,6 +6,14 @@ servers = (
     use_ssl = "yes";
     ssl_verify = "yes";
     autoconnect = "yes";
+  },
+  {
+    address = "irc.oftc.net";
+    chatnet = "OFTC";
+    port = "6697";
+    use_ssl = "yes";
+    ssl_verify = "yes";
+    autoconnect = "yes";
   }
 );
 
@@ -17,6 +25,7 @@ chatnets = {
     max_whois = "1";
   };
   "Libera.chat" = { type = "IRC"; };
+  OFTC = { type = "IRC"; };
 };
 
 channels = (
@@ -24,12 +33,15 @@ channels = (
   { name = "#kernel"; chatnet = "Libera.chat"; autojoin = "Yes"; },
   { name = "#python"; chatnet = "Libera.chat"; autojoin = "Yes"; },
   { name = "#security"; chatnet = "Libera.chat"; autojoin = "Yes"; },
+  { name = "#radare"; chatnet = "Libera.chat"; autojoin = "Yes"; },
   {
     name = "#linux-hardening";
     chatnet = "Libera.chat";
     autojoin = "Yes";
   },
-  { name = "#captcp"; chatnet = "Libera.chat"; autojoin = "No"; }
+  { name = "#captcp"; chatnet = "Libera.chat"; autojoin = "No"; },
+  { name = "#kernelnewbies"; chatnet = "OFTC"; autojoin = "Yes"; },
+  { name = "#qemu"; chatnet = "OFTC"; autojoin = "Yes"; }
 );
 
 aliases = {
@@ -97,20 +109,20 @@ statusbar = {
     topicbarend = "{topicsbend}";
 
     # treated "normally", you could change the time/user name to whatever
-    time = "{sb $Z}";
-    user = "{sb {sbnickmode $cumode}$N{sbmode $usermode}{sbaway $A}}";
+    time = "{sb %Z6272a4$Z%n}";
+    user = "{sb {sbnickmode $cumode}%Z50fa7b$N%n{sbmode $usermode}{sbaway $A}}";
 
     # treated specially .. window is printed with non-empty windows,
     # window_empty is printed with empty windows
-    window = "{sb $winref:$tag/$itemname{sbmode $M}}";
+    window = "{sb %Zbd93f9#$winref%n %Z50fa7b$tag%n %Z6272a4::%n %Z8be9fd$itemname%n{sbmode $M}}";
     window_empty = "{sb $winref{sbservertag $tag}}";
     prompt = "{prompt $[.15]itemname}";
     prompt_empty = "{prompt $winname}";
-    topic = " $topic";
+    topic = " %Z6272a4::%n $topic";
     topic_empty = " Irssi v$J - http://www.irssi.org";
 
     # all of these treated specially, they're only displayed when needed
-    lag = "{sb Lag: $0-}";
+    lag = "{sb %Zffb86clag%n $0-}";
     act = "{sb Act: $0-}";
     more = "-- more --";
   };
@@ -141,6 +153,7 @@ statusbar = {
         window = { };
         window_empty = { };
         lag = { priority = "-1"; };
+        usercount = { priority = "20"; alignment = "right"; };
         more = { priority = "-1"; alignment = "right"; };
         barend = { priority = "100"; alignment = "right"; };
       };
@@ -206,10 +219,21 @@ settings = {
     nick = "hgn";
   };
   "fe-text" = { actlist_sort = "refnum"; };
-  "fe-common/core" = { theme = "madcow"; };
+  "fe-common/core" = { theme = "dracula-hacker"; };
   "perl/core/scripts" = {
     awl_shared_sbar = "OFF";
-    awl_block = "-14";
+    awl_block = "-24";
     awl_viewer = "no";
+    fancy_abbrev = "no";
+    nick_colors = "%Zff79c6 %Zbd93f9 %Z8be9fd %Z50fa7b %Zf1fa8c %Zffb86c";
+    nick_char_sum_hash = "no";
+    trackbar_string = "─";
+    trackbar_style = "%Z6272a4";
+    trackbar_use_status_window = "no";
+    trackbar_print_timestamp = "yes";
+    usercount_show_zero = "no";
+    usercount_show_ircops = "no";
+    usercount_show_halfops = "yes";
   };
 };
+ignores = ( { level = "JOINS PARTS QUITS NICKS"; } );

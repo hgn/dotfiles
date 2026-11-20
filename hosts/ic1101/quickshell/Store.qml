@@ -86,8 +86,9 @@ Singleton {
         const clamped = Math.max(0.02, Math.min(1, v))
         brightness = clamped
         const pct = Math.round(clamped * 100)
-        run("brightnessctl -q -e4 -n2 set " + pct + "%")
-        triggerOsd("brightness", "Helligkeit", clamped, false)
+        // linear set matches /sys/class/backlight/brightness / max_brightness 1:1
+        run("brightnessctl -q -n2 set " + pct + "%")
+        if (!briOpen) triggerOsd("brightness", "Helligkeit", clamped, false)
     }
     function stepBrightness(delta) {
         setBrightness(brightness + delta)

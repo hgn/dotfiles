@@ -152,6 +152,8 @@ Panel {
         Txt {
             text: Store.muted ? "stumm" : Math.round(Store.volume * 100) + "%"
             color: Store.muted ? Theme.dim : Theme.purple
+            width: 52
+            horizontalAlignment: Text.AlignRight
         }
         onClicked: m => {
             if (m.button === Qt.MiddleButton) Store.toggleMute()
@@ -175,6 +177,8 @@ Panel {
         Txt {
             text: Math.round(Store.brightness * 100) + "%"
             color: Theme.yellow
+            width: 44
+            horizontalAlignment: Text.AlignRight
         }
         onClicked: Store.briOpen = !Store.briOpen
         onWheel: w => Store.stepBrightness(w.angleDelta.y > 0 ? 0.05 : -0.05)

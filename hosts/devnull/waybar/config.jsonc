@@ -1,0 +1,222 @@
+// waybar - desktop "devnull" (Hyprland), self-contained: shares only the
+// helper scripts in ~/.local/share/wm/bin with the laptop.
+// Layout: glass island left, black "dynamic island" in the middle that grows
+// on hover and when media plays, glass island right.
+{
+    "layer": "top",
+    "position": "top",
+    "height": 54,
+    "margin-top": 0,
+    "margin-left": 16,
+    "margin-right": 16,
+    "spacing": 0,
+    "reload_style_on_change": true,
+
+    "modules-left": ["custom/launcher", "hyprland/workspaces", "hyprland/window"],
+    "modules-center": ["group/island"],
+    "modules-right": ["group/stats", "tray", "network", "bluetooth", "group/audio",
+                      "idle_inhibitor", "custom/power"],
+
+    "custom/launcher": {
+        "format": "",
+        "tooltip-format": "Programme (Super)",
+        "on-click": "pkill -x fuzzel || fuzzel",
+        "on-click-right": "pkill -x fuzzel || fuzzel"
+    },
+
+    // page-indicator dots; the active one stretches into a pill (CSS)
+    "hyprland/workspaces": {
+        "format": "{icon}",
+        "format-icons": { "active": "●", "default": "●", "empty": "○" },
+        "persistent-workspaces": { "*": 4 },
+        "on-scroll-up": "hyprctl dispatch 'hl.dsp.focus({ workspace = \"e+1\" })'",
+        "on-scroll-down": "hyprctl dispatch 'hl.dsp.focus({ workspace = \"e-1\" })'"
+    },
+
+    "hyprland/window": {
+        "format": "{title}",
+        "max-length": 48,
+        "separate-outputs": true,
+        "rewrite": { "": "" }
+    },
+
+    // ---- the island -------------------------------------------------------
+    "group/island": {
+        "orientation": "horizontal",
+        "modules": ["privacy", "group/time", "mpris"]
+    },
+
+    // the clock is always shown; hovering reveals date and weather
+    "group/time": {
+        "orientation": "horizontal",
+        "drawer": {
+            "transition-duration": 450,
+            "transition-left-to-right": true,
+            "children-class": "island-extra"
+        },
+        "modules": ["clock", "clock#date", "custom/weather"]
+    },
+
+    "clock": {
+        "format": "{:%H:%M}",
+        "interval": 5,
+        "tooltip": false,
+        "on-click": "gnome-calendar"
+    },
+
+    "clock#date": {
+        "format": "{:L%A, %d. %B}",
+        "locale": "de_DE.UTF-8",
+        "interval": 60,
+        "tooltip-format": "<tt><small>{calendar}</small></tt>",
+        "calendar": {
+            "mode": "month",
+            "weeks-pos": "left",
+            "on-scroll": 1,
+            "format": {
+                "months":   "<span color='#bb9af7'><b>{}</b></span>",
+                "weeks":    "<span color='#565f89'>KW{}</span>",
+                "weekdays": "<span color='#7dcfff'><b>{}</b></span>",
+                "days":     "<span color='#a9b1d6'>{}</span>",
+                "today":    "<span color='#1a1b26' background='#7aa2f7'><b> {} </b></span>"
+            }
+        },
+        "actions": { "on-scroll-up": "shift_up", "on-scroll-down": "shift_down" }
+    },
+
+    "custom/weather": {
+        "exec": "/home/pfeifer/.local/share/wm/bin/wm-weather",
+        "return-type": "json",
+        "interval": 900,
+        "on-click": "xdg-open https://wttr.in/?lang=de"
+    },
+
+    // only visible while something plays (or is paused)
+    "mpris": {
+        "format": "{status_icon}  {dynamic}",
+        "format-stopped": "",
+        "dynamic-order": ["title", "artist"],
+        "dynamic-len": 42,
+        "dynamic-separator": "  ·  ",
+        "status-icons": { "playing": "󰎈", "paused": "󰏤" },
+        "tooltip-format": "{player}: {title}\n{artist} · {album}",
+        "on-click": "playerctl play-pause",
+        "on-click-right": "playerctl next",
+        "on-click-middle": "playerctl previous",
+        "on-scroll-up": "playerctl next",
+        "on-scroll-down": "playerctl previous"
+    },
+
+    // screen sharing / microphone in use: lights up inside the island
+    "privacy": {
+        "icon-size": 15,
+        "icon-spacing": 6,
+        "transition-duration": 300,
+        "modules": [
+            { "type": "screenshare", "tooltip": true },
+            { "type": "audio-in", "tooltip": true }
+        ]
+    },
+
+    // ---- right island -----------------------------------------------------
+    "group/stats": {
+        "orientation": "horizontal",
+        "drawer": {
+            "transition-duration": 400,
+            "transition-left-to-right": false,
+            "children-class": "stats-extra"
+        },
+        "modules": ["cpu", "memory", "temperature"]
+    },
+
+    "cpu": {
+        "interval": 2,
+        "format": "󰻠  {usage}%",
+        "min-length": 6,
+        "tooltip-format": "CPU {usage}%  ·  {avg_frequency} GHz\nLast {load}",
+        "states": { "high": 75 },
+        "on-click": "kitty -e htop"
+    },
+
+    "memory": {
+        "interval": 5,
+        "format": "󰍛  {used:0.1f}G",
+        "tooltip-format": "RAM {used:0.1f} / {total:0.1f} GiB ({percentage}%)\nSwap {swapUsed:0.1f} / {swapTotal:0.1f} GiB",
+        "states": { "high": 80 }
+    },
+
+    "temperature": {
+        "interval": 3,
+        "hwmon-path-abs": "/sys/devices/platform/coretemp.0/hwmon",
+        "input-filename": "temp1_input",
+        "critical-threshold": 90,
+        "format": "󰔏  {temperatureC}°",
+        "tooltip-format": "CPU-Package {temperatureC} °C"
+    },
+
+    "tray": { "icon-size": 17, "spacing": 10 },
+
+    "network": {
+        "format-ethernet": "󰈀",
+        "format-linked": "󰈀",
+        "format-disconnected": "󰌙",
+        "tooltip-format-ethernet": "{ifname}  {ipaddr}/{cidr}\n󰇚 {bandwidthDownBits}   󰕒 {bandwidthUpBits}",
+        "tooltip-format-disconnected": "offline",
+        "interval": 5,
+        "on-click-right": "nm-connection-editor"
+    },
+
+    "bluetooth": {
+        "format": "󰂯",
+        "format-off": "󰂲",
+        "format-disabled": "󰂲",
+        "format-connected": "󰂱",
+        "tooltip-format": "Bluetooth {status}",
+        "tooltip-format-connected": "{device_enumerate}",
+        "tooltip-format-enumerate-connected": "{device_alias}  {device_battery_percentage}%",
+        "on-click": "blueman-manager"
+    },
+
+    // volume: hover opens a slider, scroll = ±2 %, click = mute,
+    // right click = choose output device, middle click = mixer
+    "group/audio": {
+        "orientation": "horizontal",
+        "drawer": {
+            "transition-duration": 400,
+            "transition-left-to-right": false,
+            "children-class": "audio-extra"
+        },
+        "modules": ["wireplumber", "pulseaudio/slider"]
+    },
+
+    "wireplumber": {
+        "format": "{icon}  {volume}%",
+        "format-muted": "󰝟  stumm",
+        "format-icons": ["󰕿", "󰖀", "󰕾"],
+        "scroll-step": 2,
+        "max-volume": 100,
+        "tooltip-format": "{node_name}\nKlick: stumm · Rechts: Ausgang · Mitte: Mixer",
+        "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
+        "on-click-right": "/home/pfeifer/.dotfiles/hosts/devnull/bin/audio-output",
+        "on-click-middle": "pavucontrol"
+    },
+
+    "pulseaudio/slider": {
+        "min": 0,
+        "max": 100,
+        "orientation": "horizontal"
+    },
+
+    "idle_inhibitor": {
+        "format": "{icon}",
+        "format-icons": { "activated": "󰅶", "deactivated": "󰾪" },
+        "tooltip-format-activated": "Wachhalten: an",
+        "tooltip-format-deactivated": "Wachhalten: aus"
+    },
+
+    "custom/power": {
+        "format": "⏻",
+        "tooltip-format": "Sperren · Standby · Abmelden · Neustart · Aus",
+        "on-click": "/home/pfeifer/.local/share/wm/bin/wm-power"
+    }
+}

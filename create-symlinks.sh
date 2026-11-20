@@ -33,7 +33,7 @@ create gpg-agent.conf ~/.gnupg/gpg-agent.conf
 mkdir -p ~/.config/inkscape/palettes/
 create inkscape-cp-flatuicolors.gpl ~/.config/inkscape/palettes/inkscape-cp-flatuicolors.gpl
 mkdir -p ~/.config/nvim/
-create init.vim ~/.config/nvim/init.vim
+create init.lua ~/.config/nvim/init.lua
 mkdir -p ~/.config/alacritty
 create alacritty.yml ~/.config/alacritty/alacritty.yml
 mkdir -p ~/.config/kitty
@@ -41,9 +41,21 @@ create kitty.conf ~/.config/kitty/kitty.conf
 create ranger ~/.config/ranger
 
 # Wayland: Hyprland + niri (Tokyo Night), shared bar/launcher/notifications/logout
-create hypr ~/.config/hypr
+if [ "$(cat /etc/hostname 2>/dev/null)" = "devnull" ]; then
+	create hosts/devnull/hypr ~/.config/hypr
+	create hosts/devnull/waybar ~/.config/waybar
+	create hosts/devnull/quickshell ~/.config/quickshell
+	create hosts/devnull/kitty/local.conf ~/.config/kitty/local.conf
+	mkdir -p ~/.config/gtk-3.0 ~/.config/gtk-4.0
+	create hosts/devnull/gtk-3.0/settings.ini ~/.config/gtk-3.0/settings.ini
+	create hosts/devnull/gtk-4.0/settings.ini ~/.config/gtk-4.0/settings.ini
+	create hosts/devnull/gtk-4.0/gtk.css ~/.config/gtk-4.0/gtk.css
+	create hosts/devnull/mimeapps.list ~/.config/mimeapps.list
+else
+	create hypr ~/.config/hypr
+	create waybar ~/.config/waybar
+fi
 create niri ~/.config/niri
-create waybar ~/.config/waybar
 create fuzzel ~/.config/fuzzel
 create mako ~/.config/mako
 create wlogout ~/.config/wlogout

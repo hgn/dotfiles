@@ -1,0 +1,193 @@
+/* waybar - desktop "devnull": glass islands left/right, a black dynamic island
+   in the middle. Tokyo Night palette. */
+@define-color glass   rgba(26, 27, 38, 0.70);
+@define-color island  #08080c;
+@define-color hl      rgba(65, 72, 104, 0.45);
+@define-color fg      #c0caf5;
+@define-color dim     #565f89;
+@define-color blue    #7aa2f7;
+@define-color cyan    #7dcfff;
+@define-color purple  #bb9af7;
+@define-color green   #9ece6a;
+@define-color yellow  #e0af68;
+@define-color red     #f7768e;
+
+* {
+    font-family: "JetBrainsMono Nerd Font", "Symbols Nerd Font", sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    min-height: 0;
+    border: none;
+    border-radius: 0;
+}
+
+window#waybar {
+    background: transparent;
+    color: @fg;
+}
+
+tooltip {
+    background: rgba(8, 8, 12, 0.96);
+    border: 1px solid alpha(@purple, 0.35);
+    border-radius: 12px;
+}
+tooltip label { color: @fg; padding: 6px 8px; }
+
+/* ---- islands docked to the top edge: flat top, round bottom ----------- */
+.modules-left, .modules-right {
+    background: @glass;
+    border: 1px solid alpha(@blue, 0.18);
+    border-top: none;
+    border-radius: 0 0 22px 22px;
+    padding: 0 12px 2px 12px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+/* every module shares the same rounded hover pill */
+#custom-launcher, #window, #tray, #network, #bluetooth, #wireplumber,
+#idle_inhibitor, #custom-power, #cpu, #memory, #temperature {
+    padding: 0 11px;
+    margin: 5px 1px;
+    border-radius: 16px;
+    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+#custom-launcher:hover, #network:hover, #bluetooth:hover, #wireplumber:hover,
+#idle_inhibitor:hover, #custom-power:hover, #cpu:hover, #memory:hover,
+#temperature:hover {
+    background: @hl;
+}
+
+#custom-launcher {
+    color: @blue;
+    font-size: 21px;
+    padding: 0 14px 0 12px;
+}
+#custom-launcher:hover { color: @cyan; }
+
+/* workspaces: page-indicator dots, the active one stretches into a pill */
+#workspaces { margin: 0 4px; }
+#workspaces button {
+    color: alpha(@fg, 0.55);
+    font-size: 11px;
+    padding: 0 5px;
+    margin: 12px 2px;
+    border-radius: 9px;
+    background: transparent;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+#workspaces button.empty { color: alpha(@dim, 0.8); }
+#workspaces button:hover {
+    color: @fg;
+    background: @hl;
+}
+#workspaces button.active {
+    color: transparent;
+    padding: 0 18px;
+    background: linear-gradient(90deg, @blue, @purple);
+    box-shadow: 0 0 10px alpha(@purple, 0.6);
+}
+#workspaces button.urgent {
+    color: transparent;
+    background: @red;
+}
+
+#window { color: alpha(@fg, 0.75); }
+window#waybar.empty #window { padding: 0; margin: 0; }
+
+/* ---- the dynamic island ----------------------------------------------- */
+/* hangs from the top edge like a notch: flat top, round bottom */
+.modules-center {
+    background: @island;
+    border: 1px solid alpha(@purple, 0.22);
+    border-top: none;
+    border-radius: 0 0 22px 22px;
+    padding: 0 14px 2px 14px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+    transition: all 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.modules-center:hover {
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.55), 0 4px 16px alpha(@purple, 0.25);
+}
+
+#clock {
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 700;
+    padding: 0 16px;
+    letter-spacing: 1px;
+}
+#clock.date {
+    color: alpha(@fg, 0.85);
+    font-size: 18px;
+    font-weight: 500;
+    padding: 0 12px 0 4px;
+}
+#custom-weather { color: @cyan; padding: 0 14px 0 6px; }
+#custom-weather.offline { padding: 0; }
+
+#mpris {
+    color: @green;
+    padding: 0 16px 0 10px;
+    margin: 6px 0;
+    border-left: 1px solid alpha(@fg, 0.12);
+}
+#mpris.paused { color: @dim; }
+#mpris.stopped { padding: 0; margin: 0; border: none; }
+
+#privacy { padding: 0; }
+#privacy-item {
+    padding: 0 8px;
+    margin: 8px 2px;
+    border-radius: 12px;
+    color: #08080c;
+}
+#privacy-item.screenshare { background: @purple; }
+#privacy-item.audio-in    { background: @red; }
+
+/* ---- right island details --------------------------------------------- */
+#cpu { color: @blue; }
+#cpu.high { color: @red; }
+#memory { color: @purple; }
+#memory.high { color: @red; }
+#temperature { color: @yellow; }
+#temperature.critical { color: @red; }
+
+#tray { padding: 0 8px; }
+#tray > .needs-attention { background: alpha(@red, 0.3); border-radius: 12px; }
+
+#network { color: @cyan; }
+#network.disconnected { color: @red; }
+
+#bluetooth { color: @blue; }
+#bluetooth.off, #bluetooth.disabled { color: @dim; }
+
+#wireplumber { color: @purple; }
+#wireplumber.muted { color: @dim; }
+
+/* volume slider, revealed on hover */
+#pulseaudio-slider { padding: 0 6px 0 12px; }
+#pulseaudio-slider trough {
+    min-width: 140px;
+    min-height: 6px;
+    border-radius: 3px;
+    background: alpha(@fg, 0.14);
+}
+#pulseaudio-slider highlight {
+    min-height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, @blue, @purple);
+}
+#pulseaudio-slider slider {
+    min-width: 14px;
+    min-height: 14px;
+    margin: -5px 0;
+    border-radius: 7px;
+    background: #ffffff;
+    box-shadow: 0 0 6px alpha(@purple, 0.8);
+}
+
+#idle_inhibitor { color: @dim; }
+#idle_inhibitor.activated { color: @yellow; }
+
+#custom-power { color: @red; padding: 0 14px 0 11px; }
+#custom-power:hover { background: alpha(@red, 0.2); }

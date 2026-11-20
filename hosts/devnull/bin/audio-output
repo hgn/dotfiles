@@ -1,0 +1,8 @@
+#!/bin/sh
+# Pick the default audio output with fuzzel (stands in for GNOME's output chooser).
+sinks=$(pactl -f json list sinks) || exit 1
+desc=$(printf '%s' "$sinks" | jq -r '.[].description' \
+    | fuzzel --dmenu --lines 6 --width 44 --prompt '󰓃  Ausgabe › ') || exit 0
+name=$(printf '%s' "$sinks" | jq -r --arg d "$desc" '.[] | select(.description == $d) | .name')
+[ -n "$name" ] || exit 1
+pactl set-default-sink "$name" && notify-send -a wm-osd -i audio-speakers "Audioausgang" "$desc"

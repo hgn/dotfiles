@@ -16,6 +16,13 @@ quit_session() {
 
 if [ "${1:-}" = logout ]; then quit_session; exit 0; fi
 
+# Quickshell command-palette menu (PowerMenu.qml) when the shell is running
+# and provides it; toggles on a second press
+if command -v qs >/dev/null && [ ! -e "$HOME/.config/quickshell/power-disabled" ] \
+    && qs ipc call shell power >/dev/null 2>&1; then
+    exit 0
+fi
+
 if command -v wlogout >/dev/null && [ ! -e "$HOME/.config/wlogout/disabled" ]; then
     pkill -x wlogout && exit 0          # second press closes it
     exec wlogout -b 5 -T 430 -B 430 -L 70 -R 70 -c 24

@@ -662,6 +662,16 @@ second-brain() {
               "${agent_args[@]}" "$@"
 }
 
+open() {
+  if [ "$#" -eq 0 ]; then
+    setsid -f xdg-open . </dev/null >/dev/null 2>&1
+    return
+  fi
+  for target in "$@"; do
+    setsid -f xdg-open "$target" </dev/null >/dev/null 2>&1
+  done
+}
+
 # zoxide hooks into chpwd and overrides cd, so it has to stay the last thing
 # this file does. Anything initialized afterwards makes it complain.
 if (( $+commands[zoxide] )); then

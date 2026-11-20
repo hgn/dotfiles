@@ -1,0 +1,18 @@
+# per-workspace terminal theme "ink" (Hyprland ALT+Return), local file
+[general]
+import = ["~/.config/alacritty/wm.toml"]
+
+[window]
+opacity = 1.0
+
+[colors.primary]
+background = "#0b0b0f"
+foreground = "#c0caf5"
+
+[colors.cursor]
+cursor = "#c0caf5"
+text = "#0b0b0f"
+
+[colors.selection]
+background = "#1f2335"
+text = "CellForeground"

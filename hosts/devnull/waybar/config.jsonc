@@ -197,7 +197,7 @@
         "max-volume": 100,
         "tooltip-format": "{node_name}\nKlick: stumm · Rechts: Ausgang · Mitte: Mixer",
         "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
-        "on-click-right": "/home/pfeifer/.dotfiles/hosts/devnull/bin/audio-output",
+        "on-click-right": "/home/pfeifer/.local/bin/audio-output",
         "on-click-middle": "pavucontrol"
     },
 

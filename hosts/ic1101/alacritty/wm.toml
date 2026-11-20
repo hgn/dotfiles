@@ -1,0 +1,46 @@
+# alacritty under Hyprland / niri: your alacritty.toml + Tokyo Night on top.
+# (GNOME keeps using alacritty.toml unchanged.)
+[general]
+import = ["~/.config/alacritty/alacritty.toml"]
+
+[window]
+opacity = 0.97
+padding = { x = 14, y = 12 }
+dynamic_padding = true
+decorations = "None"
+
+[colors.primary]
+background = "#101018"
+foreground = "#c0caf5"
+
+[colors.cursor]
+cursor = "#c0caf5"
+text = "#1a1b26"
+
+[colors.selection]
+background = "#283457"
+text = "CellForeground"
+
+[colors.search.matches]
+background = "#3d59a1"
+foreground = "#c0caf5"
+
+[colors.normal]
+black = "#15161e"
+red = "#f7768e"
+green = "#9ece6a"
+yellow = "#e0af68"
+blue = "#7aa2f7"
+magenta = "#bb9af7"
+cyan = "#7dcfff"
+white = "#a9b1d6"
+
+[colors.bright]
+black = "#414868"
+red = "#f7768e"
+green = "#9ece6a"
+yellow = "#e0af68"
+blue = "#7aa2f7"
+magenta = "#bb9af7"
+cyan = "#7dcfff"
+white = "#c0caf5"

@@ -1,0 +1,38 @@
+# per-workspace terminal theme "phosphor" (Hyprland ALT+Return), local file
+[general]
+import = ["~/.config/alacritty/wm.toml"]
+
+[window]
+opacity = 1.0
+
+[colors.primary]
+background = "#030a04"
+foreground = "#33ff66"
+
+[colors.cursor]
+cursor = "#33ff66"
+text = "#030a04"
+
+[colors.selection]
+background = "#14532d"
+text = "CellForeground"
+
+[colors.normal]
+black = "#0a1f0f"
+red = "#2fbf55"
+green = "#33ff66"
+yellow = "#8cff9e"
+blue = "#1fd655"
+magenta = "#5dff85"
+cyan = "#7dffa0"
+white = "#b9ffc9"
+
+[colors.bright]
+black = "#1f4d2a"
+red = "#47e070"
+green = "#66ff8c"
+yellow = "#b3ffc0"
+blue = "#40f075"
+magenta = "#85ffa5"
+cyan = "#a6ffbd"
+white = "#e0ffe6"

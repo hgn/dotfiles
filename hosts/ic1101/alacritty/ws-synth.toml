@@ -1,0 +1,38 @@
+# per-workspace terminal theme "synth" (Hyprland ALT+Return), local file
+[general]
+import = ["~/.config/alacritty/wm.toml"]
+
+[window]
+opacity = 0.88
+
+[colors.primary]
+background = "#1b1029"
+foreground = "#f2e9ff"
+
+[colors.cursor]
+cursor = "#ff7edb"
+text = "#1b1029"
+
+[colors.selection]
+background = "#4b2a6b"
+text = "CellForeground"
+
+[colors.normal]
+black = "#1b1029"
+red = "#fe4450"
+green = "#72f1b8"
+yellow = "#fede5d"
+blue = "#03edf9"
+magenta = "#ff7edb"
+cyan = "#36f9f6"
+white = "#e0dfe4"
+
+[colors.bright]
+black = "#6d6585"
+red = "#fe4450"
+green = "#72f1b8"
+yellow = "#fede5d"
+blue = "#03edf9"
+magenta = "#ff7edb"
+cyan = "#36f9f6"
+white = "#ffffff"

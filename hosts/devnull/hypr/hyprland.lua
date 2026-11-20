@@ -1,5 +1,5 @@
 -- Hyprland 0.57 - desktop "devnull" (Tokyo Night)
--- Host-specific: the laptop config lives in ~/.dotfiles/hypr and is not used here.
+-- Host-specific: the laptop config lives in ~/.dotfiles/hosts/ic1101/hypr and is not used here.
 -- Habits carried over from the GNOME session on this machine:
 --   ALT+Return kitty · SUPER (tap) launcher in the island · SUPER+Return drop-down terminal
 --   SUPER+E nautilus · ALT+1..4 workspaces · ALT+Tab · click to focus

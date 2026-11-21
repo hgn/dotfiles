@@ -47,30 +47,40 @@ Item {
     readonly property int targetW: mode === "media" ? 500 : mode === "info" ? 470 : idleW
     readonly property int targetH: mode === "media" ? 156 : mode === "info" ? 148 : Theme.barHeight
 
-    Rectangle {
+    Item {
         id: shape
         x: (root.width - width) / 2
-        width: root.targetW
+        width: root.targetW + 2 * Theme.barFlare
         height: root.targetH
-        radius: root.expanded ? 10 : Theme.radius
-        color: root.expanded ? Theme.panel : Theme.bg
-        border.width: 1
-        border.color: Store.dnd ? Qt.rgba(Theme.yellow.r, Theme.yellow.g, Theme.yellow.b, 0.55)
-                    : root.expanded ? Theme.borderStrong
-                    : Theme.border
-        clip: true
 
         Behavior on width  { SpringAnimation { spring: 4.0; damping: 0.34; epsilon: 0.4 } }
         Behavior on height { SpringAnimation { spring: 4.0; damping: 0.36; epsilon: 0.4 } }
-        Behavior on radius { NumberAnimation { duration: 180 } }
-        Behavior on color  { ColorAnimation  { duration: 160 } }
-        Behavior on border.color { ColorAnimation { duration: 160 } }
+
+        // Top-docked shape with concave flares into the upper monitor edge
+        // and softly rounded bottom corners.
+        DockedSurface {
+            property real cornerRadius: root.expanded ? 8 : Theme.radius
+            Behavior on cornerRadius { NumberAnimation { duration: 180 } }
+
+            anchors.fill: parent
+            flare: Theme.barFlare
+            radius: cornerRadius
+            fillColor: root.expanded ? Theme.panel : Theme.bg
+            borderColor: Store.dnd ? Qt.rgba(Theme.yellow.r, Theme.yellow.g, Theme.yellow.b, 0.55)
+                       : root.expanded ? Theme.borderStrong
+                       : Theme.border
+
+            Behavior on fillColor   { ColorAnimation { duration: 160 } }
+            Behavior on borderColor { ColorAnimation { duration: 160 } }
+        }
 
         // Subtle 2px top accent strip visible when enlarged
         Rectangle {
             anchors.top: parent.top
             anchors.left: parent.left
+            anchors.leftMargin: Theme.barFlare + 1
             anchors.right: parent.right
+            anchors.rightMargin: Theme.barFlare + 1
             height: 2
             opacity: root.expanded ? 0.9 : 0
             Behavior on opacity { NumberAnimation { duration: 160 } }
@@ -110,6 +120,9 @@ Item {
             property string name
             readonly property bool on: root.mode === name
             anchors.fill: parent
+            anchors.leftMargin: Theme.barFlare
+            anchors.rightMargin: Theme.barFlare
+            clip: true
             opacity: on ? 1 : 0
             scale: on ? 1 : 0.95
             visible: opacity > 0.01

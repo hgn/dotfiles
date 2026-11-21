@@ -9,6 +9,7 @@ import Quickshell.Services.SystemTray
 Panel {
     id: root
     required property var barWindow
+    dockRight: true
     spacing: 1
 
     // Technical telemetry: RAM + Temp (click opens detailed SysPopup with CPU graph)

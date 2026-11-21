@@ -46,7 +46,7 @@ PanelWindow {
 
     LeftPanel {
         id: left
-        x: Theme.barMarginX
+        x: 0
         visible: !Store.barHidden
     }
 
@@ -59,7 +59,6 @@ PanelWindow {
     RightPanel {
         id: right
         anchors.right: parent.right
-        anchors.rightMargin: Theme.barMarginX
         barWindow: bar
         visible: !Store.barHidden
     }
@@ -67,6 +66,6 @@ PanelWindow {
     OsdBanner {
         id: osd
         anchors.horizontalCenter: parent.horizontalCenter
-        y: Store.barHidden ? Theme.barMarginTop : center.y + center.height + 8
+        y: Store.barHidden ? 10 : center.y + center.height + 8
     }
 }

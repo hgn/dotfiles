@@ -19,7 +19,7 @@ LazyLoader {
             return Quickshell.screens.find(s => s.name === name) || Quickshell.screens[0]
         }
         anchors { top: true; right: true }
-        margins.top: Store.barHidden ? Theme.barMarginTop : Theme.barMarginTop + Theme.barHeight + 10
+        margins.top: Store.barHidden ? 10 : Theme.barMarginTop + Theme.barHeight + 10
         margins.right: Theme.barMarginX
         exclusionMode: ExclusionMode.Ignore
         implicitWidth: 380

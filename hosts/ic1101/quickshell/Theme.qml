@@ -28,9 +28,10 @@ Singleton {
     readonly property string iconFont:    "Symbols Nerd Font"
     readonly property int fontSize:       17
     readonly property int barHeight:      40
-    readonly property int barMarginTop:   8
+    readonly property int barMarginTop:   0
     readonly property int barMarginX:     12
-    readonly property int radius:         6
+    readonly property int barFlare:       3
+    readonly property int radius:         5
     readonly property int chipRadius:     5
     readonly property int cardRadius:     8
 

@@ -5,6 +5,7 @@ import Quickshell.Hyprland
 // Left floating glass panel: Debian launcher, Kanji workspaces (一..十), window title.
 Panel {
     id: root
+    dockLeft: true
     spacing: 4
 
     readonly property var kanji: ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十"]

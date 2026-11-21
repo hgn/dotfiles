@@ -258,7 +258,7 @@ Singleton {
             "nmcli -t -f NAME connection show --active 2>/dev/null | grep -qxF fritz-wg && echo 'VPN 1' || echo 'VPN 0'; " +
             "dev=$(nmcli -t -f TYPE,STATE,CONNECTION dev 2>/dev/null | awk -F: '$2==\"connected\" && ($1==\"wifi\" || $1==\"ethernet\") {print $1 \"|\" $3; exit}'); " +
             "echo \"NET ${dev:-offline|}\"; " +
-            "sig=$(awk 'NR==3 {gsub(/\\./,\"\",$3); printf \"%d\", ($3*100)/70}' /proc/net/wireless 2>/dev/null); " +
+            "sig=$(nmcli -t -f ACTIVE,SIGNAL dev wifi list --rescan no 2>/dev/null | awk -F: '$1==\"yes\" {print $2; exit}'); " +
             "echo \"SIG ${sig:-0}\"; " +
             "pp=$(powerprofilesctl get 2>/dev/null); " +
             "[ -n \"$pp\" ] && echo \"PP $pp\""

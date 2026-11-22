@@ -48,7 +48,13 @@ alias mutt-offline='mutt -F ~/.mutt/muttrc-offline'
 alias bat='batcat --color always -pp'
 # imv: Debian only ships imv-wayland / imv-x11
 if [[ -n $WAYLAND_DISPLAY ]]; then alias imv='imv-wayland'; else alias imv='imv-x11'; fi
-alias l='exa -bl -s newest --color always --time-style=long-iso'
+if (( $+commands[eza] )); then
+  alias l='eza -bl -s newest --color always --time-style=long-iso'
+elif (( $+commands[exa] )); then
+  alias l='exa -bl -s newest --color always --time-style=long-iso'
+else
+  alias l='ls -lart --color=auto --time-style=long-iso'
+fi
 alias less="less -r"
 
 alias mpv-audio='mpv --vo=tct --lavfi-complex="[aid1]asplit[ao][a1];[a1]showcqt=s=1280x480[vo]"'

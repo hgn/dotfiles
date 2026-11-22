@@ -56,3 +56,4 @@ mosh
 curl
 wireguard
 libnotify-bin
+eza

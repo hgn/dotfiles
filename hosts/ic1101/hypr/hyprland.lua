@@ -95,8 +95,8 @@ hl.config({
 
         blur = {
             enabled   = true,
-            size      = 8,
-            passes    = 3,
+            size      = 4,
+            passes    = 2,
             noise     = 0.02,
             contrast  = 1.0,
             brightness = 0.9,
@@ -196,7 +196,7 @@ local BASE = {
         shadow = { enabled = true, range = 18, render_power = 3, offset = { 0, 4 }, sharp = false,
                    color = "rgba(000000aa)", color_inactive = "rgba(00000055)" },
         glow   = { enabled = false, range = 14, color = "rgba(00000000)", color_inactive = "rgba(00000000)" },
-        blur   = { enabled = true, variant = 0, size = 8, passes = 3, vibrancy = 0.25 },
+        blur   = { enabled = true, variant = 0, size = 4, passes = 2, vibrancy = 0.25 },
         wobble = { enabled = true },
     },
 }

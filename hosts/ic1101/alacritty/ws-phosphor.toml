@@ -3,7 +3,7 @@
 import = ["~/.config/alacritty/wm.toml"]
 
 [window]
-opacity = 1.0
+opacity = 0.86
 
 [colors.primary]
 background = "#030a04"

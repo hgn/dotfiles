@@ -22,6 +22,31 @@ Singleton {
     property bool powerOpen: false
     property bool inhibitIdle: false
 
+    function toggleIdleInhibit() {
+        inhibitIdle = !inhibitIdle
+        if (inhibitIdle) {
+            pushToast(
+                "idle-inhibit",
+                "Wachmodus",
+                "Wachmodus aktiviert",
+                "Bildschirm bleibt an · kein automatisches Abdunkeln, Sperren oder Standby",
+                0xF0176,
+                Theme.yellow,
+                4000
+            )
+        } else {
+            pushToast(
+                "idle-inhibit",
+                "Wachmodus",
+                "Wachmodus deaktiviert",
+                "Automatische Bildschirmsperre und Standby sind wieder aktiv",
+                0xF0FAA,
+                Theme.dim,
+                3500
+            )
+        }
+    }
+
     // ---- audio (PipeWire) -----------------------------------------------------
     readonly property var sink: Pipewire.defaultAudioSink
     readonly property real volume: sink && sink.audio ? sink.audio.volume : 0
@@ -122,11 +147,30 @@ Singleton {
         if (p === "power-saver") return Theme.green
         return Theme.blue
     }
+    function powerProfileLabel(p) {
+        if (p === "performance") return "Leistung"
+        if (p === "power-saver") return "Energiesparen"
+        return "Ausgewogen"
+    }
+    function powerProfileDesc(p) {
+        if (p === "performance") return "Maximale CPU-Leistung · höherer Stromverbrauch & Lüfter"
+        if (p === "power-saver") return "Reduziert CPU-Takt & Verbrauch für längere Akkulaufzeit"
+        return "Standard-Balance zwischen Leistung und Akkulaufzeit"
+    }
     function cyclePowerProfile() {
         const order = ["power-saver", "balanced", "performance"]
         const next = order[(order.indexOf(powerProfile) + 1) % order.length]
         powerProfile = next
         run("powerprofilesctl set " + next)
+        pushToast(
+            "power-profile",
+            "Energieprofil",
+            powerProfileLabel(next),
+            powerProfileDesc(next),
+            powerProfileIcon(next),
+            powerProfileColor(next),
+            3800
+        )
     }
 
     // ---- system telemetry (CPU, RAM, temp, battery, backlight) ----------------
@@ -319,10 +363,11 @@ Singleton {
         onTriggered: weatherProc.running = true
     }
 
-    // ---- notifications (stacked technical cards at top-right) -----------------
-    property var notifications: []    // [{ id, notif, paused, totalMs, remainingMs }]
+    // ---- notifications (concave right-docked toasts at bottom-right) ----------
+    property var notifications: []    // [{ id, notif, paused, closing, closeMs, totalMs, remainingMs }]
     property bool dnd: false
     property int notifSeq: 0
+    property int notifTick: 0
 
     NotificationServer {
         id: server
@@ -355,11 +400,13 @@ Singleton {
 
             const ms = n.urgency === NotificationUrgency.Critical
                        ? 15000
-                       : (n.expireTimeout > 0 ? Math.max(3000, Math.min(n.expireTimeout, 10000)) : 6000)
+                       : (n.expireTimeout > 0 ? Math.max(3000, Math.min(n.expireTimeout, 10000)) : 6500)
             const entry = {
                 id: ++store.notifSeq,
                 notif: n,
                 paused: false,
+                closing: false,
+                closeMs: 240,
                 totalMs: ms,
                 remainingMs: ms
             }
@@ -367,65 +414,107 @@ Singleton {
         }
     }
 
+    function pushToast(tag, appName, summary, body, iconCode, accent, ms) {
+        const dur = ms || 4200
+        const entry = {
+            id: ++store.notifSeq,
+            local: true,
+            tag: tag || "",
+            appName: appName || "System",
+            summary: summary || "",
+            body: body || "",
+            iconCode: iconCode || 0xF009A,
+            accent: accent || Theme.purple,
+            notif: null,
+            paused: false,
+            closing: false,
+            closeMs: 240,
+            totalMs: dur,
+            remainingMs: dur
+        }
+        const filtered = tag ? store.notifications.filter(i => i.tag !== tag) : store.notifications
+        store.notifications = [entry].concat(filtered).slice(0, 5)
+    }
+
     Timer {
-        interval: 150
+        interval: 60
         repeat: true
         running: store.notifications.length > 0
         onTriggered: {
+            let structuralChange = false
             const next = []
-            let changed = false
             for (const item of store.notifications) {
-                if (!item.notif || !item.notif.tracked) {
-                    changed = true
+                if (!item.local && (!item.notif || !item.notif.tracked) && !item.closing) {
+                    item.closing = true
+                    item.closeMs = 220
+                }
+                if (item.closing) {
+                    item.closeMs -= 60
+                    if (item.closeMs <= 0) {
+                        structuralChange = true
+                        continue
+                    }
+                    next.push(item)
                     continue
                 }
                 if (!item.paused) {
-                    const rem = item.remainingMs - 150
-                    if (rem <= 0) {
-                        item.notif.expire()
-                        changed = true
-                        continue
+                    item.remainingMs = Math.max(0, item.remainingMs - 60)
+                    if (item.remainingMs <= 0) {
+                        if (item.notif && item.notif.tracked) item.notif.expire()
+                        item.closing = true
+                        item.closeMs = 240
                     }
-                    next.push({
-                        id: item.id,
-                        notif: item.notif,
-                        paused: item.paused,
-                        totalMs: item.totalMs,
-                        remainingMs: rem
-                    })
-                    changed = true
-                } else {
-                    next.push(item)
                 }
+                next.push(item)
             }
-            if (changed) store.notifications = next
+            store.notifTick++
+            if (structuralChange) store.notifications = next
         }
     }
 
     function setNotifPaused(id, paused) {
-        store.notifications = store.notifications.map(item =>
-            item.id === id
-                ? { id: item.id, notif: item.notif, paused: paused, totalMs: item.totalMs, remainingMs: paused ? item.remainingMs : Math.max(item.remainingMs, 2000) }
-                : item
-        )
+        for (const item of store.notifications) {
+            if (item.id === id) {
+                item.paused = paused
+                if (!paused && !item.closing) item.remainingMs = Math.max(item.remainingMs, 2200)
+                store.notifTick++
+                return
+            }
+        }
     }
     function dismissNotif(id) {
-        const hit = store.notifications.find(i => i.id === id)
-        if (hit && hit.notif && hit.notif.tracked) hit.notif.dismiss()
-        store.notifications = store.notifications.filter(i => i.id !== id)
+        for (const item of store.notifications) {
+            if (item.id === id && !item.closing) {
+                if (item.notif && item.notif.tracked) item.notif.dismiss()
+                item.closing = true
+                item.closeMs = 220
+                store.notifTick++
+                return
+            }
+        }
     }
     function activateNotif(id) {
-        const hit = store.notifications.find(i => i.id === id)
-        if (hit && hit.notif && hit.notif.tracked) {
-            const def = hit.notif.actions.find(a => a.identifier === "default")
-            if (def) def.invoke()
-            else hit.notif.dismiss()
+        for (const item of store.notifications) {
+            if (item.id === id && !item.closing) {
+                if (item.notif && item.notif.tracked) {
+                    const def = item.notif.actions.find(a => a.identifier === "default")
+                    if (def) def.invoke()
+                    else item.notif.dismiss()
+                }
+                item.closing = true
+                item.closeMs = 220
+                store.notifTick++
+                return
+            }
         }
-        store.notifications = store.notifications.filter(i => i.id !== id)
     }
     function dismissAll() {
         for (const n of server.trackedNotifications.values) n.dismiss()
-        store.notifications = []
+        for (const item of store.notifications) {
+            item.closing = true
+            item.closeMs = 200
+        }
+        store.notifTick++
     }
 
     // ---- launcher usage counts ------------------------------------------------

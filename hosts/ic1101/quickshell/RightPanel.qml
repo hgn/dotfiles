@@ -77,17 +77,23 @@ Panel {
     // Idle inhibitor
     Chip {
         padX: 7
+        tooltip: Store.inhibitIdle
+            ? "Wachmodus aktiv\nVerhindert Abdunkeln, Sperren & Standby · Klick: aus"
+            : "Wachmodus aus\nKlick: Bildschirm & Sperrbildschirm wach halten"
         Icon {
             code: Store.inhibitIdle ? 0xF0176 : 0xF0FAA
             size: Theme.fontSize + 2
             color: Store.inhibitIdle ? Theme.yellow : Theme.dim
         }
-        onClicked: Store.inhibitIdle = !Store.inhibitIdle
+        onClicked: Store.toggleIdleInhibit()
     }
 
     // VPN (WireGuard fritz-wg)
     Chip {
         padX: 7
+        tooltip: Store.vpnActive
+            ? "VPN (fritz-wg) verbunden\nKlick: Tunnel trennen"
+            : "VPN (fritz-wg) getrennt\nKlick: über Fritzbox verbinden"
         Icon {
             code: 0xF0582
             size: Theme.fontSize + 2
@@ -188,6 +194,8 @@ Panel {
     // Power profile (click cycles power-saver -> balanced -> performance)
     Chip {
         padX: 7
+        tooltip: "Energieprofil: " + Store.powerProfileLabel(Store.powerProfile) + "\n"
+            + Store.powerProfileDesc(Store.powerProfile) + " · Klick: wechseln"
         Icon {
             code: Store.powerProfileIcon(Store.powerProfile)
             size: Theme.fontSize + 2

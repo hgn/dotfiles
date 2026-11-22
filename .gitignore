@@ -1,5 +1,6 @@
 common/vimdata/.netrwhist
 common/vimdata/autoload/plug.vim
+common/bin/testptp
 __pycache__/
 *.pyc
 .claude/

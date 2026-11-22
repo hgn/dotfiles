@@ -43,7 +43,6 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("qs")
     hl.exec_cmd("hypridle")
     hl.exec_cmd("/usr/libexec/hyprpolkitagent")
-    hl.exec_cmd(terminal)
     -- drop-down terminal lives in the special workspace "term"
     hl.exec_cmd(terminal .. " --class dropterm -o font_size=15 -o background_opacity=0.7", { workspace = "special:term silent" })
 end)

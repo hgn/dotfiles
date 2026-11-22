@@ -24,7 +24,7 @@ Singleton {
     readonly property color orange:       "#ff9e64"
     readonly property color red:          "#f7768e"
 
-    readonly property string font:        "JetBrainsMono Nerd Font"
+    readonly property string font:        "Inter"
     readonly property string iconFont:    "Symbols Nerd Font"
     readonly property int fontSize:       17
     readonly property int barHeight:      40

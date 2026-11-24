@@ -2,7 +2,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Widgets
 import Quickshell.Services.Mpris
-import Quickshell.Services.Notifications
 
 // The dynamic island: one black shape that springs between sizes.
 //   idle     clock
@@ -10,7 +9,6 @@ import Quickshell.Services.Notifications
 //   info     hover without media: big clock, date, weather
 //   media    hover with media: cover, title, progress, controls
 //   volume   OSD after a volume change
-//   notif    incoming notification
 // Scroll = volume, middle click = play/pause, right click = do not disturb.
 Item {
     id: island
@@ -24,9 +22,7 @@ Item {
     readonly property bool hovered: hover.hovered
     property bool osd: false
 
-    // a shown notification stays in front while hovered, so it can be read
     readonly property string mode: Store.launcherOpen ? "launcher"
-        : Store.current ? "notif"
         : hovered ? (player ? "media" : "info")
         : osd ? "volume"
         : player ? "compact" : "idle"
@@ -37,7 +33,6 @@ Item {
         info:    [580, 178],
         media:   [620, 172],
         volume:  [460, 64],
-        notif:   [640, 128],
         launcher: [780, launcherView.implicitHeight + 20]
     })
     readonly property int targetW: sizes[mode][0]
@@ -45,16 +40,6 @@ Item {
 
     implicitWidth: shape.width
     implicitHeight: shape.height
-
-    // pause only while the notification itself is under the pointer
-    readonly property bool holding: hovered && mode === "notif"
-    onHoldingChanged: Store.holdNotif = holding
-    // the launcher resizes the surface under a resting pointer; Wayland then
-    // sends no leave event, so drop any stale hover pause on open and close
-    Connections {
-        target: Store
-        function onLauncherOpenChanged() { Store.holdNotif = false }
-    }
 
     Connections {
         target: Store
@@ -110,7 +95,6 @@ Item {
                 if (island.mode === "launcher") return
                 if (m.button === Qt.RightButton) Store.dnd = !Store.dnd
                 else if (m.button === Qt.MiddleButton) { if (island.player) island.player.togglePlaying() }
-                else if (island.mode === "notif") Store.activateCurrent()
                 else if (island.mode === "info") Store.run("gnome-calendar")
             }
             onWheel: w => { if (island.mode !== "launcher") Store.setVolume(Store.volume + (w.angleDelta.y > 0 ? 0.02 : -0.02)) }
@@ -363,92 +347,6 @@ Item {
                     color: "white"; font.weight: Font.Bold
                     horizontalAlignment: Text.AlignRight
                     anchors.verticalCenter: parent.verticalCenter
-                }
-            }
-        }
-
-        // ---- notification -----------------------------------------------------------------
-        Layer {
-            id: notifLayer
-            name: "notif"
-            readonly property var n: Store.current
-            // image hint, app icon, desktop entry: real paths win, names go
-            // through the icon theme; nothing found leaves the bell glyph
-            readonly property string iconSrc: {
-                if (!n) return ""
-                for (let c of [n.image, n.appIcon, n.desktopEntry]) {
-                    if (!c) continue
-                    // image://icon/<name> is only a theme lookup, not a picture
-                    if (c.startsWith("image://icon/")) c = c.substring(13)
-                    if (c.startsWith("/")) return "file://" + c
-                    if (c.startsWith("file:") || c.startsWith("image:")) return c
-                    if (Quickshell.hasThemeIcon(c)) return Quickshell.iconPath(c)
-                }
-                return ""
-            }
-            readonly property bool isPicture: iconSrc !== "" && n && n.image !== "" && iconSrc.indexOf(n.image) >= 0
-            ClippingRectangle {
-                id: notifIcon
-                anchors.left: parent.left
-                anchors.verticalCenter: parent.verticalCenter
-                width: 72; height: 72; radius: 18
-                color: Theme.hl
-                IconImage {
-                    id: notifImg
-                    anchors.fill: parent
-                    anchors.margins: notifLayer.isPicture ? 0 : 10
-                    source: notifLayer.iconSrc
-                    asynchronous: true
-                    visible: status === Image.Ready
-                }
-                Icon {
-                    anchors.centerIn: parent
-                    code: 0xF009A; size: 34; color: Theme.purple
-                    visible: notifImg.status !== Image.Ready
-                }
-            }
-            Column {
-                anchors.left: notifIcon.right
-                anchors.leftMargin: 16
-                anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
-                spacing: 4
-                Txt {
-                    width: parent.width
-                    text: notifLayer.n ? notifLayer.n.appName : ""
-                    size: 13; color: notifLayer.n && notifLayer.n.urgency === NotificationUrgency.Critical ? Theme.red : Theme.purple
-                    font.capitalization: Font.AllUppercase; font.letterSpacing: 1
-                }
-                Txt {
-                    width: parent.width
-                    text: notifLayer.n ? notifLayer.n.summary : ""
-                    color: "white"; size: 18; font.weight: Font.Bold
-                }
-                Txt {
-                    width: parent.width
-                    text: notifLayer.n ? notifLayer.n.body : ""
-                    textFormat: Text.StyledText
-                    color: Theme.fg; size: 15
-                    wrapMode: Text.WordWrap
-                    maximumLineCount: 2
-                    visible: text !== ""
-                }
-                Row {
-                    spacing: 8
-                    visible: actionsRep.count > 0
-                    Repeater {
-                        id: actionsRep
-                        model: notifLayer.n
-                               ? notifLayer.n.actions.filter(a => a.identifier !== "default") : []
-                        Chip {
-                            id: actionChip
-                            required property var modelData
-                            implicitHeight: 30
-                            color: hovered ? Theme.purple : Theme.hl
-                            Txt { text: actionChip.modelData ? actionChip.modelData.text : ""; size: 14 }
-                            onClicked: { modelData.invoke(); Store.nextNotif() }
-                        }
-                    }
                 }
             }
         }

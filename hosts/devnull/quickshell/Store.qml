@@ -131,11 +131,11 @@ Singleton {
         onTriggered: weatherProc.running = true
     }
 
-    // ---- notifications: shown one at a time inside the island ------------------
-    property var current: null
-    property var queue: []
+    // ---- notifications (concave right-docked toasts at bottom-right) ----------
+    property var notifications: []    // [{ id, notif, paused, closing, closeMs, totalMs, remainingMs }]
     property bool dnd: false
-    property bool holdNotif: false
+    property int notifSeq: 0
+    property int notifTick: 0
 
     NotificationServer {
         id: server
@@ -149,51 +149,124 @@ Singleton {
             if (n.appName === "wm-osd") return
             n.tracked = true
             if (store.dnd && n.urgency !== NotificationUrgency.Critical) return
-            store.queue = store.queue.concat([n])
-            if (!store.current) store.nextNotif()
+
+            const ms = n.urgency === NotificationUrgency.Critical
+                       ? 15000
+                       : (n.expireTimeout > 0 ? Math.max(3000, Math.min(n.expireTimeout, 10000)) : 6500)
+            const entry = {
+                id: ++store.notifSeq,
+                notif: n,
+                paused: false,
+                closing: false,
+                closeMs: 240,
+                totalMs: ms,
+                remainingMs: ms
+            }
+            store.notifications = [entry].concat(store.notifications).slice(0, 5)
         }
     }
 
-    function notifTimeout(n) {
-        if (n.urgency === NotificationUrgency.Critical) return 20000
-        return n.expireTimeout > 0 ? Math.max(3000, Math.min(n.expireTimeout, 10000)) : 6000
+    function pushToast(tag, appName, summary, body, iconCode, accent, ms) {
+        const dur = ms || 4200
+        const entry = {
+            id: ++store.notifSeq,
+            local: true,
+            tag: tag || "",
+            appName: appName || "System",
+            summary: summary || "",
+            body: body || "",
+            iconCode: iconCode || 0xF009A,
+            accent: accent || Theme.purple,
+            notif: null,
+            paused: false,
+            closing: false,
+            closeMs: 240,
+            totalMs: dur,
+            remainingMs: dur
+        }
+        const filtered = tag ? store.notifications.filter(i => i.tag !== tag) : store.notifications
+        store.notifications = [entry].concat(filtered).slice(0, 5)
     }
-    function nextNotif() {
-        const q = queue.filter(n => n && n.tracked)
-        if (q.length === 0) { current = null; queue = []; notifLimit.stop(); return }
-        current = q[0]
-        queue = q.slice(1)
-        notifTimer.interval = notifTimeout(current)
-        notifTimer.restart()
-        // hard limit: closes even if the hover pause got stuck
-        notifLimit.interval = current.urgency === NotificationUrgency.Critical ? 60000 : 30000
-        notifLimit.restart()
+
+    Timer {
+        interval: 60
+        repeat: true
+        running: store.notifications.length > 0
+        onTriggered: {
+            let structuralChange = false
+            const next = []
+            for (const item of store.notifications) {
+                if (!item.local && (!item.notif || !item.notif.tracked) && !item.closing) {
+                    item.closing = true
+                    item.closeMs = 220
+                }
+                if (item.closing) {
+                    item.closeMs -= 60
+                    if (item.closeMs <= 0) {
+                        structuralChange = true
+                        continue
+                    }
+                    next.push(item)
+                    continue
+                }
+                if (!item.paused) {
+                    item.remainingMs = Math.max(0, item.remainingMs - 60)
+                    if (item.remainingMs <= 0) {
+                        if (item.notif && item.notif.tracked) item.notif.expire()
+                        item.closing = true
+                        item.closeMs = 240
+                    }
+                }
+                next.push(item)
+            }
+            store.notifTick++
+            if (structuralChange) store.notifications = next
+        }
     }
-    function closeCurrent() {
-        if (current && current.tracked) current.expire()
-        nextNotif()
+
+    function setNotifPaused(id, paused) {
+        for (const item of store.notifications) {
+            if (item.id === id) {
+                item.paused = paused
+                if (!paused && !item.closing) item.remainingMs = Math.max(item.remainingMs, 2200)
+                store.notifTick++
+                return
+            }
+        }
+    }
+    function dismissNotif(id) {
+        for (const item of store.notifications) {
+            if (item.id === id && !item.closing) {
+                if (item.notif && item.notif.tracked) item.notif.dismiss()
+                item.closing = true
+                item.closeMs = 220
+                store.notifTick++
+                return
+            }
+        }
+    }
+    function activateNotif(id) {
+        for (const item of store.notifications) {
+            if (item.id === id && !item.closing) {
+                if (item.notif && item.notif.tracked) {
+                    const def = item.notif.actions.find(a => a.identifier === "default")
+                    if (def) def.invoke()
+                    else item.notif.dismiss()
+                }
+                item.closing = true
+                item.closeMs = 220
+                store.notifTick++
+                return
+            }
+        }
     }
     function dismissAll() {
         for (const n of server.trackedNotifications.values) n.dismiss()
-        queue = []
-        current = null
-    }
-    function activateCurrent() {
-        if (!current) return
-        const def = current.actions.find(a => a.identifier === "default")
-        if (def) def.invoke()
-        else current.dismiss()
-        nextNotif()
-    }
-    // hovering the shown notification pauses it; leaving restarts the countdown
-    onHoldNotifChanged: if (!holdNotif && current) notifTimer.restart()
-    Timer {
-        id: notifTimer
-        onTriggered: if (!store.holdNotif) store.closeCurrent()
-    }
-    Timer {
-        id: notifLimit
-        onTriggered: if (store.current) store.closeCurrent()
+        for (const item of store.notifications) {
+            item.closing = true
+            item.closeMs = 200
+        }
+        store.notifTick++
     }
 
     // ---- launcher usage counts (ranking), kept in the quickshell state dir --------
@@ -219,13 +292,9 @@ Singleton {
         function mixer(): void { store.mixerOpen = !store.mixerOpen }
         function launcher(): void { store.launcherOpen = !store.launcherOpen }
         function status(): string {
-            const c = store.current
             return JSON.stringify({
-                current: c ? { app: c.appName, summary: c.summary, tracked: c.tracked,
-                               resident: c.resident, expireTimeout: c.expireTimeout } : null,
-                queue: store.queue.length, hold: store.holdNotif, timerRunning: notifTimer.running,
-                limitRunning: notifLimit.running,
-                timerInterval: notifTimer.interval, dnd: store.dnd
+                notifications: store.notifications.length,
+                dnd: store.dnd
             })
         }
         function sys(): void { store.sysOpen = !store.sysOpen }

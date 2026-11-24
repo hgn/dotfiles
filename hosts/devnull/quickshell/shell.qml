@@ -10,5 +10,6 @@ ShellRoot {
         model: Quickshell.screens
         Bar {}
     }
+    Notifications {}
     PowerMenu {}
 }

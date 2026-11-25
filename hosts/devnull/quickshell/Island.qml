@@ -22,8 +22,7 @@ Item {
     readonly property bool hovered: hover.hovered
     property bool osd: false
 
-    readonly property string mode: Store.launcherOpen ? "launcher"
-        : hovered ? (player ? "media" : "info")
+    readonly property string mode: hovered ? (player ? "media" : "info")
         : osd ? "volume"
         : player ? "compact" : "idle"
 
@@ -32,8 +31,7 @@ Item {
         compact: [380, 48],
         info:    [580, 178],
         media:   [620, 172],
-        volume:  [460, 64],
-        launcher: [780, launcherView.implicitHeight + 20]
+        volume:  [460, 64]
     })
     readonly property int targetW: sizes[mode][0]
     readonly property int targetH: sizes[mode][1]
@@ -73,7 +71,9 @@ Item {
             flare: Theme.barFlare
             radius: cornerRadius
             fillColor: island.mode === "idle" || island.mode === "compact" ? Theme.glass : Theme.island
-            borderColor: Store.dnd ? Qt.rgba(0.88, 0.69, 0.41, 0.55) : Theme.border
+            borderColor: Store.launcherOpen ? Theme.purple
+                       : Store.dnd ? Qt.rgba(0.88, 0.69, 0.41, 0.55)
+                       : Theme.border
             Behavior on fillColor   { ColorAnimation { duration: 180 } }
             Behavior on borderColor { ColorAnimation { duration: 180 } }
         }
@@ -83,15 +83,12 @@ Item {
         MouseArea {
             anchors.fill: parent
             acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
-            // in launcher mode it only swallows clicks on the card, so they
-            // do not fall through to the dismiss area behind it
             onClicked: m => {
-                if (island.mode === "launcher") return
                 if (m.button === Qt.RightButton) Store.dnd = !Store.dnd
                 else if (m.button === Qt.MiddleButton) { if (island.player) island.player.togglePlaying() }
                 else if (island.mode === "info") Store.run("gnome-calendar")
             }
-            onWheel: w => { if (island.mode !== "launcher") Store.setVolume(Store.volume + (w.angleDelta.y > 0 ? 0.02 : -0.02)) }
+            onWheel: w => Store.setVolume(Store.volume + (w.angleDelta.y > 0 ? 0.02 : -0.02))
         }
 
         // every mode is a layer that fades and scales in when active
@@ -108,16 +105,6 @@ Item {
             visible: opacity > 0.01
             Behavior on opacity { NumberAnimation { duration: on ? 260 : 120 } }
             Behavior on scale { NumberAnimation { duration: 300; easing.type: Easing.OutBack } }
-        }
-
-        // ---- launcher (Super tap) ---------------------------------------------
-        Layer {
-            name: "launcher"
-            Launcher { id: launcherView; anchors.fill: parent }
-        }
-        Connections {
-            target: Store
-            function onLauncherOpenChanged() { if (Store.launcherOpen) Qt.callLater(launcherView.open) }
         }
 
         // ---- idle ------------------------------------------------------------

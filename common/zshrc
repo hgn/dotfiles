@@ -198,10 +198,10 @@ _feh_completion() {
 }
 compdef _feh_completion feh
 
-_xpdf_completion() {
+_pdf_completion() {
     _files -g "*.pdf"
 }
-compdef _xpdf_completion xpdf
+compdef _pdf_completion papers xpdf
 
 ## PROMPT
 
@@ -225,6 +225,9 @@ alias mutt-offline-resync='email-sync >/dev/null 2>&1 &; mutt -F ~/.mutt/muttrc-
 alias bat='batcat --color=auto -pp'
 alias less='less -R'
 alias fd='fdfind'
+# duf hangs on unreachable systemd automounts (/mnt/sdb1, /mnt/nas); default to local mounts
+alias duf='duf --only local'
+alias xpdf='papers'
 
 # imv: Debian only ships imv-wayland / imv-x11
 if [[ -n $WAYLAND_DISPLAY ]]; then
@@ -446,6 +449,16 @@ fkill() {
     pids=$(ps -u "$USER" -o pid,pcpu,pmem,comm,args --sort=-pcpu |
            sed 1d | fzf -m --height=40% | awk '{print $1}') || return
     echo "$pids" | xargs kill "-${1:-15}"
+}
+
+# Yazi file manager wrapper: cd into the last visited directory on quit
+y() {
+    local tmp cwd
+    tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
+    command yazi "$@" --cwd-file="$tmp"
+    IFS= read -r -d '' cwd < "$tmp"
+    [ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
+    rm -f -- "$tmp"
 }
 
 # cd && ls

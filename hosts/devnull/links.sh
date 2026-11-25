@@ -4,6 +4,7 @@
 link hosts/devnull/hypr                 "$HOME/.config/hypr"
 link hosts/devnull/waybar               "$HOME/.config/waybar"
 link hosts/devnull/quickshell           "$HOME/.config/quickshell"
+link hosts/devnull/fuzzel               "$HOME/.config/fuzzel"
 
 # Terminal override (included by common/kitty.conf via globinclude)
 link hosts/devnull/kitty/local.conf     "$HOME/.config/kitty/local.conf"

@@ -43,6 +43,9 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("qs")
     hl.exec_cmd("hypridle")
     hl.exec_cmd("/usr/libexec/hyprpolkitagent")
+    -- clipboard history (text & images) -> SUPER+C opens fuzzel picker
+    hl.exec_cmd("wl-paste --type text --watch cliphist store")
+    hl.exec_cmd("wl-paste --type image --watch cliphist store")
     -- warm kitty single-instance daemons so ALT+Return opens in ~30 ms instead of ~900 ms
     hl.exec_cmd(terminal .. " -1 --instance-group=main --start-as=hidden")
     hl.exec_cmd(terminal .. " -1 --instance-group=fokus --start-as=hidden"
@@ -436,6 +439,7 @@ hl.bind("SUPER + mouse:272",  hl.dsp.window.drag(),   { mouse = true })
 hl.bind("SUPER + mouse:273",  hl.dsp.window.resize(), { mouse = true })
 
 hl.bind("SUPER + L",         hl.dsp.exec_cmd("loginctl lock-session"))
+hl.bind("SUPER + C",         hl.dsp.exec_cmd("cliphist list | fuzzel --dmenu --prompt '󰅌  Clipboard › ' | cliphist decode | wl-copy"))
 hl.bind("SUPER + Escape",    hl.dsp.exec_cmd(wm .. "wm-power"))
 hl.bind("SUPER + N",         hl.dsp.exec_cmd("qs ipc call shell dismiss"))
 hl.bind("SUPER + SHIFT + N", hl.dsp.exec_cmd("qs ipc call shell dnd"))

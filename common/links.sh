@@ -21,7 +21,6 @@ link common/gpg-agent.conf              "$HOME/.gnupg/gpg-agent.conf"
 
 # Shared tools & terminal base
 link common/kitty.conf                  "$HOME/.config/kitty/kitty.conf"
-link common/ranger                      "$HOME/.config/ranger"
 link common/imv                         "$HOME/.config/imv"
 link common/inkscape-cp-flatuicolors.gpl "$HOME/.config/inkscape/palettes/inkscape-cp-flatuicolors.gpl"
 

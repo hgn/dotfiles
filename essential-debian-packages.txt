@@ -59,3 +59,4 @@ libnotify-bin
 eza
 git-delta
 zsh-syntax-highlighting
+cliphist

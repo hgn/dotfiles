@@ -8,6 +8,7 @@ link common/reportbugrc                 "$HOME/.reportbugrc"
 link common/screenrc                    "$HOME/.screenrc"
 link common/tmux.conf                   "$HOME/.tmux.conf"
 link common/irssi                       "$HOME/.irssi"
+link common/mailcap                     "$HOME/.mailcap"
 
 # Vim & Neovim
 link common/vimrc                       "$HOME/.vimrc"

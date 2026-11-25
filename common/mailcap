@@ -1,0 +1,9 @@
+# Mailcap for NeoMutt (Wayland + X11, works in kitty and alacritty)
+# Copies temp files before detaching because NeoMutt deletes %s as soon as the viewer returns.
+
+application/pdf; sh -c 'f=$(mktemp --suffix=.pdf) && cp -f "$1" "$f" && setsid -f papers "$f" >/dev/null 2>&1 </dev/null' _ %s; test=test -n "$WAYLAND_DISPLAY" -o -n "$DISPLAY"
+application/pdf; pdftotext -layout -q %s -; copiousoutput
+
+image/*; sh -c 'ext="${1##*.}"; [ "$ext" = "$1" ] && ext=img; f=$(mktemp --suffix=".$ext") && cp -f "$1" "$f" && setsid -f feh --auto-zoom "$f" >/dev/null 2>&1 </dev/null' _ %s; test=test -n "$WAYLAND_DISPLAY" -o -n "$DISPLAY"
+
+text/html; w3m -I %{charset} -T text/html -dump %s; copiousoutput

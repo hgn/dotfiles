@@ -342,8 +342,8 @@ hl.bind("ALT + Return", function()
         hl.exec_cmd(terminal .. " -1 --instance-group=main")
     end
 end)
--- SUPER+Return: drop-down terminal (scratchpad), same idea as on the laptop.
--- If it was closed, start a fresh one (it opens visible), else toggle it.
+-- SUPER+Return: drop-down terminal (scratchpad) for mutt/quick shell.
+-- Static blur only (no animated rain shader — saves CPU when open for a long time).
 hl.bind("SUPER + Return", function()
     local running = false
     for _, w in ipairs(hl.get_windows()) do
@@ -356,22 +356,6 @@ hl.bind("SUPER + Return", function()
     end
 end)
 
--- Rain on the glass: while the drop-down terminal is shown, everything behind
--- it gets the animated "drops" blur (variant 3). Animated blur redraws every
--- frame, so it runs only while the terminal is visible; hidden, the blur of
--- the current workspace theme comes back.
-local RAIN = 3
-local function theme_blur()
-    local t = current_theme or THEMES.fokus
-    return merge(BASE.decoration.blur, (t.cfg.decoration or {}).blur or {})
-end
-local function set_rain(on)
-    if on then
-        hl.config({ decoration = { blur = { variant = RAIN, size = 3, passes = 1, special = true } } })
-    else
-        hl.config({ decoration = { blur = theme_blur() } })
-    end
-end
 local function term_shown()
     local sp = hl.get_active_special_workspace()
     return sp ~= nil and (sp.name == "special:term" or sp.name == "term")
@@ -379,18 +363,14 @@ end
 hl.on("workspace.special_active", function()
     hl.timer(function()
         local sp = hl.get_active_special_workspace()
-        local shown = term_shown()
         -- shown but empty (terminal was closed): hide the bare overlay
-        if shown and sp.windows == 0 then
+        if term_shown() and sp.windows == 0 then
             hl.dispatch(hl.dsp.workspace.toggle_special("term"))
-            shown = false
         end
-        set_rain(shown)
     end, { timeout = 100, type = "oneshot" })
 end)
 hl.on("window.close", function(w)
     if w ~= nil and w.class == "dropterm" then
-        set_rain(false)
         if term_shown() then hl.dispatch(hl.dsp.workspace.toggle_special("term")) end
     end
 end)

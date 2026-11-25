@@ -373,7 +373,7 @@ hl.bind("SUPER + mouse:272",  hl.dsp.window.drag(),   { mouse = true })
 hl.bind("SUPER + mouse:273",  hl.dsp.window.resize(), { mouse = true })
 
 -- Drop-down terminal (scratchpad)
--- if the terminal was closed, start a fresh one (it opens visible), else toggle
+-- Static blur only (no animated drops shader — saves CPU/battery when open for a long time).
 hl.bind("SUPER + Return", function()
     local running = false
     for _, w in ipairs(hl.get_windows()) do
@@ -386,42 +386,22 @@ hl.bind("SUPER + Return", function()
     end
 end)
 
--- Water-drops blur (beads running down the glass) only while the drop-down terminal is shown.
--- Blur variants are global in Hyprland, and animated ones redraw every frame,
--- so switch it on/off with the special workspace.
--- variant 3 = drops, 5 = fluid_jar, 6 = crystal pattern (verified by screenshot;
--- numbering is not the stub order)
-local SHIMMER = 3
--- while shown: drops effect + light blur so the desktop behind stays recognizable;
--- hidden: back to the blur of the current workspace theme
-local function set_shimmer(on)
-    if on then
-        hl.config({ decoration = { blur = { variant = SHIMMER, size = 3, passes = 1 } } })
-    else
-        hl.config({ decoration = { blur = theme_blur() } })
-    end
-end
 local function term_shown()
     local sp = hl.get_active_special_workspace()
     return sp ~= nil and (sp.name == "special:term" or sp.name == "term")
 end
--- toggled via Super+Return: follow the special workspace state
+-- toggled via Super+Return: hide the bare overlay if the terminal was closed
 hl.on("workspace.special_active", function()
     hl.timer(function()
         local sp = hl.get_active_special_workspace()
-        local shown = term_shown()
-        -- shown but empty (terminal was closed): hide the bare blur overlay
-        if shown and sp.windows == 0 then
+        if term_shown() and sp.windows == 0 then
             hl.dispatch(hl.dsp.workspace.toggle_special("term"))
-            shown = false
         end
-        set_shimmer(shown)
     end, { timeout = 100, type = "oneshot" })
 end)
--- terminal closed (Super+Q / exit): effect off and hide the empty overlay
+-- terminal closed (Super+Q / exit): hide the empty overlay
 hl.on("window.close", function(w)
     if w ~= nil and w.class == "dropterm" then
-        set_shimmer(false)
         if term_shown() then hl.dispatch(hl.dsp.workspace.toggle_special("term")) end
     end
 end)

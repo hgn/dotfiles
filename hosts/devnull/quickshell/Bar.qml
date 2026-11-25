@@ -47,7 +47,8 @@ PanelWindow {
 
     LeftIsland {
         id: left
-        x: 16
+        x: 0
+        dockLeft: true
     }
 
     Island {
@@ -58,7 +59,7 @@ PanelWindow {
     RightIsland {
         id: right
         anchors.right: parent.right
-        anchors.rightMargin: 16
+        dockRight: true
         barWindow: bar
     }
 }

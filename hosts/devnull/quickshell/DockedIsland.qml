@@ -1,38 +1,38 @@
 import QtQuick
 
-// Island hanging from the top edge: the background starts above the screen,
-// so the top corners are cut off and only the bottom ones are round.
+// Top-docked amethyst glass bar island with concave top fillets and softly
+// rounded bottom corners. Set dockLeft / dockRight to attach flush to screen edges.
 Item {
     id: root
     default property alias content: row.data
     property alias spacing: row.spacing
+    property bool dockLeft: false
+    property bool dockRight: false
     property color fill: Theme.glass
     property color edge: Theme.border
 
-    implicitWidth: row.implicitWidth + 24
-    implicitHeight: Theme.barHeight - 6
+    readonly property int leftFlare: dockLeft ? 0 : Theme.barFlare
+    readonly property int rightFlare: dockRight ? 0 : Theme.barFlare
+    readonly property int padLeft: dockLeft ? 14 : 12
+    readonly property int padRight: dockRight ? 14 : 12
 
-    Rectangle {
-        x: 3
-        y: -Theme.radius
-        width: parent.width - 6
-        height: parent.height + Theme.radius + 5
+    implicitWidth: row.implicitWidth + padLeft + padRight + leftFlare + rightFlare
+    implicitHeight: Theme.barHeight
+
+    DockedSurface {
+        anchors.fill: parent
+        dockLeft: root.dockLeft
+        dockRight: root.dockRight
+        flare: Theme.barFlare
         radius: Theme.radius
-        color: Qt.rgba(0, 0, 0, 0.20)
+        fillColor: root.fill
+        borderColor: root.edge
     }
-    Rectangle {
-        y: -Theme.radius
-        width: parent.width
-        height: parent.height + Theme.radius
-        radius: Theme.radius
-        color: root.fill
-        border.color: root.edge
-        border.width: 1
-    }
+
     Row {
         id: row
-        anchors.centerIn: parent
-        anchors.verticalCenterOffset: 1
+        x: root.leftFlare + root.padLeft
+        anchors.verticalCenter: parent.verticalCenter
         spacing: 4
     }
 }

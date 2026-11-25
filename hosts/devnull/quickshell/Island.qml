@@ -57,31 +57,25 @@ Item {
     }
 
     // ---- the shape ----------------------------------------------------------
-    Rectangle {
-        x: shape.x + 4
-        y: -Theme.radius
-        width: shape.width - 8
-        height: shape.height + Theme.radius + 6
-        radius: Theme.radius + 6
-        color: Qt.rgba(0, 0, 0, 0.22)
-    }
-    Rectangle {
+    Item {
         id: shape
         x: (island.width - width) / 2
-        width: island.targetW
+        width: island.targetW + 2 * Theme.barFlare
         height: island.targetH
-        color: "transparent"
         Behavior on width { SpringAnimation { spring: 3.2; damping: 0.28; epsilon: 0.4 } }
         Behavior on height { SpringAnimation { spring: 3.2; damping: 0.30; epsilon: 0.4 } }
 
-        Rectangle {
+        DockedSurface {
+            property real cornerRadius: island.mode === "idle" || island.mode === "compact" ? Theme.radius : 26
+            Behavior on cornerRadius { NumberAnimation { duration: 220 } }
+
             anchors.fill: parent
-            anchors.topMargin: -Theme.radius
-            radius: island.mode === "idle" || island.mode === "compact" ? Theme.radius : 30
-            color: Theme.island
-            border.width: 1
-            border.color: Store.dnd ? Qt.rgba(0.88, 0.69, 0.41, 0.35) : Qt.rgba(0.73, 0.60, 0.97, 0.22)
-            Behavior on radius { NumberAnimation { duration: 250 } }
+            flare: Theme.barFlare
+            radius: cornerRadius
+            fillColor: island.mode === "idle" || island.mode === "compact" ? Theme.glass : Theme.island
+            borderColor: Store.dnd ? Qt.rgba(0.88, 0.69, 0.41, 0.55) : Theme.border
+            Behavior on fillColor   { ColorAnimation { duration: 180 } }
+            Behavior on borderColor { ColorAnimation { duration: 180 } }
         }
 
         HoverHandler { id: hover }
@@ -105,7 +99,9 @@ Item {
             property string name
             readonly property bool on: island.mode === name
             anchors.fill: parent
-            anchors.margins: 14
+            anchors.leftMargin: 14 + Theme.barFlare
+            anchors.rightMargin: 14 + Theme.barFlare
+            anchors.bottomMargin: 12
             anchors.topMargin: 6
             opacity: on ? 1 : 0
             scale: on ? 1 : 0.92

@@ -6,4 +6,5 @@ application/pdf; pdftotext -layout -q %s -; copiousoutput
 
 image/*; sh -c 'ext="${1##*.}"; [ "$ext" = "$1" ] && ext=img; f=$(mktemp --suffix=".$ext") && cp -f "$1" "$f" && setsid -f feh --auto-zoom "$f" >/dev/null 2>&1 </dev/null' _ %s; test=test -n "$WAYLAND_DISPLAY" -o -n "$DISPLAY"
 
+text/html; sh -c 'f=$(mktemp --suffix=.html) && cp -f "$1" "$f" && setsid -f firefox "$f" >/dev/null 2>&1 </dev/null' _ %s; test=test -n "$WAYLAND_DISPLAY" -o -n "$DISPLAY"; nametemplate=%s.html
 text/html; w3m -I %{charset} -T text/html -dump %s; copiousoutput

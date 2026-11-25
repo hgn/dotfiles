@@ -11,5 +11,6 @@ ShellRoot {
         Bar {}
     }
     Notifications {}
+    WorkspaceHud {}
     PowerMenu {}
 }

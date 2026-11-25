@@ -482,8 +482,9 @@ hl.window_rule({
 
 hl.layer_rule({ name = "waybar-blur", match = { namespace = "^waybar$" },        blur = true, ignore_alpha = 0.2 })
 -- the shell surface is mostly transparent: blur only the glass islands
-hl.layer_rule({ name = "qs-blur",       match = { namespace = "^quickshell$" },       blur = true, ignore_alpha = 0.5 })
+hl.layer_rule({ name = "qs-blur",       match = { namespace = "^quickshell$" },       blur = true, ignore_alpha = 0.35 })
 hl.layer_rule({ name = "qs-notif-blur", match = { namespace = "^qs-notifications$" }, blur = true, ignore_alpha = 0.2, animation = "slide right" })
+hl.layer_rule({ name = "qs-ws-hud",     match = { namespace = "^qs-ws-hud$" },        blur = true, ignore_alpha = 0.2, no_anim = true })
 hl.layer_rule({ name = "fuzzel-blur", match = { namespace = "^launcher$" },      blur = true, ignore_alpha = 0.2, animation = "popin 85%" })
 hl.layer_rule({ name = "mako-blur",   match = { namespace = "^notifications$" }, blur = true, ignore_alpha = 0.2, animation = "slide right" })
 hl.layer_rule({ name = "wlogout",     match = { namespace = "^logout_dialog$" }, blur = true, animation = "fade" })

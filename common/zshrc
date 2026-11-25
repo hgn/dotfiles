@@ -9,24 +9,42 @@ if (( EUID == 0 )); then
     umask 022
 fi
 
-## ENV's
+## ENV
 
-# executable directories
-export GOPATH=$HOME/src/code/go
-export PATH=/usr/local/bin:$HOME/.cargo/bin:$HOME/bin:/sbin:/usr/sbin/:${PATH}:$GOPATH/bin
-export PATH="$PATH:/home/pfeifer/src/code/foreign/flutter/bin"
+# Deduplicate PATH automatically
+typeset -U path PATH
+
+export GOPATH="$HOME/src/code/go"
+path=(
+    "$HOME/.local/bin"
+    "$HOME/.cargo/bin"
+    "$HOME/bin"
+    /usr/local/bin
+    $path
+    /sbin
+    /usr/sbin
+    "$GOPATH/bin"
+    "$HOME/src/code/foreign/flutter/bin"
+)
+export PATH
 export DEBUGINFOD_URLS="https://debuginfod.debian.net"
-
-#export PAGER="col -b | view -c 'set nomod' -"
-#export MANPAGER="col -b | view -c 'hi StatusLine ctermbg=green| set ft=man nomod nolist' -"
-#export MANPAGER="sh -c 'col -bx | batcat -l man -p'"
 
 # default encrypted session via rsync
 export RSYNC_RSH=ssh
 
+# editor & pager
+export EDITOR='/usr/bin/nvim'
+export VISUAL="$EDITOR"
+export PAGER='/usr/bin/less -M'
+if (( $+commands[batcat] )); then
+    export MANPAGER="sh -c 'col -bx | batcat -l man -p'"
+    export MANROFFOPT="-c"
+fi
+export WORDCHARS=''
+
 # Language Stuff
 # english messages && time, utf8 support
-# setting LC_ALL overwrite all other values and have prefedenvce
+# setting LC_ALL overrides all other values and takes precedence
 unset LC_ALL
 export LANG=en_US.UTF-8            # Default language set to English (US)
 export LANGUAGE=en_US              # Preferred language for menus and manpages set to English
@@ -39,231 +57,35 @@ export LC_MESSAGES=en_US.UTF-8     # System messages set to English
 export LC_PAPER=de_DE.UTF-8        # Paper format set to German (A4)
 export LC_MEASUREMENT=de_DE.UTF-8  # Measurement units set to German (metric)
 
+## OPTIONS
 
-## ALIASES
-alias vim='nvim'
+setopt nocorrect            # turns off spelling correction for commands
+setopt nocorrectall         # turns off spelling correction for all arguments
+setopt interactivecomments  # let you type comments
+setopt extendedglob         # file globbing is awesome (e.g. ls -d ^*.c)
+setopt automenu             # Tab-completion should cycle
+setopt autolist             # ... and list the possibilities
+setopt auto_param_slash     # Make directories pretty
+setopt always_to_end        # Push cursor to end on completions
+setopt autocd               # jump to directory without typing cd
+setopt no_beep              # self explanatory
+setopt auto_name_dirs       # change directories to variable names
+setopt chase_links          # resolve symlinks in pwd
+setopt auto_continue        # automatically send CONT signal on disown
+setopt long_list_jobs       # list jobs in long format by default
 
-alias mutt-offline='mutt -F ~/.mutt/muttrc-offline'
+# Directory stack
+export DIRSTACKSIZE=30
+setopt autopushd pushdminus pushdsilent pushdtohome
 
-alias bat='batcat --color always -pp'
-# imv: Debian only ships imv-wayland / imv-x11
-if [[ -n $WAYLAND_DISPLAY ]]; then alias imv='imv-wayland'; else alias imv='imv-x11'; fi
-if (( $+commands[eza] )); then
-  alias l='eza -bl -s newest --color always --time-style=long-iso'
-elif (( $+commands[exa] )); then
-  alias l='exa -bl -s newest --color always --time-style=long-iso'
-else
-  alias l='ls -lart --color=auto --time-style=long-iso'
-fi
-alias less="less -r"
-
-alias mpv-audio='mpv --vo=tct --lavfi-complex="[aid1]asplit[ao][a1];[a1]showcqt=s=1280x480[vo]"'
-
-# some piping stuff
-alias -g V='|vim -'
-alias -g L='|less'
-alias -g LL=' 2>&1|less'
-alias -g H='|head'
-alias -g T='|tail'
-alias -g G='|grep'
-# for ^x^h
-alias run-help='man'
-# don't print copyright messages at startup
-alias gdb="gdb -silent"
-
-# verbose remove 5iterations zero force
-alias shred="shred -v -u -n2 -z -f"
-
-# sort symbols numerically by their addresses
-alias nm="nm -n"
-# no spelling corrections on this commands
-alias mv="nocorrect mv"
-alias cp="nocorrect cp"
-alias mkdir="nocorrect mkdir"
-alias grep='nocorrect grep --color=auto'
-alias dirs='dirs -v'
-
-# ls - list directory contents
-alias d="ls --color=auto -T 0"
-alias ls='LC_COLLATE=C ls -h --group-directories-first --color=auto'
-alias la="ls --color=auto -Al -T 0"
-alias ll="ls --color -l -T 0"
-
-alias m="make"
-alias v="vim"
-
-# ls-tips
-#   ls -sS    list for Size
-#   ls -sSr   list for Reverse size
-#   ls -t     list for youngest modification
-#   ls -tr    list for oldest modification
-
-alias rm="rm -if"
-alias ..="cd .."
-alias ...="cd .. ; cd .."
-alias l.="ls -d .[A-Za-z]* --color=auto"
-# checksuming it
-alias rsync='rsync -P --checksum'
-
-alias kindent='indent -npro -kr -i4 -ts4 -sob -l80 -ss -ncs'
-
-# change current permissions for home directory
-alias homeopen="chmod -R go=rX $HOME"
-alias homeclose="chmod -R go= $HOME"
-
-alias currentopen="chmod -R go=rX ."
-alias currentclose="chmod -R go= ."
-
-alias diff='LC_ALL=C TZ=UTC0 diff'
-
-# hexdump
-alias hd='od -Ax -tx1z -v'
-
-# generate passwords, -t show you how to pronounce the generated passwords
-alias apg='apg -t'
-
-# Xterm stuff
-alias xterm-default='echo -e "\033]50;fixed\007"'
-alias xterm-tiny='echo -en "\033]50;5x7\007"'
-alias xterm-small='echo -en "\033]50;6x10\007"'
-alias xterm-medium='echo -en "\033]50;7x13\007"'
-alias xterm-large='echo -en "\033]50;9x15\007"'
-alias xterm-huge='echo -en "\033]50;10x20\007"'
-
-# use readline, completion and require rubygems by default for irb
-# http://planetrubyonrails.org/show/feed/172
-alias irb='irb --readline -r irb/completion -rubygems'
-alias 3339date='date --rfc-3339=date'
-alias freq="cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_cur_freq"
-alias pyclean='find . -type f -name "*.py[co]" -exec rm -f \{\} \;'
-
-alias pbcopy='xsel --clipboard --input'
-alias pbpaste='xsel --clipboard --output'
-alias clip='xclip -selection clipboard'
-
-alias fd=fdfind
-
-# git branch checkout
-alias gitb='git branch --sort=-committerdate | fzf --height=20% | xargs git checkout '
-
-[ -x /usr/bin/lesspipe ] && eval "$(lesspipe)"
-
-## get keys working
-# found at http://maxime.ritter.eu.org/stuff/zshrc
-case $TERM in
-  linux)
-  bindkey "^[[2~" yank
-  bindkey "^[[3~" delete-char
-  bindkey "^[[5~" up-line-or-history ## PageUp
-  bindkey "^[[6~" down-line-or-history ## PageDown
-  bindkey "^[[1~" beginning-of-line
-  bindkey "^[[4~" end-of-line
-  bindkey "^[e" expand-cmd-path ## C-e for expanding path of typed command
-  bindkey "^[[A" up-line-or-search ## up arrow for back-history-search
-  bindkey "^[[B" down-line-or-search ## down arrow for fwd-history-search
-  bindkey " " magic-space ## do history expansion on space
-;;
-  *xterm*|rxvt|(dt|k|E)term)
-  bindkey "^[[2~" yank
-  bindkey "^[[3~" delete-char
-  bindkey "^[[5~" up-line-or-history ## PageUp
-  bindkey "^[[6~" down-line-or-history ## PageDown
-  bindkey "^[[7~" beginning-of-line
-  bindkey "^[[8~" end-of-line
-  bindkey "^[e" expand-cmd-path ## C-e for expanding path of typed command
-  bindkey "^[[A" up-line-or-search ## up arrow for back-history-search
-  bindkey "^[[B" down-line-or-search ## down arrow for fwd-history-search
-  bindkey " " magic-space ## do history expansion on space
-;;
-esac
-
-zmodload -i zsh/complist
-
-# display colored directory entries
-# display current dircolors with dircolors -p
-if [ -f ${HOME}/.dir_colors ]
-then
-    eval $(dircolors -b ${HOME}/.dir_colors)
-elif [ -f /etc/DIR_COLORS ]
-then
-    eval $(dircolors -b /etc/DIR_COLORS)
-fi
-
-zstyle ':completion:*:*:kill:*:processes' list-colors "=(#b) #([0-9]#)*=36=31"
-
-zstyle ':completion:*:cd:*' ignore-parents parent pwd
-zstyle ':completion:*' file-sort modification
-
-# completion: with menu
-zstyle ':completion:*' menu select
-
-
-#zstyle ':completion:*:*:*:*:corrections' format '%F{yellow}!- %d (errors: %e) -!%f'
-#zstyle ':completion:*:messages' format ' %F{purple} -- %d --%f'
-#zstyle ':completion:*:warnings' format ' %F{red}-- no matches found --%f'
-
-# Load the completion system
-autoload -U compinit
-compinit
-zstyle ':completion:*:*:kill:*:jobs' verbose yes
-
-autoload -U sched
-
-
-# From the zshwiki. Hide CVS files/directores from being completed.
-zstyle ':completion:*:(all-|)files' ignored-patterns '(|*/)CVS'
-zstyle ':completion:*:cd:*' ignored-patterns '(*/)#CVS'
-
-# frequently used users names
-_users=(pfeifer)
-zstyle ':completion:*' users $_users
-
-# Functions autoloading
-autoload zmv
-
-zstyle ':completion:*' completer _extensions _complete _approximate
-
-# cache
-zstyle ':completion:*' use-cache on
-zstyle ':completion:*' cache-path ~/.zsh/cache
-
-# turns off spelling correction for commands
-setopt nocorrect
-# ORRECTALL option turns on spelling correction for all arguments
-setopt nocorrectall
-
-#report to me when people login/logout
+# Report when other users login/logout
 watch=(notme)
 
-# let you type comment's
-setopt interactivecomments
+## HISTORY
 
-# autocd allow you to type a directory, without a cd prefix
-#setopt autocd
-
-# now you can negates pattern [ ls -d ^*.c ] and the like ;-)
-setopt extendedglob
-
-setopt EXTENDEDGLOB     # file globbing is awesome
-setopt AUTOMENU         # Tab-completion should cycle.
-setopt AUTOLIST         # ... and list the possibilities.
-setopt AUTO_PARAM_SLASH # Make directories pretty.
-setopt ALWAYS_TO_END    # Push that cursor on completions.
-setopt AUTOCD           # jump to the directory.
-setopt NO_BEEP          # self explanatory
-setopt AUTO_NAME_DIRS   # change directories  to variable names
-setopt CHASE_LINKS      # if you pwd from a symlink, you get the actual path
-setopt AUTO_CONTINUE    # automatically sent a CONT signal by disown
-setopt LONG_LIST_JOBS   # List jobs in the long format by default
-
-# history related options
-# number of commands that are stored in the zsh history file
 SAVEHIST=2000000
-# number of commands that are loaded into memory from the history file
 HISTSIZE=$SAVEHIST
-# path/location of the history file
 HISTFILE=~/.zhistory
-# dont save clutter
 HISTORY_IGNORE="(ls *|ll *|rm|fg|cd|pwd|exit|calc *|fend *|qalc *|cd ..)"
 
 # Keep the encrypted volume out of the history file: ~/.zhistory lives on the
@@ -271,332 +93,108 @@ HISTORY_IGNORE="(ls *|ll *|rm|fg|cd|pwd|exit|calc *|fend *|qalc *|cd ..)"
 # commands that merely name a path below it are dropped before they are saved.
 # Returning non-zero from a zshaddhistory hook discards the line.
 crypt_history_filter() {
-  [[ $PWD == /mnt/crypt(|/*) ]] && return 1
-  [[ $1 == *"/mnt/crypt"* ]] && return 1
-  return 0
+    [[ $PWD == /mnt/crypt(|/*) ]] && return 1
+    [[ $1 == *"/mnt/crypt"* ]] && return 1
+    return 0
 }
 autoload -Uz add-zsh-hook
 add-zsh-hook zshaddhistory crypt_history_filter
-# Whenever the user enters a line with history expansion, don’t execute the line directly
-setopt HIST_VERIFY
-# records the timestamp of each command in HISTFILE
-setopt EXTENDED_HISTORY
-# do not write duplicates to the history file at all
-setopt HIST_IGNORE_ALL_DUPS
-# Remove function definitions from the history list
-setopt HIST_NO_FUNCTIONS
-# Remove superfluous blanks from each command line being added to the history list
-setopt HIST_REDUCE_BLANKS
-# no hist, when pre-spaced
-setopt HIST_IGNORE_SPACE
 
+setopt HIST_VERIFY           # don't execute history expansion directly
+setopt EXTENDED_HISTORY      # record timestamp of each command
+setopt SHARE_HISTORY         # share history across concurrent shells immediately
+setopt HIST_IGNORE_ALL_DUPS  # remove older duplicate entries from history
+setopt HIST_NO_FUNCTIONS     # remove function definitions from history
+setopt HIST_REDUCE_BLANKS    # strip superfluous blanks
+setopt HIST_IGNORE_SPACE     # ignore commands starting with a space
 
-# some testings (found on http://zsh.sunsite.dk/Intro/intro_6.html)
-export DIRSTACKSIZE=10
-setopt autopushd pushdminus pushdsilent pushdtohome
-alias dh='dirs -v'
+## KEY BINDINGS
 
-setopt long_list_jobs
-alias jobs='jobs -l'
-
-alias fd="fdfind"
-
-# aptitude install autojump
-if [ -f /usr/share/autojump/autojump.zsh ]; then
-	. /usr/share/autojump/autojump.zsh
-fi
-
-
-# red id indicator, if last
-function set_prompt {
-  if [[ $? -eq 0 ]]; then
-    # Last command was successful
-    PROMPT=$'%{\e[01;33m%}\%1~ %{\e[01;32m%}$%{\e[0m%} '
-  else
-    # Last command failed
-    PROMPT=$'%{\e[01;33m%}\%1~ %{\e[01;31m%}$%{\e[0m%} '
-  fi
-}
-
-if [[ ${SSH_TTY} ]] ; then
-   PROMPT=$'%{\e[01;35m%}\%1 @%m %{\e[01;33m%}\%1~ %{\e[01;32m%}$%{\e[0m%} '
-else
-  precmd_functions+=(set_prompt)
-fi
-
-export WORDCHARS=''
-export DIRSTACKSIZE=30         # max push/pop stack
-
-# emacs keybinding's
+# Set emacs mode first so subsequent bindkey calls are not wiped out
 bindkey -e
 
-# insert all expansions for expand completer
-zstyle ':completion:*:expand:*' tag-order all-expansions
+# Portable terminfo-based keys (works in kitty, alacritty, xterm, tmux, linux)
+zmodload zsh/terminfo 2>/dev/null
+[[ -n ${terminfo[kich1]} ]] && bindkey "${terminfo[kich1]}" yank
+[[ -n ${terminfo[kdch1]} ]] && bindkey "${terminfo[kdch1]}" delete-char
+[[ -n ${terminfo[kpp]}   ]] && bindkey "${terminfo[kpp]}"   up-line-or-history
+[[ -n ${terminfo[knp]}   ]] && bindkey "${terminfo[knp]}"   down-line-or-history
+[[ -n ${terminfo[khome]} ]] && bindkey "${terminfo[khome]}" beginning-of-line
+[[ -n ${terminfo[kend]}  ]] && bindkey "${terminfo[kend]}"  end-of-line
+[[ -n ${terminfo[kcuu1]} ]] && bindkey "${terminfo[kcuu1]}" up-line-or-search
+[[ -n ${terminfo[kcud1]} ]] && bindkey "${terminfo[kcud1]}" down-line-or-search
+# Common CSI fallbacks (when terminal is not in application mode)
+bindkey "^[[2~" yank
+bindkey "^[[3~" delete-char
+bindkey "^[[5~" up-line-or-history
+bindkey "^[[6~" down-line-or-history
+bindkey "^[[1~" beginning-of-line
+bindkey "^[[4~" end-of-line
+bindkey "^[[7~" beginning-of-line
+bindkey "^[[8~" end-of-line
+bindkey "^[[H"  beginning-of-line
+bindkey "^[[F"  end-of-line
+bindkey "^[[A"  up-line-or-search
+bindkey "^[[B"  down-line-or-search
 
-# formatting and messages
+bindkey "^[e"   expand-cmd-path # Alt-e: expand path of typed command
+bindkey " "     magic-space     # expand history on space
+bindkey "^X^H"  run-help
+bindkey "^r"    history-incremental-search-backward
+
+# CTRL-W removes wordwise, backwards (space-delimited)
+autoload -Uz backward-kill-word-match
+zle -N backward-kill-space-word backward-kill-word-match
+zstyle ':zle:backward-kill-space-word' word-style space
+bindkey '^W' backward-kill-space-word
+
+## COLORS & COMPLETION
+
+# Load dircolors before completion so LS_COLORS is populated for list-colors
+if [[ -r "${HOME}/.dircolors" ]]; then
+    eval "$(dircolors -b "${HOME}/.dircolors")"
+elif [[ -r /etc/DIR_COLORS ]]; then
+    eval "$(dircolors -b /etc/DIR_COLORS)"
+else
+    eval "$(dircolors -b)"
+fi
+
+zmodload -i zsh/complist
+
+# Custom completions must be on fpath BEFORE compinit.
+# Regenerate ~/.zcompdump at most once every 24 hours; otherwise skip security/scan checks (-C).
+fpath=(~/.zfunc $fpath)
+autoload -Uz compinit sched zmv
+if [[ -n ~/.zcompdump(#qN.mh+24) || ! -e ~/.zcompdump ]]; then
+    compinit
+else
+    compinit -C
+fi
+
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path ~/.zsh/cache
+zstyle ':completion:*' menu select
+zstyle ':completion:*' file-sort modification
+zstyle ':completion:*' completer _extensions _complete _approximate
 zstyle ':completion:*' verbose yes
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
 zstyle ':completion:*:descriptions' format '%B%d%b'
 zstyle ':completion:*:messages' format '%d'
 zstyle ':completion:*:warnings' format 'No matches for: %d'
-#zstyle ':completion:*:corrections' format '%B%d (errors: %e)%b'
-zstyle ':completion:*' group-name ''
-
-
-# of course
-export EDITOR='/usr/bin/nvim'
-
-# favorite pager (give more information)
-export PAGER='/usr/bin/less -M'
-
-
-#############################################################################
-# COMMANDLINE COMPLETITION SECTION
-
-# only directories for cd && pushcd; nice feature!
-# or "compctl -g '*(-/)' cd pushd" without hidden dirs
-compctl -g '*(-/)' + -g '.*(-/)' -v cd pushd
-
-# only java files for javac
-compctl -g '*.java' javac
-
-# for ssh && scp connection's
-compctl -k hosts ssh scp
-
-
-#############################################################################
-# KEY - BINDINGS
-
-# interactive help? type CTRL-x; CTRL-h
-bindkey "^X^H" run-help
-# search for command backward
-bindkey "^r" history-incremental-search-backward
-# emulate some bash feelings
-#bindkey "" backward-delete-word
-
-#############################################################################
-# FUNCTIONS
-
-# ps wrapper function definitions found on
-# http://billharlan.com/pub/papers/Debugging_GnuLinux.txt
-function psc {
-  ps --cols=1000 --sort='-%cpu,uid,pgid,ppid,pid' -e \
-     -o user,pid,ppid,pgid,stime,stat,wchan,time,pcpu,pmem,vsz,rss,sz,args |
-     sed 's/^/ /' | less
-}
-
-function psm {
-  ps --cols=1000 --sort='-vsz,uid,pgid,ppid,pid' -e \
-     -o user,pid,ppid,pgid,stime,stat,wchan,time,pcpu,pmem,vsz,rss,sz,args |
-     sed 's/^/ /' | less
-}
-
-function ff () {
-  fd "${*}"
-}
-
-function ffg () {
-  if [[ $# != 3 ]]
-  then
-    echo "Usage: $0 directory filenamepattern filecontentpattern"
-  else
-    find $1 -iregex $2 -print0 | xargs -0 grep -in $3
-  fi
-}
-
-function lolbanner {
-  figlet -c  $@ | /usr/games/lolcat
-}
-
-# the following funtion found on http://status.deifl-web.de/dotfiles/zsh/zshfunctions
-
-# mkdir && cd
-function mcd() { mkdir "$@"; cd "$@" }
-
-# mkdir /tmp/$rand && cd
-function mcdt() {
-  local TMP=$(head -n 1000 /usr/share/dict/words | \
-              sort -R | \
-              tr -d "\'" | \
-              tr '[:upper:]' '[:lower:]' | \
-              head -n 1)
-  TMP=/tmp/$TMP
-  mkdir $TMP
-  cd $TMP
-  echo "Created and changed directory to $TMP"
-}
-
-# cd && ls
-function cl() { cd $1 && ls -l }
-
-# head and tail replacement
-function h() { bat --color=always $@ | head -n 30 }
-function t() { bat --color=always $@ | tail -n 30 }
-function c() { batcat --color always --theme Dracula $@ }
-
-# Usage: show-archive <archive>
-# Description: view archive without unpack
-show-archive()
-{
-	if [[ -f $1 ]]
-	then
-		case $1 in
-			*.tar.gz)      gunzip -c $1 | tar -tf - -- ;;
-			*.tar)         tar -tf $1 ;;
-			*.tgz)         tar -ztf $1 ;;
-			*.zip)         unzip -l $1 ;;
-			*.bz2)         bzless $1 ;;
- 			*.tbz2)         tar -jtf $1 ;;
-			*)             echo "'$1' Error. Please go away" ;;
-		esac
-	else
-		echo "'$1' is not a valid archive"
-	fi
-}
-
-# Exchange ' ' for '_' in filenames.
-unspaceit()
-{
-    for _spaced in "${@:+"$@"}"; do
-        if [ ! -f "${_spaced}" ]; then
-            continue;
-    fi
-        _underscored=$(echo ${_spaced} | tr ' ' '_');
-    if [ "${_underscored}" != "${_spaced}" ]; then
-        mv "${_spaced}" "${_underscored}";
-    fi
-        done
-}
-
-function fileenc()
-{
-  if [[ $# != 2 ]]
-  then
-    echo "Usage: $0 input-file output-file"
-    echo "Purpose: encrypt a file via openssl with blowfish in CBC mode"
-  else
-    openssl enc -e -a -salt -bf -in $1 -out $2
-    shred -n 1 -z -f -u -v $1
-  fi
-}
-
-function filedec()
-{
-  if [[ $# != 2 ]]
-  then
-    echo "Usage: $0 input-file output-file"
-    echo "Purpose: decrypt a file via openssl with blowfish in CBC mode"
-  else
-    openssl enc -d -a -bf -in $1 -out $2
-    shred -n 1 -z -f -u -v $1
-  fi
-}
-
-function gif2png()
-{
-  if [[ $# = 0 ]]
-  then
-    echo "Usage: $0 foo.gif"
-    echo "Purpose: change a GIF file to a PNG file"
-  else
-    output=`basename $1 .gif`.png
-    convert  $1 $output
-    ls -l $1 $output
-  fi
-}
-
-wl-copy-file() {
-  if [[ -z "$1" ]]; then
-    echo "Usage: wl-copy-file <file>"
-    return 1
-  fi
-
-  if [[ -f "$1" ]]; then
-    cat "$1" | wl-copy
-    echo "Copied content of $1 to clipboard."
-  else
-    echo "File $1 not found."
-    return 1
-  fi
-}
-
-
-
-function radio()
-{
-  if [[ $# != 1 ]]
-  then
-    echo "Usage: $0 [egofm | dlf ]"
-		return
-  fi
-
-	case $1 in
-		egofm)
-			mplayer "https://streams.egofm.de/egoRAP-hq"
-			;;
-		dlf)
-			mplayer "https://st01.sslstream.dlf.de/dlf/01/high/opus/stream.opus?aggregator=web"
-			;;
-		*)
-			echo "Usage: $0 [egofm | dlf ]"
-			;;
-	esac
-}
-
-ulimitall() {
-  ulimit -c unlimited
-  ulimit -d unlimited
-  ulimit -f unlimited
-  ulimit -l unlimited
-  ulimit -n unlimited
-  ulimit -s unlimited
-  ulimit -t unlimited
-}
-
-
-# aptitude install apcalc
-#alias calc="noglob _calc"
-alias calc='noglob qalc'
-alias qalc='noglob qalc'
-#function _calc () {
-#             awk "BEGIN { print $* ; }"
-#}
-
-function email-classify () {
-  ~/bin/email-classify "$@"
-}
-function email-cleanup () {
-  ~/bin/email-cleanup "$@"
-}
-function email-sync () {
-  ~/bin/email-sync "$@"
-}
-# Rückwärtskompatibilität für alte Befehle
-alias mail-classify="email-classify"
-alias mail-cleanup="email-cleanup"
-
-eval "$(dircolors -b)"
-zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
-zstyle ':completion:*' list-colors ''
-
+zstyle ':completion:*:expand:*' tag-order all-expansions
+zstyle ':completion:*:cd:*' ignore-parents parent pwd
+zstyle ':completion:*:(all-|)files' ignored-patterns '(|*/)CVS'
+zstyle ':completion:*:cd:*' ignored-patterns '(*/)#CVS'
 zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
+zstyle ':completion:*:*:kill:*:jobs' verbose yes
 zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'
 
-source /usr/share/doc/fzf/examples/key-bindings.zsh
-#source /usr/share/zsh/vendor-completions/_fzf
-export FZF_DEFAULT_OPTS='--height 20% --info=right --highlight-line --layout=reverse --border --exact'
-
-
-alias mutt-offline-resync='email-sync 1>/dev/null 2>&1 &;mutt -F ~/.mutt/muttrc-offline; email-sync'
-alias mutt-offline='mutt -F ~/.mutt/muttrc-offline'
-alias mutt="neomutt"
-
-alias mosh="mosh --no-init"
-alias vimdiff="nvim -d"
-
-alias mplayer="mpv"
+_users=(pfeifer)
+zstyle ':completion:*' users $_users
 
 _feh_completion() {
-    _files -g "*.png" -g "*.gif" -g "*.jpg"
+    _files -g "*.png" -g "*.gif" -g "*.jpg" -g "*.jpeg" -g "*.webp"
 }
 compdef _feh_completion feh
 
@@ -605,87 +203,425 @@ _xpdf_completion() {
 }
 compdef _xpdf_completion xpdf
 
-autoload -Uz compinit
-fpath+=~/.zfunc
-export PATH="$HOME/.local/bin:$PATH"
+## PROMPT
 
-# Added by Antigravity CLI installer
-export PATH="/home/pfeifer/.local/bin:$PATH"
+# Native Zsh conditional prompt: green $ on exit 0, red $ on non-zero exit
+if [[ -n ${SSH_TTY} ]]; then
+    PROMPT='%F{magenta}%n@%m %F{yellow}%1~ %(?.%F{green}.%F{red})$%f '
+else
+    PROMPT='%B%F{yellow}%1~ %(?.%F{green}.%F{red})$%f%b '
+fi
+
+## ALIASES
+
+alias vim='nvim'
+alias v='vim'
+alias vimdiff='nvim -d'
+
+alias mutt='neomutt'
+alias mutt-offline='mutt -F ~/.mutt/muttrc-offline'
+alias mutt-offline-resync='email-sync >/dev/null 2>&1 &; mutt -F ~/.mutt/muttrc-offline; email-sync'
+
+alias bat='batcat --color=auto -pp'
+alias less='less -R'
+alias fd='fdfind'
+
+# imv: Debian only ships imv-wayland / imv-x11
+if [[ -n $WAYLAND_DISPLAY ]]; then
+    alias imv='imv-wayland'
+else
+    alias imv='imv-x11'
+fi
+
+if (( $+commands[eza] )); then
+    alias l='eza -bl -s newest --icons=auto --color=auto --time-style=long-iso'
+elif (( $+commands[exa] )); then
+    alias l='exa -bl -s newest --color=auto --time-style=long-iso'
+else
+    alias l='ls -lart --color=auto --time-style=long-iso'
+fi
+
+# ls - list directory contents
+alias d='ls --color=auto -T 0'
+alias ls='LC_COLLATE=C ls -h --group-directories-first --color=auto'
+alias la='ls --color=auto -Al -T 0'
+alias ll='ls --color=auto -l -T 0'
+alias l.='ls -d .[A-Za-z]* --color=auto'
+
+# Global piping aliases
+alias -g V='|vim -'
+alias -g L='|less'
+alias -g LL=' 2>&1|less'
+alias -g H='|head'
+alias -g T='|tail'
+alias -g G='|grep'
+if [[ -n $WAYLAND_DISPLAY ]] && (( $+commands[wl-copy] )); then
+    alias -g C='|wl-copy'
+else
+    alias -g C='|xclip -selection clipboard'
+fi
+
+alias run-help='man'
+alias gdb='gdb -silent'
+alias shred='shred -v -u -n2 -z -f'
+alias nm='nm -n'
+alias mv='nocorrect mv'
+alias cp='nocorrect cp'
+alias mkdir='nocorrect mkdir'
+alias grep='nocorrect grep --color=auto'
+alias dirs='dirs -v'
+alias dh='dirs -v'
+alias jobs='jobs -l'
+alias m='make'
+alias mosh='mosh --no-init'
+alias mplayer='mpv'
+alias mpv-audio='mpv --vo=tct --lavfi-complex="[aid1]asplit[ao][a1];[a1]showcqt=s=1280x480[vo]"'
+
+alias rm='rm -if'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias rsync='rsync -P --checksum'
+alias diff='LC_ALL=C TZ=UTC0 diff'
+alias hd='od -Ax -tx1z -v'
+alias apg='apg -t'
+alias 3339date='date --rfc-3339=date'
+alias freq='cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_cur_freq'
+alias pyclean='find . -type f -name "*.py[co]" -exec rm -f {} +'
+alias kindent='indent -npro -kr -i4 -ts4 -sob -l80 -ss -ncs'
+
+# Permissions helpers
+alias homeopen="chmod -R go=rX $HOME"
+alias homeclose="chmod -R go= $HOME"
+alias currentopen='chmod -R go=rX .'
+alias currentclose='chmod -R go= .'
+
+# Clipboard: Wayland-aware with X11 fallback
+if [[ -n $WAYLAND_DISPLAY ]] && (( $+commands[wl-copy] )); then
+    alias pbcopy='wl-copy'
+    alias pbpaste='wl-paste'
+    alias clip='wl-copy'
+else
+    alias pbcopy='xsel --clipboard --input'
+    alias pbpaste='xsel --clipboard --output'
+    alias clip='xclip -selection clipboard'
+fi
+
+# Calculator without shell globbing
+alias calc='noglob qalc'
+alias qalc='noglob qalc'
+
+# Git branch checkout via fzf
+alias gitb='git branch --sort=-committerdate | fzf --height=20% | xargs -r git checkout'
+
+# Backwards compatibility for old email helper names
+alias mail-classify='email-classify'
+alias mail-cleanup='email-cleanup'
+
+[ -x /usr/bin/lesspipe ] && eval "$(lesspipe)"
+
+## FUNCTIONS
+
+psc() {
+    ps --cols=1000 --sort='-%cpu,uid,pgid,ppid,pid' -e \
+        -o user,pid,ppid,pgid,stime,stat,wchan,time,pcpu,pmem,vsz,rss,sz,args |
+        sed 's/^/ /' | less
+}
+
+psm() {
+    ps --cols=1000 --sort='-vsz,uid,pgid,ppid,pid' -e \
+        -o user,pid,ppid,pgid,stime,stat,wchan,time,pcpu,pmem,vsz,rss,sz,args |
+        sed 's/^/ /' | less
+}
+
+ff() {
+    fd "$@"
+}
+
+ffg() {
+    if [[ $# != 3 ]]; then
+        echo "Usage: $0 directory filenamepattern filecontentpattern"
+    else
+        find "$1" -iregex "$2" -print0 | xargs -0 grep -in "$3"
+    fi
+}
+
+lolbanner() {
+    figlet -c "$@" | /usr/games/lolcat
+}
+
+# mkdir && cd
+mcd() {
+    mkdir -p -- "$1" && cd -- "$1"
+}
+
+# mkdir /tmp/$rand && cd
+mcdt() {
+    local tmp
+    tmp=$(head -n 1000 /usr/share/dict/words |
+          sort -R |
+          tr -d "'" |
+          tr '[:upper:]' '[:lower:]' |
+          head -n 1)
+    tmp="/tmp/${tmp:-tmp-$$}"
+    mkdir -p -- "$tmp" && cd -- "$tmp" && echo "Created and changed directory to $tmp"
+}
+
+# Copy files/directories into /tmp (uses CoW reflink when supported)
+cpt() {
+    if [[ $# -eq 0 ]]; then
+        echo "Usage: cpt <file>..." >&2
+        return 1
+    fi
+    cp -a --reflink=auto -- "$@" /tmp/
+}
+
+# Interactive ripgrep + fzf code search -> open match in nvim at exact line
+rgf() {
+    local sel file line
+    sel=$(rg --column --line-number --no-heading --color=always --smart-case "${*:-}" |
+          fzf --ansi --height=80% --delimiter : \
+              --preview 'batcat --style=numbers --color=always --highlight-line {2} {1}' \
+              --preview-window 'up,60%,border-bottom,+{2}+3/3,~3') || return
+    file=${sel%%:*}
+    line=${${sel#*:}%%:*}
+    nvim "+$line" -- "$file"
+}
+
+# Fuzzy file finder with bat preview -> open in nvim
+vf() {
+    local file
+    file=$(fdfind --type f --hidden --follow --exclude .git |
+           fzf --height=80% \
+               --preview 'batcat --style=numbers --color=always {}' \
+               --preview-window 'right,60%') || return
+    nvim -- "$file"
+}
+
+# Jump to git repository root
+gr() {
+    local root
+    root=$(git rev-parse --show-toplevel 2>/dev/null) || { echo "Not in a git repo" >&2; return 1; }
+    cd "$root"
+}
+
+# Interactive git log browser with delta diff preview
+glg() {
+    git log --graph --color=always \
+        --format='%C(auto)%h%d %s %C(black)%C(bold)%cr%C(reset)' "$@" |
+    fzf --ansi --no-sort --reverse --tiebreak=index --height=80% \
+        --preview 'git show --color=always $(echo {} | grep -oE "[a-f0-9]{7,}" | head -1) | delta --width=$FZF_PREVIEW_COLUMNS' \
+        --preview-window 'right,60%' \
+        --bind 'enter:execute(git show --color=always $(echo {} | grep -oE "[a-f0-9]{7,}" | head -1) | delta --paging=always)'
+}
+
+# Universal archive extractor
+extract() {
+    local f
+    if [[ $# -eq 0 ]]; then
+        echo "Usage: extract <archive>..." >&2
+        return 1
+    fi
+    for f in "$@"; do
+        [[ -f $f ]] || { echo "'$f' is not a valid file" >&2; continue; }
+        case $f in
+            *.tar.bz2|*.tbz2) tar xjf "$f" ;;
+            *.tar.gz|*.tgz)   tar xzf "$f" ;;
+            *.tar.xz|*.txz)   tar xJf "$f" ;;
+            *.tar.zst)        tar --zstd -xf "$f" ;;
+            *.tar)            tar xf "$f" ;;
+            *.bz2)            bunzip2 "$f" ;;
+            *.gz)             gunzip "$f" ;;
+            *.xz)             unxz "$f" ;;
+            *.zst)            unzstd "$f" ;;
+            *.zip)            unzip "$f" ;;
+            *.7z)             7z x "$f" ;;
+            *)                echo "'$f': unsupported archive format" >&2 ;;
+        esac
+    done
+}
+
+# Interactive process killer via fzf (default signal: TERM / 15)
+fkill() {
+    local pids
+    pids=$(ps -u "$USER" -o pid,pcpu,pmem,comm,args --sort=-pcpu |
+           sed 1d | fzf -m --height=40% | awk '{print $1}') || return
+    echo "$pids" | xargs kill "-${1:-15}"
+}
+
+# cd && ls
+cl() {
+    cd -- "$1" && ls -l
+}
+
+# head, tail and colored cat via bat
+h() { bat --color=always "$@" | head -n 30 }
+t() { bat --color=always "$@" | tail -n 30 }
+c() { batcat --color=auto --theme Dracula "$@" }
+
+show-archive() {
+    if [[ -f $1 ]]; then
+        case $1 in
+            *.tar.gz|*.tgz) tar -ztf "$1" ;;
+            *.tar.xz|*.txz) tar -Jtf "$1" ;;
+            *.tar.zst)      tar --zstd -tf "$1" ;;
+            *.tar)          tar -tf "$1" ;;
+            *.zip)          unzip -l "$1" ;;
+            *.bz2)          bzless "$1" ;;
+            *.tbz2)         tar -jtf "$1" ;;
+            *)              echo "'$1': unsupported archive format" ;;
+        esac
+    else
+        echo "'$1' is not a valid archive"
+    fi
+}
+
+# Exchange ' ' for '_' in filenames
+unspaceit() {
+    local _spaced _underscored
+    for _spaced in "$@"; do
+        [[ -f $_spaced ]] || continue
+        _underscored=${_spaced// /_}
+        if [[ $_underscored != $_spaced ]]; then
+            mv -i -- "$_spaced" "$_underscored"
+        fi
+    done
+}
+
+gif2png() {
+    if [[ $# -eq 0 ]]; then
+        echo "Usage: $0 foo.gif"
+        echo "Purpose: change a GIF file to a PNG file"
+    else
+        local output="${1:r}.png"
+        convert -- "$1" "$output" && ls -l -- "$1" "$output"
+    fi
+}
+
+wl-copy-file() {
+    if [[ -z $1 ]]; then
+        echo "Usage: wl-copy-file <file>"
+        return 1
+    fi
+    if [[ -f $1 ]]; then
+        wl-copy < "$1"
+        echo "Copied content of $1 to clipboard."
+    else
+        echo "File $1 not found."
+        return 1
+    fi
+}
+
+radio() {
+    if [[ $# -ne 1 ]]; then
+        echo "Usage: $0 [egofm | dlf]"
+        return 1
+    fi
+    case $1 in
+        egofm) mpv "https://streams.egofm.de/egoRAP-hq" ;;
+        dlf)   mpv "https://st01.sslstream.dlf.de/dlf/01/high/opus/stream.opus?aggregator=web" ;;
+        *)     echo "Usage: $0 [egofm | dlf]" ;;
+    esac
+}
+
+ulimitall() {
+    ulimit -c unlimited
+    ulimit -d unlimited
+    ulimit -f unlimited
+    ulimit -l unlimited
+    ulimit -n unlimited
+    ulimit -s unlimited
+    ulimit -t unlimited
+}
+
+open() {
+    if [[ $# -eq 0 ]]; then
+        setsid -f xdg-open . </dev/null >/dev/null 2>&1
+        return
+    fi
+    local target
+    for target in "$@"; do
+        setsid -f xdg-open "$target" </dev/null >/dev/null 2>&1
+    done
+}
 
 # second brain in the sandbox: repo as workspace, mail and documents writable,
 # signal-cli binary and its account store bound in, ssh forced past the system
 # config that bwrap's userns makes unreadable.
 second-brain() {
-      local agent="code"
-      local runner="claude-isolated"
-      local timestamp=$(date +%s)
-      local -a agent_args=(--name "second-brain-${timestamp[-7,-1]}")
+    local agent="code"
+    local runner="claude-isolated"
+    local timestamp=$(date +%s)
+    local -a agent_args=(--name "second-brain-${timestamp[-7,-1]}")
 
-      # signal-cli sits outside the launcher's curated binds: the ~/.local/bin
-      # symlink is visible but its target dir and the account store are not.
-      # Bind the resolved install dir read-only and the store read-write
-      # (receive mutates the SQLite db, identity keys and session ratchet).
-      local -a signal_binds=()
-      if [[ -e "$HOME/.local/bin/signal-cli" ]]; then
-            signal_binds=(
-                  -r "${$(readlink -f "$HOME/.local/bin/signal-cli"):h}"
-                  -w "$HOME/.local/share/signal-cli"
-            )
-      fi
+    # signal-cli sits outside the launcher's curated binds: the ~/.local/bin
+    # symlink is visible but its target dir and the account store are not.
+    # Bind the resolved install dir read-only and the store read-write
+    # (receive mutates the SQLite db, identity keys and session ratchet).
+    local -a signal_binds=()
+    if [[ -e "$HOME/.local/bin/signal-cli" ]]; then
+        signal_binds=(
+            -r "${$(readlink -f "$HOME/.local/bin/signal-cli"):h}"
+            -w "$HOME/.local/share/signal-cli"
+        )
+    fi
 
-      case "$1" in
-            code|codex|agy)
-                  agent="$1"
-                  shift
-                  ;;
-      esac
+    case "$1" in
+        code|codex|agy)
+            agent="$1"
+            shift
+            ;;
+    esac
 
-      case "$agent" in
-            code)
-                  ;;
-            codex)
-                  runner="codex-isolated"
-                  agent_args=(-c "mcp_servers.notmuch.enabled=true")
-                  ;;
-            agy)
-                  runner="agy-isolated"
-                  agent_args=()
-                  ;;
-      esac
+    case "$agent" in
+        code)
+            ;;
+        codex)
+            runner="codex-isolated"
+            agent_args=(-c "mcp_servers.notmuch.enabled=true")
+            ;;
+        agy)
+            runner="agy-isolated"
+            agent_args=()
+            ;;
+    esac
 
-      cd /home/pfeifer/src/own/misc/second-brain || return
-      GIT_SSH_COMMAND="ssh -F /dev/null -o IdentitiesOnly=yes -i $HOME/.ssh/id_rsa -o UserKnownHostsFile=$HOME/.ssh/known_hosts" \
-      "$runner" \
-              -w "$HOME/.mail" \
-              -w "$HOME/documents" \
-              -r "$HOME/.notmuch-config" \
-              -w "$HOME/.offlineimap" \
-              -w "$HOME/.mutt" \
-              -r "$HOME/.offlineimaprc" \
-              -r "$HOME/.config" \
-              -r "$HOME/src/own/misc/mcp-server-notmuch" \
-              "${signal_binds[@]}" \
-              "${agent_args[@]}" "$@"
+    cd /home/pfeifer/src/own/misc/second-brain || return
+    GIT_SSH_COMMAND="ssh -F /dev/null -o IdentitiesOnly=yes -i $HOME/.ssh/id_rsa -o UserKnownHostsFile=$HOME/.ssh/known_hosts" \
+    "$runner" \
+        -w "$HOME/.mail" \
+        -w "$HOME/documents" \
+        -r "$HOME/.notmuch-config" \
+        -w "$HOME/.offlineimap" \
+        -w "$HOME/.mutt" \
+        -r "$HOME/.offlineimaprc" \
+        -r "$HOME/.config" \
+        -r "$HOME/src/own/misc/mcp-server-notmuch" \
+        "${signal_binds[@]}" \
+        "${agent_args[@]}" "$@"
 }
 
-open() {
-  if [ "$#" -eq 0 ]; then
-    setsid -f xdg-open . </dev/null >/dev/null 2>&1
-    return
-  fi
-  for target in "$@"; do
-    setsid -f xdg-open "$target" </dev/null >/dev/null 2>&1
-  done
-}
+## FZF
 
-# zoxide hooks into chpwd and overrides cd, so it has to stay the last thing
-# this file does. Anything initialized afterwards makes it complain.
+export FZF_DEFAULT_OPTS='--height 20% --info=right --highlight-line --layout=reverse --border --exact'
+if (( $+commands[fdfind] )); then
+    export FZF_DEFAULT_COMMAND='fdfind --type f --strip-cwd-prefix --hidden --follow --exclude .git'
+    export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+    export FZF_ALT_C_COMMAND='fdfind --type d --strip-cwd-prefix --hidden --follow --exclude .git'
+fi
+[[ -r /usr/share/doc/fzf/examples/key-bindings.zsh ]] && source /usr/share/doc/fzf/examples/key-bindings.zsh
+[[ -r /usr/share/doc/fzf/examples/completion.zsh   ]] && source /usr/share/doc/fzf/examples/completion.zsh
+
+## ZOXIDE
+
+# zoxide hooks into chpwd and overrides cd, so it has to stay near the end
+# (only zsh-syntax-highlighting needs to be sourced after all ZLE widgets).
 if (( $+commands[zoxide] )); then
     eval "$(zoxide init zsh --cmd cd)"
 fi
 
-# CTRL-W removes wordwise, backwards.
-autoload -Uz backward-kill-word-match
-zle -N backward-kill-space-word backward-kill-word-match
-zstyle ':zle:backward-kill-space-word' word-style space
-bindkey '^W' backward-kill-space-word
+## ZSH PLUGINS
+
+# zsh-syntax-highlighting must be sourced last so it wraps all ZLE widgets
+if [[ -r /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]]; then
+    source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+fi

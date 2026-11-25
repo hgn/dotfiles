@@ -69,6 +69,16 @@
     excludesfile = $HOME/.gitignore
     whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
     editor = nvim
+    pager = delta
+
+[interactive]
+    diffFilter = delta --color-only
+
+[delta]
+    navigate = true
+    dark = true
+    line-numbers = true
+    syntax-theme = Dracula
 
 [credential]
     helper = cache --timeout=7200  # Cache credentials for 2 hours
@@ -114,6 +124,7 @@
     log = true
     summary = true
     stat = true
+    conflictstyle = zdiff3
 
 [mergetool]
     keepBackup = false

@@ -57,3 +57,5 @@ curl
 wireguard
 libnotify-bin
 eza
+git-delta
+zsh-syntax-highlighting

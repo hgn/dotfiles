@@ -43,6 +43,11 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("qs")
     hl.exec_cmd("hypridle")
     hl.exec_cmd("/usr/libexec/hyprpolkitagent")
+    -- warm kitty single-instance daemons so ALT+Return opens in ~30 ms instead of ~900 ms
+    hl.exec_cmd(terminal .. " -1 --instance-group=main --start-as=hidden")
+    hl.exec_cmd(terminal .. " -1 --instance-group=fokus --start-as=hidden"
+        .. " -o background=#0a0a0e -o foreground=#a9b1d6"
+        .. " -o selection_background=#283457 -o active_border_color=#3b4261")
     -- drop-down terminal lives in the special workspace "term"
     hl.exec_cmd(terminal .. " --class dropterm -o font_size=15 -o background_opacity=0.7", { workspace = "special:term silent" })
 end)
@@ -327,10 +332,11 @@ hl.config({
 hl.bind("ALT + Return", function()
     local ws = hl.get_active_workspace()
     if ws ~= nil and ws.name == "1" then
-        hl.exec_cmd(terminal .. " -o background=#0a0a0e -o foreground=#a9b1d6"
+        hl.exec_cmd(terminal .. " -1 --instance-group=fokus"
+            .. " -o background=#0a0a0e -o foreground=#a9b1d6"
             .. " -o selection_background=#283457 -o active_border_color=#3b4261")
     else
-        hl.exec_cmd(terminal)
+        hl.exec_cmd(terminal .. " -1 --instance-group=main")
     end
 end)
 -- SUPER+Return: drop-down terminal (scratchpad), same idea as on the laptop.

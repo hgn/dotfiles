@@ -57,6 +57,9 @@ TERM xterm-256color
 TERM xterm-88color
 TERM xterm-color
 TERM xterm-debian
+TERM xterm-kitty
+TERM alacritty
+TERM tmux-256color
 
 ## Documentation
 #

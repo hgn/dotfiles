@@ -16,6 +16,7 @@ Singleton {
     property bool mixerOpen: false
     property bool launcherOpen: false
     property bool sysOpen: false
+    property bool clipOpen: false
     property bool powerOpen: false
     property bool inhibitIdle: false
 
@@ -109,6 +110,48 @@ Singleton {
             tempHistory = push(tempHistory, temp / 100)
         }
     }
+
+    // ---- network details (interface + IPv4 for tooltip) -----------------------
+    property string netName: ""
+    property string netIp: ""
+    Process {
+        id: netInfoProc
+        command: ["sh", "-c",
+            "con=$(nmcli -t -f NAME,TYPE,DEVICE connection show --active 2>/dev/null | awk -F: '$2!=\"loopback\"{print $1\"|\"$3; exit}'); " +
+            "dev=${con#*|}; name=${con%%|*}; " +
+            "ip=$([ -n \"$dev\" ] && ip -4 -br addr show dev \"$dev\" 2>/dev/null | awk '{print $3}' | cut -d/ -f1); " +
+            "printf '%s|%s\n' \"$name\" \"$ip\""
+        ]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const parts = text.trim().split("|")
+                store.netName = parts[0] || ""
+                store.netIp = parts[1] || ""
+            }
+        }
+    }
+    Timer {
+        interval: 15000; running: true; repeat: true; triggeredOnStart: true
+        onTriggered: netInfoProc.running = true
+    }
+
+    // ---- unread mail count (IMAP INBOX, fallback notmuch) ---------------------
+    property int mailUnread: 0
+    Process {
+        id: mailProc
+        command: [store.home + "/.local/share/wm/bin/wm-mail-count"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const n = parseInt(text.trim())
+                if (!isNaN(n) && n >= 0) store.mailUnread = n
+            }
+        }
+    }
+    Timer {
+        interval: 60000; running: true; repeat: true; triggeredOnStart: true
+        onTriggered: mailProc.running = true
+    }
+    function refreshMail() { mailProc.running = true }
 
     // ---- weather (shared wttr.in helper) ---------------------------------------
     property string weather: ""
@@ -298,6 +341,8 @@ Singleton {
             })
         }
         function sys(): void { store.sysOpen = !store.sysOpen }
+        function clip(): void { store.clipOpen = !store.clipOpen }
+        function refreshMail(): void { store.refreshMail() }
         function power(): void { store.powerOpen = !store.powerOpen }
     }
 }

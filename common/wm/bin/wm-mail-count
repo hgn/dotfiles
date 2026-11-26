@@ -1,0 +1,63 @@
+#!/usr/bin/env python3
+"""Print unread INBOX mail count (live IMAP UNSEEN, fallback to local notmuch)."""
+import imaplib
+import os
+import re
+import subprocess
+import sys
+
+
+def imap_unseen() -> int | None:
+    muttrc = os.path.expanduser("~/.mutt/muttrc")
+    if not os.path.isfile(muttrc):
+        return None
+    try:
+        with open(muttrc, "r", encoding="utf-8", errors="ignore") as f:
+            txt = f.read()
+        user_m = re.search(r'set\s+imap_user\s*=\s*"([^"]+)"', txt)
+        pass_m = re.search(r'set\s+imap_pass\s*=\s*"([^"]+)"', txt)
+        host_m = re.search(r'imaps://([^:/"]+)(?::(\d+))?', txt)
+        if not (user_m and pass_m and host_m):
+            return None
+        host = host_m.group(1)
+        port = int(host_m.group(2) or 993)
+        conn = imaplib.IMAP4_SSL(host, port, timeout=5)
+        try:
+            conn.login(user_m.group(1), pass_m.group(1))
+            typ, data = conn.status("INBOX", "(UNSEEN)")
+            if typ == "OK" and data and data[0]:
+                m = re.search(rb"UNSEEN\s+(\d+)", data[0])
+                if m:
+                    return int(m.group(1))
+        finally:
+            try:
+                conn.logout()
+            except Exception:
+                pass
+    except Exception:
+        return None
+    return None
+
+
+def notmuch_unseen() -> int:
+    try:
+        out = subprocess.check_output(
+            ["notmuch", "count", "tag:unread and folder:INBOX"],
+            stderr=subprocess.DEVNULL,
+            text=True,
+            timeout=3,
+        ).strip()
+        return int(out)
+    except Exception:
+        return 0
+
+
+def main() -> None:
+    count = imap_unseen()
+    if count is None:
+        count = notmuch_unseen()
+    print(count)
+
+
+if __name__ == "__main__":
+    main()

@@ -4,13 +4,13 @@ echo -e "Starting email-classify: \e[32mcategorizing\e[0m emails via notmuch..."
 START_TIME=$(date +%s.%N)
 
 # linux-pm
-notmuch tag +linux-pm +list folder:Lists.linux-pm
+notmuch tag +linux-pm +list -inbox -- folder:Lists.linux-pm
 notmuch tag +keep-longer +linux-pm-intel -- tag:linux-pm and subject:\*intel\*
 notmuch tag +keep-longer +linux-pm-intel -- tag:linux-pm and subject:\*rapl\*
 notmuch tag +killed -- tag:linux-pm and not tag:keep-longer and date:..365days
 notmuch tag +killed -- tag:linux-pm and date:..1024days
 # lkml stuff
-notmuch tag +lkml +list folder:Lists.lkml
+notmuch tag +lkml +list -inbox -- folder:Lists.lkml
 notmuch tag +keep-infty -- tag:lkml and to:hagen.pfeifer@jauu.net
 # keep all messages which I tagged important for ever
 notmuch tag +keep-infty -- tag:flagged
@@ -23,6 +23,8 @@ notmuch tag +keep-longer +linux-bpf  -- tag:lkml and subject:bpf
 # please not, month means "not that month", not 30 days.
 notmuch tag +killed -- tag:lkml and not tag:keep-longer and not tag:keep-infty and date:..30days
 notmuch tag +killed -- tag:lkml and not tag:keep-infty and date:..365days
+# clean up Trash older than 120 days
+notmuch tag +killed -- folder:Trash and not tag:keep-infty and date:..120days
 
 END_TIME=$(date +%s.%N)
 ELAPSED=$(awk -v t1="$START_TIME" -v t2="$END_TIME" 'BEGIN{printf "%.2f", t2-t1}')

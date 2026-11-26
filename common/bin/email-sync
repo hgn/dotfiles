@@ -52,6 +52,19 @@ if [ "$DIFF" -gt 0 ]; then
     ~/bin/email-import-contact-from-maildir.py
 fi
 
+# Compact the notmuch Xapian database once every 30 days to reclaim freed blocks
+COMPACT_STAMP="${XDG_STATE_HOME:-$HOME/.local/state}/notmuch-last-compact"
+NOW_TS=$(date +%s)
+LAST_COMPACT=0
+[[ -r "$COMPACT_STAMP" ]] && LAST_COMPACT=$(cat "$COMPACT_STAMP" 2>/dev/null || echo 0)
+if (( NOW_TS - LAST_COMPACT >= 30 * 86400 )); then
+    echo -e "Compacting notmuch database (monthly maintenance)..."
+    if notmuch compact --quiet; then
+        mkdir -p "$(dirname "$COMPACT_STAMP")"
+        printf '%s\n' "$NOW_TS" > "$COMPACT_STAMP"
+    fi
+fi
+
 # Refresh Quickshell topbar unread badge if running
 if command -v qs >/dev/null 2>&1; then
     qs ipc call shell refreshMail >/dev/null 2>&1 || true

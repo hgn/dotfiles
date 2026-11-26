@@ -2,7 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Clipboard history popup backed by cliphist.
+// Clipboard history popup backed by cliphist (4K-scaled).
 // Click an entry to copy it back into the Wayland clipboard; right-click or
 // the × button deletes it; "Leeren" wipes the entire history.
 PopupCard {
@@ -10,7 +10,7 @@ PopupCard {
     open: Store.clipOpen
     onDismissed: Store.clipOpen = false
 
-    readonly property int w: 500
+    readonly property int w: 760
     property var entries: []     // [{ id, preview, raw }]
 
     function refresh() { listProc.running = true }
@@ -19,7 +19,7 @@ PopupCard {
 
     Process {
         id: listProc
-        command: ["sh", "-c", "cliphist list | head -n 20"]
+        command: ["sh", "-c", "cliphist list | head -n 30"]
         stdout: StdioCollector {
             onStreamFinished: {
                 const out = []
@@ -54,38 +54,45 @@ PopupCard {
     // Header
     Item {
         width: clip.w
-        height: 30
+        height: 36
 
         Row {
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 10
-            Icon { code: 0xF014C; size: 22; color: Theme.purple }
-            Txt { text: "Zwischenablage"; size: 20; font.weight: Font.Bold; color: "white" }
+            spacing: 12
+            Icon { code: 0xF014C; size: 24; color: Theme.purple }
+            Txt { text: "Zwischenablage"; size: 22; font.weight: Font.Bold; color: "white" }
+            Txt {
+                visible: clip.entries.length > 0
+                text: "(" + clip.entries.length + ")"
+                size: 16
+                color: Theme.dim
+                anchors.verticalCenter: parent.verticalCenter
+            }
         }
 
         Row {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 8
+            spacing: 10
 
             Chip {
-                implicitHeight: 30
-                padX: 10
+                implicitHeight: 34
+                padX: 12
                 color: hovered ? Theme.hl : Qt.rgba(1, 1, 1, 0.05)
-                Txt { text: "Fuzzel"; size: 13; color: Theme.fg }
+                Txt { text: "Fuzzel"; size: 14; color: Theme.fg }
                 onClicked: {
                     Store.clipOpen = false
                     Store.run("cliphist list | fuzzel --dmenu --prompt '󰅌  Clipboard › ' | cliphist decode | wl-copy")
                 }
             }
             Chip {
-                implicitHeight: 30
-                padX: 10
+                implicitHeight: 34
+                padX: 12
                 visible: clip.entries.length > 0
                 hoverColor: Qt.rgba(Theme.red.r, Theme.red.g, Theme.red.b, 0.25)
                 color: hovered ? hoverColor : Qt.rgba(1, 1, 1, 0.05)
-                Txt { text: "Leeren"; size: 13; color: Theme.red }
+                Txt { text: "Leeren"; size: 14; color: Theme.red }
                 onClicked: clip.wipeAll()
             }
         }
@@ -95,9 +102,9 @@ PopupCard {
     ListView {
         id: list
         width: clip.w
-        height: Math.min(440, Math.max(72, clip.entries.length * 46))
+        height: Math.min(720, Math.max(96, clip.entries.length * 54))
         clip: true
-        spacing: 4
+        spacing: 6
         model: clip.entries
         boundsBehavior: Flickable.StopAtBounds
 
@@ -106,8 +113,8 @@ PopupCard {
             required property var modelData
             required property int index
             width: list.width
-            height: 42
-            radius: 12
+            height: 48
+            radius: 14
             color: rowMouse.containsMouse ? Theme.hl : Qt.rgba(1, 1, 1, 0.04)
             border.width: 1
             border.color: rowMouse.containsMouse
@@ -117,12 +124,12 @@ PopupCard {
 
             Txt {
                 anchors.left: parent.left
-                anchors.leftMargin: 14
+                anchors.leftMargin: 16
                 anchors.right: delBtn.left
-                anchors.rightMargin: 8
+                anchors.rightMargin: 10
                 anchors.verticalCenter: parent.verticalCenter
                 text: row.modelData.preview
-                size: 15
+                size: 17
                 color: rowMouse.containsMouse ? Theme.fgBright : Theme.fg
             }
 
@@ -141,16 +148,16 @@ PopupCard {
             Item {
                 id: delBtn
                 anchors.right: parent.right
-                anchors.rightMargin: 6
+                anchors.rightMargin: 8
                 anchors.verticalCenter: parent.verticalCenter
-                width: 28
-                height: 28
+                width: 32
+                height: 32
                 opacity: rowMouse.containsMouse ? 0.9 : 0.35
 
                 Txt {
                     anchors.centerIn: parent
                     text: "×"
-                    size: 18
+                    size: 20
                     color: delMouse.containsMouse ? Theme.red : Theme.dim
                 }
                 MouseArea {
@@ -167,14 +174,14 @@ PopupCard {
             anchors.centerIn: parent
             visible: clip.entries.length === 0
             text: "Zwischenablage ist leer"
-            size: 15
+            size: 16
             color: Theme.dim
         }
     }
 
     Txt {
         text: "Linksklick: kopieren   ·   Rechtsklick: entfernen   ·   Super+C: Suche"
-        size: 12
+        size: 13
         color: Theme.dim
     }
 }

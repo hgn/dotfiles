@@ -1,15 +1,31 @@
 #!/usr/bin/env bash
+set -uo pipefail
+
+LOCK_FILE="${XDG_RUNTIME_DIR:-/tmp}/email-sync.lock"
+exec 9>"$LOCK_FILE"
+if ! flock -n 9; then
+    echo "email-sync: already running (lock: $LOCK_FILE), skipping."
+    exit 0
+fi
+
+INTERACTIVE=0
+[[ -t 1 ]] && INTERACTIVE=1
 
 echo -e "Starting email-sync: \e[32msynchronizing\e[0m emails via offlineimap..."
 START_TIME=$(date +%s.%N)
 MAIL_DIR=$(notmuch config get database.path 2>/dev/null || echo "$HOME/.mail")
 NM_DB="$MAIL_DIR/.notmuch"
-MAIL_SIZE_BEFORE=$(du -sk "$MAIL_DIR" 2>/dev/null | awk '{print $1}')
-NM_SIZE_BEFORE=$(du -sk "$NM_DB" 2>/dev/null | awk '{print $1}')
-if ! ping -c 1 heise.de >/dev/null 2>&1; then
+
+if [[ $INTERACTIVE -eq 1 ]]; then
+    MAIL_SIZE_BEFORE=$(du -sk "$MAIL_DIR" 2>/dev/null | awk '{print $1}')
+    NM_SIZE_BEFORE=$(du -sk "$NM_DB" 2>/dev/null | awk '{print $1}')
+fi
+
+if ! ping -c 1 -W 2 heise.de >/dev/null 2>&1; then
     echo "    -> heise.de not pingable - failed to sync emails"
     exit 1
 fi
+
 BEFORE=$(notmuch count)
 O_START=$(date +%s.%N)
 offlineimap -o -u quiet
@@ -17,28 +33,44 @@ O_END=$(date +%s.%N)
 O_ELAPSED=$(awk -v t1="$O_START" -v t2="$O_END" 'BEGIN{printf "%.2f", t2-t1}')
 AFTER=$(notmuch count)
 DIFF=$((AFTER - BEFORE))
+
 if [ "$DIFF" -gt 0 ]; then
     echo -e "    downloaded \e[32m$DIFF\e[0m new emails in \e[36m$O_ELAPSED\e[0m seconds"
 else
     echo -e "    no new emails in \e[36m$O_ELAPSED\e[0m seconds"
 fi
+
 ~/bin/email-classify
-~/bin/email-cleanup
-offlineimap -o -u quiet
-~/bin/email-import-contact-from-maildir.py
+
+KILLED=$(notmuch count tag:killed)
+if [ "$KILLED" -gt 0 ]; then
+    ~/bin/email-cleanup
+    offlineimap -o -u quiet
+fi
+
+if [ "$DIFF" -gt 0 ]; then
+    ~/bin/email-import-contact-from-maildir.py
+fi
+
+# Refresh Quickshell topbar unread badge if running
+if command -v qs >/dev/null 2>&1; then
+    qs ipc call shell refreshMail >/dev/null 2>&1 || true
+fi
 
 END_TIME=$(date +%s.%N)
 ELAPSED=$(awk -v t1="$START_TIME" -v t2="$END_TIME" 'BEGIN{printf "%.2f", t2-t1}')
 echo -e "\nAll tasks finished. Total time: \e[36m$ELAPSED\e[0m seconds."
 
-MAIL_SIZE_AFTER=$(du -sk "$MAIL_DIR" 2>/dev/null | awk '{print $1}')
-NM_SIZE_AFTER=$(du -sk "$NM_DB" 2>/dev/null | awk '{print $1}')
-MAIL_DIFF=$(( MAIL_SIZE_AFTER - MAIL_SIZE_BEFORE ))
-NM_DIFF=$(( NM_SIZE_AFTER - NM_SIZE_BEFORE ))
-MAIL_HUMAN=$(du -sh "$MAIL_DIR" 2>/dev/null | awk '{print $1}')
-NM_HUMAN=$(du -sh "$NM_DB" 2>/dev/null | awk '{print $1}')
+if [[ $INTERACTIVE -eq 1 ]]; then
+    MAIL_SIZE_AFTER=$(du -sk "$MAIL_DIR" 2>/dev/null | awk '{print $1}')
+    NM_SIZE_AFTER=$(du -sk "$NM_DB" 2>/dev/null | awk '{print $1}')
+    MAIL_DIFF=$(( MAIL_SIZE_AFTER - MAIL_SIZE_BEFORE ))
+    NM_DIFF=$(( NM_SIZE_AFTER - NM_SIZE_BEFORE ))
+    MAIL_HUMAN=$(du -sh "$MAIL_DIR" 2>/dev/null | awk '{print $1}')
+    NM_HUMAN=$(du -sh "$NM_DB" 2>/dev/null | awk '{print $1}')
 
-[ "$MAIL_DIFF" -gt 0 ] && MAIL_DIFF_STR="+${MAIL_DIFF}" || MAIL_DIFF_STR="${MAIL_DIFF}"
-[ "$NM_DIFF" -gt 0 ] && NM_DIFF_STR="+${NM_DIFF}" || NM_DIFF_STR="${NM_DIFF}"
+    [ "$MAIL_DIFF" -gt 0 ] && MAIL_DIFF_STR="+${MAIL_DIFF}" || MAIL_DIFF_STR="${MAIL_DIFF}"
+    [ "$NM_DIFF" -gt 0 ] && NM_DIFF_STR="+${NM_DIFF}" || NM_DIFF_STR="${NM_DIFF}"
 
-echo -e "Maildir: \e[36m${MAIL_HUMAN}\e[0m (\e[33m${MAIL_DIFF_STR} KB\e[0m) | Notmuch DB: \e[36m${NM_HUMAN}\e[0m (\e[33m${NM_DIFF_STR} KB\e[0m)"
+    echo -e "Maildir: \e[36m${MAIL_HUMAN}\e[0m (\e[33m${MAIL_DIFF_STR} KB\e[0m) | Notmuch DB: \e[36m${NM_HUMAN}\e[0m (\e[33m${NM_DIFF_STR} KB\e[0m)"
+fi

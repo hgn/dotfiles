@@ -1,0 +1,11 @@
+[Unit]
+Description=Synchronize, classify and clean up emails (offlineimap + notmuch)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/bin/email-sync
+Nice=10
+IOSchedulingClass=idle
+TimeoutStartSec=10min

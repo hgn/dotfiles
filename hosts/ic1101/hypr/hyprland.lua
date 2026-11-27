@@ -532,7 +532,6 @@ hl.window_rule({
 -- glass behind Quickshell panels, launcher, notifications, power menu and fuzzel (wm-wifi)
 hl.layer_rule({ name = "qs-blur",       match = { namespace = "^quickshell$" },       blur = true, ignore_alpha = 0.35 })
 hl.layer_rule({ name = "qs-notif-blur", match = { namespace = "^qs-notifications$" }, blur = true, ignore_alpha = 0.2, animation = "slide right" })
-hl.layer_rule({ name = "qs-ws-hud",     match = { namespace = "^qs-ws-hud$" },        blur = true, ignore_alpha = 0.2, no_anim = true })
 hl.layer_rule({ name = "qs-launch-blur",match = { namespace = "^qs-launcher$" },      blur = true, no_anim = true })
 hl.layer_rule({ name = "qs-power-blur", match = { namespace = "^qs-power$" },         blur = true, animation = "fade" })
 hl.layer_rule({ name = "fuzzel-blur",   match = { namespace = "^launcher$" },         blur = true, ignore_alpha = 0.2, animation = "popin 85%" })

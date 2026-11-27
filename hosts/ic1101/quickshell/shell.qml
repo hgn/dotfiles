@@ -12,7 +12,6 @@ ShellRoot {
         Bar {}
     }
     Notifications {}
-    WorkspaceHud {}
     Launcher {}
     PowerMenu {}
 }

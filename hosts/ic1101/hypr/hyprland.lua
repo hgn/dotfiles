@@ -405,6 +405,20 @@ hl.on("window.close", function(w)
         if term_shown() then hl.dispatch(hl.dsp.workspace.toggle_special("term")) end
     end
 end)
+-- Any app spawned from inside dropterm (e.g. Firefox/papers/feh from NeoMutt)
+-- would inherit special:term and vanish with SUPER+Return: kick it out onto
+-- the active normal workspace and hide the scratchpad so it's immediately visible.
+hl.on("window.open", function(w)
+    if w == nil or w.class == "dropterm" then return end
+    local wws = w.workspace
+    if wws ~= nil and (wws.name == "special:term" or wws.name == "term") then
+        local target = hl.get_active_workspace()
+        local dest = (target ~= nil and not target.special and target.name) or "1"
+        hl.dispatch(hl.dsp.window.move({ workspace = dest, window = "address:" .. w.address }))
+        if term_shown() then hl.dispatch(hl.dsp.workspace.toggle_special("term")) end
+        hl.dispatch(hl.dsp.focus({ window = "address:" .. w.address }))
+    end
+end)
 
 -- Session / tools
 hl.bind("SUPER + L",       hl.dsp.exec_cmd("loginctl lock-session"))

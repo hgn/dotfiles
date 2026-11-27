@@ -3,9 +3,26 @@
 -- Reference: /usr/share/hypr/hyprland.lua, https://wiki.hypr.land/configuring/
 
 local home     = os.getenv("HOME")
+local runtime  = os.getenv("XDG_RUNTIME_DIR") or "/tmp"
 local wm       = home .. "/.local/share/wm/bin/"
 local terminal = "alacritty --config-file " .. home .. "/.config/alacritty/wm.toml"
 local menu     = "qs ipc call shell launcher"
+
+-- Warm Alacritty daemon helper: one persistent daemon per workspace theme socket
+-- so ALT+Return opens a new window in ~15 ms via IPC instead of cold-starting.
+local function alacritty_cfg(name)
+    if name == "wm" then return home .. "/.config/alacritty/wm.toml" end
+    return home .. "/.config/alacritty/ws-" .. name .. ".toml"
+end
+local function alacritty_sock(name)
+    return runtime .. "/alacritty-" .. name .. ".sock"
+end
+local function warm_alacritty(name)
+    local sock = alacritty_sock(name)
+    local cfg  = alacritty_cfg(name)
+    hl.exec_cmd("sh -c 'alacritty msg -s \"" .. sock .. "\" get-config >/dev/null 2>&1"
+        .. " || { rm -f \"" .. sock .. "\"; exec alacritty --daemon --socket \"" .. sock .. "\" --config-file \"" .. cfg .. "\"; }'")
+end
 
 ------------------
 ---- MONITORS ----
@@ -36,6 +53,13 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("qs")
     hl.exec_cmd("hypridle")
     hl.exec_cmd("/usr/libexec/polkit-mate-authentication-agent-1")
+    -- clipboard history (text & images) -> SUPER+C opens fuzzel picker
+    hl.exec_cmd("wl-paste --type text --watch cliphist store")
+    hl.exec_cmd("wl-paste --type image --watch cliphist store")
+    -- warm Alacritty daemon instances for instant (~15 ms) ALT+Return windows
+    warm_alacritty("ink")
+    warm_alacritty("phosphor")
+    warm_alacritty("wm")
     -- drop-down terminal lives in the special workspace "term"
     hl.exec_cmd(terminal .. " --class dropterm -o font.size=15 -o window.opacity=0.7", { workspace = "special:term silent" })
 end)
@@ -301,14 +325,18 @@ function theme_blur()
     return merge(BASE.decoration.blur, (t.cfg.decoration or {}).blur or {})
 end
 
--- ALT+Return: terminal in the colors of the current workspace
+-- ALT+Return: instant terminal in the colors of the current workspace via daemon IPC
 local function spawn_terminal()
     local t = theme_for(hl.get_active_workspace())
-    if t.term == nil then
-        hl.exec_cmd(terminal .. " " .. (t.term_opts or ""))   -- standard look (wm.toml)
-    else
-        hl.exec_cmd("alacritty --config-file " .. home .. "/.config/alacritty/ws-" .. t.term .. ".toml")
-    end
+    local name = t.term or "wm"
+    local sock = alacritty_sock(name)
+    local cfg  = alacritty_cfg(name)
+    local opts = (t.term == nil and t.term_opts and t.term_opts ~= "") and (" " .. t.term_opts) or ""
+    -- Fast path: IPC to warm daemon (~15 ms). Self-healing fallback starts daemon on demand.
+    hl.exec_cmd("sh -c 'alacritty msg -s \"" .. sock .. "\" create-window" .. opts .. " 2>/dev/null"
+        .. " || { rm -f \"" .. sock .. "\"; alacritty --daemon --socket \"" .. sock .. "\" --config-file \"" .. cfg .. "\" >/dev/null 2>&1 & "
+        .. "i=0; while [ ! -S \"" .. sock .. "\" ] && [ $i -lt 50 ]; do sleep 0.02; i=$((i+1)); done; "
+        .. "alacritty msg -s \"" .. sock .. "\" create-window" .. opts .. "; }'")
 end
 
 ---------------------
@@ -422,6 +450,7 @@ end)
 
 -- Session / tools
 hl.bind("SUPER + L",       hl.dsp.exec_cmd("loginctl lock-session"))
+hl.bind("SUPER + C",       hl.dsp.exec_cmd("cliphist list | fuzzel --dmenu --prompt '󰅌  Clipboard › ' | cliphist decode | wl-copy"))
 hl.bind("SUPER + Escape",  hl.dsp.exec_cmd(wm .. "wm-power"))
 hl.bind("SUPER + W",       hl.dsp.exec_cmd(wm .. "wm-wifi"))
 hl.bind("SUPER + E",       hl.dsp.exec_cmd("nautilus"))
@@ -501,9 +530,10 @@ hl.window_rule({
 })
 
 -- glass behind Quickshell panels, launcher, notifications, power menu and fuzzel (wm-wifi)
-hl.layer_rule({ name = "qs-blur",       match = { namespace = "^quickshell$" },       blur = true, ignore_alpha = 0.5 })
+hl.layer_rule({ name = "qs-blur",       match = { namespace = "^quickshell$" },       blur = true, ignore_alpha = 0.35 })
 hl.layer_rule({ name = "qs-notif-blur", match = { namespace = "^qs-notifications$" }, blur = true, ignore_alpha = 0.2, animation = "slide right" })
-hl.layer_rule({ name = "qs-launch-blur",match = { namespace = "^qs-launcher$" },      blur = true, animation = "fade" })
+hl.layer_rule({ name = "qs-ws-hud",     match = { namespace = "^qs-ws-hud$" },        blur = true, ignore_alpha = 0.2, no_anim = true })
+hl.layer_rule({ name = "qs-launch-blur",match = { namespace = "^qs-launcher$" },      blur = true, no_anim = true })
 hl.layer_rule({ name = "qs-power-blur", match = { namespace = "^qs-power$" },         blur = true, animation = "fade" })
 hl.layer_rule({ name = "fuzzel-blur",   match = { namespace = "^launcher$" },         blur = true, ignore_alpha = 0.2, animation = "popin 85%" })
 hl.layer_rule({ name = "slurp",         match = { namespace = "^selection$" },        no_anim = true })

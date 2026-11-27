@@ -19,6 +19,7 @@ Singleton {
     property bool briOpen: false
     property bool launcherOpen: false
     property bool sysOpen: false
+    property bool clipOpen: false
     property bool powerOpen: false
     property bool inhibitIdle: false
 
@@ -286,6 +287,7 @@ Singleton {
     // ---- network, VPN & power profile -----------------------------------------
     property string netType: "offline"   // "wifi" | "ethernet" | "offline"
     property string netLabel: "offline"
+    property string netIp: ""
     property int wifiSignal: 0
     property bool vpnActive: false
 
@@ -300,8 +302,11 @@ Singleton {
         id: netProc
         command: ["sh", "-c",
             "nmcli -t -f NAME connection show --active 2>/dev/null | grep -qxF fritz-wg && echo 'VPN 1' || echo 'VPN 0'; " +
-            "dev=$(nmcli -t -f TYPE,STATE,CONNECTION dev 2>/dev/null | awk -F: '$2==\"connected\" && ($1==\"wifi\" || $1==\"ethernet\") {print $1 \"|\" $3; exit}'); " +
-            "echo \"NET ${dev:-offline|}\"; " +
+            "devline=$(nmcli -t -f TYPE,STATE,CONNECTION,DEVICE dev 2>/dev/null | awk -F: '$2==\"connected\" && ($1==\"wifi\" || $1==\"ethernet\") {print $1 \"|\" $3 \"|\" $4; exit}'); " +
+            "iface=${devline##*|}; " +
+            "echo \"NET ${devline:-offline||}\"; " +
+            "ip=$([ -n \"$iface\" ] && ip -4 -br addr show dev \"$iface\" 2>/dev/null | awk '{print $3}' | cut -d/ -f1); " +
+            "echo \"IP ${ip}\"; " +
             "sig=$(nmcli -t -f ACTIVE,SIGNAL dev wifi list --rescan no 2>/dev/null | awk -F: '$1==\"yes\" {print $2; exit}'); " +
             "echo \"SIG ${sig:-0}\"; " +
             "pp=$(powerprofilesctl get 2>/dev/null); " +
@@ -320,12 +325,13 @@ Singleton {
             if (line.startsWith("VPN ")) {
                 vpnActive = line.slice(4).trim() === "1"
             } else if (line.startsWith("NET ")) {
-                const rest = line.slice(4)
-                const sep = rest.indexOf("|")
-                const typ = sep >= 0 ? rest.slice(0, sep) : "offline"
-                const name = sep >= 0 ? rest.slice(sep + 1) : ""
-                netType = typ || "offline"
+                const parts = line.slice(4).split("|")
+                const typ = parts[0] || "offline"
+                const name = parts[1] || ""
+                netType = typ
                 netLabel = name || (typ === "offline" ? "offline" : typ)
+            } else if (line.startsWith("IP ")) {
+                netIp = line.slice(3).trim()
             } else if (line.startsWith("SIG ")) {
                 const s = parseInt(line.slice(4))
                 wifiSignal = isNaN(s) ? 0 : Math.max(0, Math.min(100, s))
@@ -341,6 +347,24 @@ Singleton {
         vpnRefreshTimer.restart()
     }
     Timer { id: vpnRefreshTimer; interval: 1500; onTriggered: store.refreshNet() }
+
+    // ---- unread mail count (IMAP INBOX, fallback notmuch) ---------------------
+    property int mailUnread: 0
+    Process {
+        id: mailProc
+        command: [store.home + "/.local/share/wm/bin/wm-mail-count"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const n = parseInt(text.trim())
+                if (!isNaN(n) && n >= 0) store.mailUnread = n
+            }
+        }
+    }
+    Timer {
+        interval: 60000; running: true; repeat: true; triggeredOnStart: true
+        onTriggered: mailProc.running = true
+    }
+    function refreshMail() { mailProc.running = true }
 
     // ---- weather (shared wttr.in helper) --------------------------------------
     property string weather: ""
@@ -540,7 +564,9 @@ Singleton {
         function mixer(): void      { store.mixerOpen = !store.mixerOpen }
         function brightness(): void { store.briOpen = !store.briOpen }
         function sys(): void        { store.sysOpen = !store.sysOpen }
-        function dismiss(): void  { store.dismissAll() }
+        function clip(): void       { store.clipOpen = !store.clipOpen }
+        function refreshMail(): void { store.refreshMail() }
+        function dismiss(): void    { store.dismissAll() }
         function dnd(): void      { store.dnd = !store.dnd }
         function refreshVpn(): void { store.refreshNet() }
         function barShow(): void    { store.barHidden = false }

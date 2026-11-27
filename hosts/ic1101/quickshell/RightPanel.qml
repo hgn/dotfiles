@@ -4,13 +4,34 @@ import Quickshell.Widgets
 import Quickshell.Bluetooth
 import Quickshell.Services.SystemTray
 
-// Right floating glass panel: CPU/RAM/Temp telemetry, tray, idle inhibitor,
-// VPN, WLAN, BT, audio, backlight, power profile, battery, power menu.
+// Right floating glass panel: unread mail, RAM/Temp telemetry, tray, clipboard,
+// idle inhibitor, VPN, WLAN, BT, audio, backlight, power profile, battery, power menu.
 Panel {
     id: root
     required property var barWindow
     dockRight: true
     spacing: 1
+
+    // Unread mail indicator (live IMAP INBOX, fallback notmuch)
+    Chip {
+        id: mailChip
+        visible: Store.mailUnread > 0
+        padX: 8
+        spacing: 6
+        tooltip: Store.mailUnread + " ungelesene E-Mail" + (Store.mailUnread === 1 ? "" : "s") + " in INBOX\nLinksklick: aktualisieren · Rechtsklick: Drop-down-Terminal"
+        Icon { code: 0xF01EE; size: Theme.fontSize + 1; color: Theme.purple }
+        Txt {
+            text: String(Store.mailUnread)
+            color: Theme.fgBright
+            font.weight: Font.SemiBold
+        }
+        onClicked: m => {
+            if (m.button === Qt.RightButton) Store.run("hyprctl dispatch 'hl.dsp.workspace.toggle_special(\"term\")'")
+            else Store.refreshMail()
+        }
+    }
+
+    Divider { visible: mailChip.visible }
 
     // Technical telemetry: RAM + Temp (click opens detailed SysPopup with CPU graph)
     Chip {
@@ -18,6 +39,8 @@ Panel {
         padX: 8
         spacing: 7
         color: hovered || Store.sysOpen ? Theme.hl : "transparent"
+        tooltip: "System  ·  CPU " + Math.round(Store.cpu * 100) + "%  ·  Load " + (Store.load || "–")
+               + "\nRAM: " + Store.memUsed.toFixed(1) + " / " + Store.memTotal.toFixed(0) + " GiB  ·  Temp: " + Math.round(Store.temp) + " °C"
 
         Icon { code: 0xF035B; size: Theme.fontSize + 1; color: Store.memUsed / Store.memTotal > 0.8 ? Theme.orange : Theme.purple }
         Txt {
@@ -74,6 +97,23 @@ Panel {
         }
     }
 
+    // Clipboard history popup (left: popup, right: fuzzel picker)
+    Chip {
+        id: clipChip
+        padX: 7
+        color: hovered || Store.clipOpen ? Theme.hl : "transparent"
+        tooltip: "Zwischenablage (cliphist)\nLinksklick: Verlauf · Rechtsklick / Super+C: Fuzzel-Suche"
+        Icon {
+            code: 0xF014C
+            size: Theme.fontSize + 1
+            color: Store.clipOpen ? Theme.purple : Theme.fg
+        }
+        onClicked: m => {
+            if (m.button === Qt.RightButton) Store.run("cliphist list | fuzzel --dmenu --prompt '󰅌  Clipboard › ' | cliphist decode | wl-copy")
+            else Store.clipOpen = !Store.clipOpen
+        }
+    }
+
     // Idle inhibitor
     Chip {
         padX: 7
@@ -105,6 +145,11 @@ Panel {
     // Network / WLAN
     Chip {
         padX: 8
+        tooltip: Store.netType === "wifi"
+            ? ("WLAN: " + Store.netLabel + " (" + Store.wifiSignal + "%)" + (Store.netIp ? "\nIP: " + Store.netIp : "") + "\nLinksklick: WLAN-Menü · Rechtsklick: Einstellungen")
+            : Store.netType === "ethernet"
+              ? ("Ethernet: " + Store.netLabel + (Store.netIp ? "\nIP: " + Store.netIp : "") + "\nLinksklick: WLAN-Menü · Rechtsklick: Einstellungen")
+              : "Netzwerk: offline\nLinksklick: WLAN-Menü · Rechtsklick: Einstellungen"
         Icon {
             code: Store.netType === "wifi" ? Store.wifiIcon(Store.wifiSignal)
                 : Store.netType === "ethernet" ? 0xF0200
@@ -129,7 +174,13 @@ Panel {
         padX: 7
         readonly property var adapter: Bluetooth.defaultAdapter
         readonly property bool on: adapter !== null && adapter.enabled
-        readonly property int connected: Bluetooth.devices.values.filter(d => d.connected).length
+        readonly property var connectedDevs: Bluetooth.devices.values.filter(d => d.connected)
+        readonly property int connected: connectedDevs.length
+        tooltip: !on
+            ? "Bluetooth aus\nLinksklick: einschalten · Rechtsklick: Manager"
+            : connected > 0
+              ? ("Bluetooth verbunden (" + connected + ")\n" + connectedDevs.map(d => d.name || d.address).join(", ") + "\nLinksklick: aus · Rechtsklick: Manager")
+              : "Bluetooth aktiv (keine Geräte)\nLinksklick: aus · Rechtsklick: Manager"
         Icon {
             code: !btChip.on ? 0xF00B2 : btChip.connected > 0 ? 0xF00B1 : 0xF00AF
             size: Theme.fontSize + 2
@@ -151,6 +202,9 @@ Panel {
         id: volChip
         padX: 8
         color: hovered || Store.mixerOpen ? Theme.hl : "transparent"
+        tooltip: (Store.muted ? "Audio stumm" : "Lautstärke: " + Math.round(Store.volume * 100) + "%")
+               + (Store.sink ? "\nAusgabe: " + Store.nodeName(Store.sink) : "")
+               + "\nKlick: Mixer · Mittelklick: Stumm · Scroll: ±5%"
         Icon {
             code: Store.volumeIcon(Store.volume, Store.muted)
             size: Theme.fontSize + 2
@@ -176,6 +230,7 @@ Panel {
         visible: Store.brightnessAvailable
         padX: 8
         color: hovered || Store.briOpen ? Theme.hl : "transparent"
+        tooltip: "Helligkeit: " + Math.round(Store.brightness * 100) + "%\nKlick: Regler · Scroll: ±5%"
         Icon {
             code: Store.brightnessIcon(Store.brightness)
             size: Theme.fontSize + 2
@@ -190,6 +245,8 @@ Panel {
         onClicked: Store.briOpen = !Store.briOpen
         onWheel: w => Store.stepBrightness(w.angleDelta.y > 0 ? 0.05 : -0.05)
     }
+
+    Divider {}
 
     // Power profile (click cycles power-saver -> balanced -> performance)
     Chip {
@@ -212,6 +269,9 @@ Panel {
         readonly property bool charging: Store.batStatus === "Charging" || Store.batStatus === "Full"
         readonly property bool warn: !charging && Store.batPercent <= 25 && Store.batPercent > 10
         readonly property bool crit: !charging && Store.batPercent <= 10
+        tooltip: "Akku: " + Store.batPercent + "% (" + (Store.batStatus === "Charging" ? "lädt" : Store.batStatus === "Discharging" ? "entlädt" : Store.batStatus) + ")"
+               + (Store.batWatts > 0.1 ? ("\nLeistung: " + Store.batWatts.toFixed(1) + " W" + (Store.batTime ? "  ·  Restzeit: " + Store.batTime : "")) : "")
+               + "\nKlick: System-Details"
 
         property real critPulse: 0
         SequentialAnimation on critPulse {
@@ -246,6 +306,7 @@ Panel {
     Chip {
         padX: 9
         hoverColor: Theme.red
+        tooltip: "Sitzungsmenü\nSperren · Standby · Abmelden · Neustart · Ausschalten"
         Icon {
             code: 0xF0425
             size: Theme.fontSize + 2
@@ -254,6 +315,7 @@ Panel {
         onClicked: Store.powerOpen = !Store.powerOpen
     }
 
+    ClipboardPopup { anchorItem: clipChip; barWindow: root.barWindow }
     Mixer { anchorItem: volChip; barWindow: root.barWindow }
     BrightnessPopup { anchorItem: briChip; barWindow: root.barWindow }
     SysPopup { anchorItem: sysChip; barWindow: root.barWindow }

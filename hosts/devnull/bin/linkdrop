@@ -14,10 +14,11 @@ from urllib.parse import urlparse, parse_qs
 import hmac
 import os
 import re
+import socket
 import subprocess
 import sys
 
-BIND = os.environ.get("LINKDROP_BIND", "0.0.0.0")
+BIND = os.environ.get("LINKDROP_BIND", "::")
 PORT = int(os.environ.get("LINKDROP_PORT", "8765"))
 TOKEN_FILE = os.path.expanduser(
     os.environ.get("LINKDROP_TOKEN_FILE", "~/.config/linkdrop/token")
@@ -139,9 +140,18 @@ class Handler(BaseHTTPRequestHandler):
             self._reply(200, "copied (no url)")
 
 
+class DualStackHTTPServer(ThreadingHTTPServer):
+    address_family = socket.AF_INET6
+
+    def server_bind(self) -> None:
+        self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
+        super().server_bind()
+
+
 def main() -> None:
-    server = ThreadingHTTPServer((BIND, PORT), Handler)
-    print(f"linkdrop listening on {BIND}:{PORT}", flush=True)
+    cls = DualStackHTTPServer if ":" in BIND else ThreadingHTTPServer
+    server = cls((BIND, PORT), Handler)
+    print(f"linkdrop listening on [{BIND}]:{PORT}", flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

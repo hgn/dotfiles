@@ -17,7 +17,9 @@ link hosts/devnull/mimeapps.list        "$HOME/.config/mimeapps.list"
 
 # Host-specific helper scripts
 link hosts/devnull/bin/audio-output     "$HOME/.local/bin/audio-output"
+link hosts/devnull/bin/linkdrop         "$HOME/.local/bin/linkdrop"
 
-# Background email-sync systemd user timer (desktop only)
+# Background systemd user services/timers (desktop only)
 link hosts/devnull/systemd/user/email-sync.service "$HOME/.config/systemd/user/email-sync.service"
 link hosts/devnull/systemd/user/email-sync.timer   "$HOME/.config/systemd/user/email-sync.timer"
+link hosts/devnull/systemd/user/linkdrop.service   "$HOME/.config/systemd/user/linkdrop.service"

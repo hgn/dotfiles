@@ -1,30 +1,33 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 echo -e "Starting email-classify: \e[32mcategorizing\e[0m emails via notmuch..."
 START_TIME=$(date +%s.%N)
 
-# linux-pm
-notmuch tag +linux-pm +list -inbox -- folder:Lists.linux-pm
-notmuch tag +keep-longer +linux-pm-intel -- tag:linux-pm and subject:\*intel\*
-notmuch tag +keep-longer +linux-pm-intel -- tag:linux-pm and subject:\*rapl\*
-notmuch tag +killed -- tag:linux-pm and not tag:keep-longer and date:..365days
-notmuch tag +killed -- tag:linux-pm and date:..1024days
-# lkml stuff
-notmuch tag +lkml +list -inbox -- folder:Lists.lkml
-notmuch tag +keep-infty -- tag:lkml and to:hagen.pfeifer@jauu.net
-# keep all messages which I tagged important for ever
-notmuch tag +keep-infty -- tag:flagged
-notmuch tag +keep-longer +linux-perf -- tag:lkml and subject:perf
-notmuch tag +keep-longer +linux-trace -- tag:lkml and subject:trace
-notmuch tag +keep-longer +linux-trace -- tag:lkml and subject:ftrace
-notmuch tag +keep-longer +linux-bpf  -- tag:lkml and subject:ebpf
-notmuch tag +keep-longer +linux-bpf  -- tag:lkml and subject:bpf
-# mark all messages older 1 month and not to me, not perf, trace as "killed"
-# please not, month means "not that month", not 30 days.
-notmuch tag +killed -- tag:lkml and not tag:keep-longer and not tag:keep-infty and date:..30days
-notmuch tag +killed -- tag:lkml and not tag:keep-infty and date:..365days
-# clean up Trash older than 120 days
-notmuch tag +killed -- folder:Trash and not tag:keep-infty and date:..120days
+# Phase 1: base folder tags (only touch messages missing the expected tags)
+notmuch tag --batch <<'EOF'
++linux-pm +list -inbox -- folder:Lists.linux-pm and (not tag:linux-pm or not tag:list or tag:inbox)
++lkml +list -inbox -- folder:Lists.lkml and (not tag:lkml or not tag:list or tag:inbox)
++keep-infty -- tag:flagged and not tag:keep-infty
+EOF
+
+# Phase 2: topic and retention tags (sees Phase 1 commits)
+notmuch tag --batch <<'EOF'
++keep-longer +linux-pm-intel -- tag:linux-pm and (not tag:keep-longer or not tag:linux-pm-intel) and (subject:*intel* or subject:*rapl*)
++keep-infty -- tag:lkml and not tag:keep-infty and to:hagen.pfeifer@jauu.net
++keep-longer +linux-perf -- tag:lkml and (not tag:keep-longer or not tag:linux-perf) and subject:perf
++keep-longer +linux-trace -- tag:lkml and (not tag:keep-longer or not tag:linux-trace) and (subject:trace or subject:ftrace)
++keep-longer +linux-bpf -- tag:lkml and (not tag:keep-longer or not tag:linux-bpf) and (subject:ebpf or subject:bpf)
+EOF
+
+# Phase 3: mark expired messages as killed (sees all keep-* tags from Phase 2)
+notmuch tag --batch <<'EOF'
++killed -- tag:linux-pm and not tag:killed and not tag:keep-longer and date:..365days
++killed -- tag:linux-pm and not tag:killed and date:..1024days
++killed -- tag:lkml and not tag:killed and not tag:keep-longer and not tag:keep-infty and date:..30days
++killed -- tag:lkml and not tag:killed and not tag:keep-infty and date:..365days
++killed -- folder:Trash and not tag:killed and not tag:keep-infty and date:..120days
+EOF
 
 END_TIME=$(date +%s.%N)
 ELAPSED=$(awk -v t1="$START_TIME" -v t2="$END_TIME" 'BEGIN{printf "%.2f", t2-t1}')
